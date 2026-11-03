@@ -1,4 +1,4 @@
-import { createThreeWorld } from "./three-world.js?v=threejs-phase1";
+import { createThreeWorld } from "./three-world.js?v=fishing-glb-1";
 
 const MODES = [
   { id: 1, eyebrow: "혼자 놀기", title: "MODE 01", subtitle: "낚시터", scene: "숲속 낚시터" },
@@ -21,7 +21,7 @@ let toastTimer;
 let lastTap = 0;
 let activeWorlds = [];
 const homeLook = { x: 0, y: 0 };
-const worldPlayer = { x: 0, z: 3, yaw: 0, pitch: 0, bob: 0 };
+const worldPlayer = { x: 0, y: 3.4, z: 3, yaw: 0, pitch: 0, bob: 0 };
 const movement = { keys: new Set(), x: 0, y: 0 };
 let navigationFrame = 0;
 let navigationTime = performance.now();
@@ -53,8 +53,9 @@ function bottomNav() {
   return `<nav class="bottom-nav" aria-label="VR 도구">${items.map(([id,src,label]) => `<button class="nav-item ${state.nav===id?"active":""}" type="button" data-nav="${id}" aria-label="${label}"><img src="${src}" alt="" /></button>`).join("")}</nav>`;
 }
 
-function shared3DBackdrop(theme = "room") {
-  return `<canvas class="home-3d home-3d--${theme}" data-theme="${theme}" width="1280" height="720" aria-hidden="true"></canvas><div class="home-3d-wash home-3d-wash--${theme}"></div>`;
+function shared3DBackdrop(theme = "room", modelUrl = "") {
+  const modelAttribute = modelUrl ? ` data-model="${modelUrl}"` : "";
+  return `<canvas class="home-3d home-3d--${theme}" data-theme="${theme}"${modelAttribute} width="1280" height="720" aria-hidden="true"></canvas><div class="home-3d-wash home-3d-wash--${theme}"></div>`;
 }
 
 function homeScene() {
@@ -106,7 +107,8 @@ function worldHud({square=false,dimmed=false}={}) {
 function worldScene(square=false) {
   const themes = { 1: "fishing", 2: "beads", 3: "escape" };
   const theme = square ? "room" : themes[state.mode];
-  return `${shared3DBackdrop(theme)}${worldHud({square})}`;
+  const modelUrl = !square && state.mode === 1 ? "./assets/models/fishing_forest.glb?v=fishing-forest-1" : "";
+  return `${shared3DBackdrop(theme,modelUrl)}${worldHud({square})}`;
 }
 
 function stars(group,value) {
@@ -115,7 +117,8 @@ function stars(group,value) {
 
 function reviewScene() {
   const themes = { 1: "fishing", 2: "beads", 3: "escape" };
-  return `${shared3DBackdrop(themes[state.mode])}${worldHud({dimmed:true})}
+  const modelUrl = state.mode === 1 ? "./assets/models/fishing_forest.glb?v=fishing-forest-1" : "";
+  return `${shared3DBackdrop(themes[state.mode],modelUrl)}${worldHud({dimmed:true})}
     <section class="ui-zone panel-zone" aria-label="리뷰">
       <button class="pill review-title" type="button" data-action="home">REVIEW</button>
       <div class="review-grid">
@@ -148,7 +151,7 @@ function startHomeWorld(canvas) {
   return createThreeWorld(canvas, {
     getCameraState: () => ({
       x: worldPlayer.x,
-      y: 3.4 + worldPlayer.bob,
+      y: worldPlayer.y + worldPlayer.bob,
       z: worldPlayer.z,
       yaw: worldPlayer.yaw + homeLook.x * .055,
       pitch: worldPlayer.pitch + homeLook.y * .035
@@ -158,9 +161,11 @@ function startHomeWorld(canvas) {
 }
 
 function resetPlayer(showMessage = true) {
+  const inFishingWorld = state.mode === 1 && ["world","review"].includes(state.screen);
   worldPlayer.x = 0;
-  worldPlayer.z = 3;
-  worldPlayer.yaw = 0;
+  worldPlayer.y = inFishingWorld ? 1.8 : 3.4;
+  worldPlayer.z = inFishingWorld ? 11.5 : 3;
+  worldPlayer.yaw = inFishingWorld ? Math.PI : 0;
   worldPlayer.pitch = 0;
   worldPlayer.bob = 0;
   homeLook.x = 0;
@@ -188,7 +193,7 @@ function updateNavigation(time) {
     const sin = Math.sin(worldPlayer.yaw), cos = Math.cos(worldPlayer.yaw);
     const inThemedWorld = ["world","review"].includes(state.screen);
     const activeTheme = inThemedWorld ? ({1:"fishing",2:"beads",3:"escape"}[state.mode]) : "room";
-    const bounds = activeTheme === "fishing" ? { x: 14.5, near: 2.5, far: 9.2 }
+    const bounds = activeTheme === "fishing" ? { x: 2.3, near: 5.5, far: 12.3 }
       : activeTheme === "beads" ? { x: 18.5, near: 2.5, far: 40 }
       : activeTheme === "escape" ? { x: 16.5, near: 2.5, far: 39.5 }
       : { x: 18.5, near: 2.5, far: 39 };
@@ -256,7 +261,7 @@ function initTouchControls() {
 }
 
 function bindInteractions() {
-  document.querySelectorAll("[data-action='home']").forEach(el=>el.addEventListener("click",()=>{state.screen="home";state.nav="chat";render();}));
+  document.querySelectorAll("[data-action='home']").forEach(el=>el.addEventListener("click",()=>{state.screen="home";state.nav="chat";resetPlayer(false);render();}));
   document.querySelectorAll("[data-action='square']").forEach(el=>el.addEventListener("click",()=>{state.screen="square";state.nav="phone";render();}));
   document.querySelectorAll("[data-action='world']").forEach(el=>el.addEventListener("click",()=>{state.screen="world";state.nav="chat";resetPlayer(false);render();}));
   document.querySelectorAll("[data-mode-card]").forEach(el=>el.addEventListener("click",e=>{if(e.target.closest("[data-enter]"))return;state.mode=Number(el.dataset.modeCard);render();}));
@@ -340,4 +345,5 @@ document.addEventListener("keyup",event=>movement.keys.delete(event.key.toLowerC
 if(navigator.maxTouchPoints>0 || "ontouchstart" in window) document.body.classList.add("touch-capable");
 initTouchControls();
 navigationFrame=requestAnimationFrame(updateNavigation);
+resetPlayer(false);
 loadIconData().finally(render);

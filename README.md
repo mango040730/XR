@@ -8,6 +8,8 @@ Figma의 `UI 인터페이스` 디자인을 바탕으로 만든 정적 웹앱입�
 
 Three.js와 애드온은 공식 설치 가이드 방식의 import map으로 같은 버전(`0.187.0`)을 사용합니다. `three-world.js`에는 향후 Blender GLB를 불러오기 위한 `GLTFLoader`와 `loadGLB()` 진입점이 포함되어 있습니다.
 
+MODE 01은 설정 화면의 `ENTER`로 월드에 진입할 때 `assets/models/fishing_forest.glb`를 불러옵니다. 홈과 설정 화면에서는 GLB를 로드하지 않습니다.
+
 ## 실행
 
 ```bash

@@ -79,6 +79,8 @@ function disposeMaterial(material) {
 }
 
 export function createThreeWorld(canvas, { getCameraState, modelUrl = null } = {}) {
+  const hasExternalModel = Boolean(modelUrl);
+  const backgroundColor = hasExternalModel ? 0x82928a : 0xb8aa98;
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
@@ -90,11 +92,11 @@ export function createThreeWorld(canvas, { getCameraState, modelUrl = null } = {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
-  renderer.setClearColor(0xb8aa98, 1);
+  renderer.setClearColor(backgroundColor, 1);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xb8aa98);
-  scene.fog = new THREE.Fog(0xb8aa98, 38, 78);
+  scene.background = new THREE.Color(backgroundColor);
+  scene.fog = new THREE.Fog(backgroundColor, hasExternalModel ? 24 : 38, hasExternalModel ? 58 : 78);
 
   const camera = new THREE.PerspectiveCamera(70, VIEW_WIDTH / VIEW_HEIGHT, 0.1, 120);
   camera.rotation.order = "YXZ";
@@ -108,7 +110,7 @@ export function createThreeWorld(canvas, { getCameraState, modelUrl = null } = {
   fill.position.set(9, 8, 30);
   scene.add(fill);
 
-  const { display } = buildMigrationRoom(scene);
+  const migrationRoom = hasExternalModel ? null : buildMigrationRoom(scene);
   const modelRoot = new THREE.Group();
   modelRoot.name = "glb-model-root";
   scene.add(modelRoot);
@@ -119,33 +121,49 @@ export function createThreeWorld(canvas, { getCameraState, modelUrl = null } = {
   let disposed = false;
 
   async function loadGLB(url, transform = {}) {
+    canvas.dataset.modelStatus = "loading";
     const gltf = await loader.loadAsync(url);
     const model = gltf.scene;
     model.name ||= "loaded-glb-model";
-    const position = transform.position || [0, 0, 20];
+    const position = transform.position || [0, 0, 0];
     const rotation = transform.rotation || [0, 0, 0];
     const scale = transform.scale ?? 1;
     model.position.set(position[0], position[1], position[2]);
     model.rotation.set(rotation[0], rotation[1], rotation[2]);
     Array.isArray(scale) ? model.scale.set(scale[0], scale[1], scale[2]) : model.scale.setScalar(scale);
+    const maxAnisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+    model.traverse(object => {
+      if (!object.isMesh) return;
+      object.frustumCulled = true;
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      materials.forEach(material => {
+        if (material?.map) material.map.anisotropy = maxAnisotropy;
+      });
+    });
     modelRoot.add(model);
     if (gltf.animations.length) {
       const mixer = new THREE.AnimationMixer(model);
       gltf.animations.forEach(clip => mixer.clipAction(clip).play());
       mixers.push(mixer);
     }
+    canvas.dataset.modelStatus = "ready";
     return gltf;
   }
 
-  if (modelUrl) loadGLB(modelUrl).catch(error => console.error("GLB load failed", error));
+  if (modelUrl) loadGLB(modelUrl).catch(error => {
+    canvas.dataset.modelStatus = "error";
+    console.error("GLB load failed", error);
+  });
 
   function animate(time) {
     if (disposed) return;
     const cameraState = getCameraState?.() || { x: 0, y: 3.4, z: 3, yaw: 0, pitch: 0 };
     camera.position.set(cameraState.x, cameraState.y, cameraState.z);
     camera.rotation.set(cameraState.pitch, Math.PI + cameraState.yaw, 0);
-    display.rotation.y = time * 0.00035;
-    display.position.y = 4.25 + Math.sin(time * 0.0012) * 0.08;
+    if (migrationRoom) {
+      migrationRoom.display.rotation.y = time * 0.00035;
+      migrationRoom.display.position.y = 4.25 + Math.sin(time * 0.0012) * 0.08;
+    }
     const delta = Math.min(clock.getDelta(), 0.05);
     mixers.forEach(mixer => mixer.update(delta));
     renderer.render(scene, camera);

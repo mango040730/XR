@@ -6,7 +6,7 @@ const MODES = [
   { id: 3, eyebrow: "협력", title: "MODE 03", subtitle: "방탈출", scene: "방탈출" },
 ];
 
-const ROOM_MODEL_URL = "./assets/models/room.glb?v=room-1";
+const ROOM_MODEL_URL = "./assets/models/room.glb?v=room-2";
 
 const ICONS = {
   users: "./assets/users.svg", settings: "./assets/settings.svg", bell: "./assets/bell.svg",
@@ -165,9 +165,9 @@ function startHomeWorld(canvas) {
 function resetPlayer(showMessage = true) {
   const inFishingWorld = state.mode === 1 && ["world","review"].includes(state.screen);
   const inRoomModel = ["home","settings"].includes(state.screen);
-  worldPlayer.x = 0;
+  worldPlayer.x = inRoomModel ? -.72 : 0;
   worldPlayer.y = inFishingWorld ? 1.7 : inRoomModel ? 1.65 : 3.4;
-  worldPlayer.z = inFishingWorld ? 13.4 : inRoomModel ? 3.2 : 3;
+  worldPlayer.z = inFishingWorld ? 13.4 : inRoomModel ? 4.86 : 3;
   worldPlayer.yaw = inFishingWorld || inRoomModel ? Math.PI : 0;
   worldPlayer.pitch = 0;
   worldPlayer.bob = 0;
@@ -199,14 +199,14 @@ function updateNavigation(time) {
       ? "roomModel"
       : inThemedWorld ? ({1:"fishing",2:"beads",3:"escape"}[state.mode]) : "room";
     const bounds = activeTheme === "fishing" ? { x: 10.5, near: -12.2, far: 13.4 }
-      : activeTheme === "roomModel" ? { x: 3.55, near: -3.05, far: 3.2 }
+      : activeTheme === "roomModel" ? { x: 2.5, near: -5, far: 4.86 }
       : activeTheme === "beads" ? { x: 18.5, near: 2.5, far: 40 }
       : activeTheme === "escape" ? { x: 16.5, near: 2.5, far: 39.5 }
       : { x: 18.5, near: 2.5, far: 39 };
     const nextX = Math.max(-bounds.x, Math.min(bounds.x, worldPlayer.x + (sin * forward + cos * strafe) * speed));
     const nextZ = Math.max(bounds.near, Math.min(bounds.far, worldPlayer.z + (cos * forward - sin * strafe) * speed));
     const obstacles = activeTheme === "fishing" ? []
-      : activeTheme === "roomModel" ? [[-2.55,.55,1.45],[2.45,1.65,1.3],[-.55,-2.75,.8],[1.7,-2.8,1.35]]
+      : activeTheme === "roomModel" ? [[1.65,4.25,1.25],[-2.35,1.65,.85],[-.55,1.1,1.15],[1.72,-3.6,1.55]]
       : activeTheme === "beads" ? [[0,19,9.7],[-10,17,2.6],[10,17,2.6],[0,27,2.8]]
       : activeTheme === "escape" ? [[-12,34,5],[10,30,5.5],[0,42,5]]
       : [[-10,27,7],[0,16,3.5],[10,24,5],[8.5,19,2.5],[-16.3,36,4],[16,35,5],[-16,10,2]];

@@ -1,0 +1,48 @@
+name: Keep one GitHub Pages deployment
+
+on:
+  workflow_run:
+    workflows: ["pages-build-deployment"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: cleanup-github-pages-deployments
+  cancel-in-progress: true
+
+jobs:
+  cleanup:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all but the latest Pages deployment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          mapfile -t deployment_ids < <(
+            gh api "repos/$GH_REPO/deployments?environment=github-pages&per_page=100" \
+              --paginate \
+              --jq '.[] | [.id, .created_at] | @tsv' \
+              | sort -k2,2r \
+              | cut -f1
+          )
+
+          if (( ${#deployment_ids[@]} <= 1 )); then
+            echo "Only the current Pages deployment exists."
+            exit 0
+          fi
+
+          for deployment_id in "${deployment_ids[@]:1}"; do
+            gh api --method POST \
+              "repos/$GH_REPO/deployments/$deployment_id/statuses" \
+              -f state=inactive \
+              -f description='Superseded by the latest GitHub Pages deployment'
+            gh api --method DELETE "repos/$GH_REPO/deployments/$deployment_id"
+            echo "Deleted superseded deployment $deployment_id"
+          done

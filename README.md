@@ -12,6 +12,8 @@ MODE 01은 설정 화면의 `ENTER`로 월드에 진입할 때 `assets/models/fi
 
 홈의 모드 선택 화면과 각 모드의 설정 화면은 `assets/models/room.glb`를 공통 배경 공간으로 사용합니다.
 
+GitHub Pages는 항상 `https://mango040730.github.io/XR/` 한 주소로 제공됩니다. Pages 배포가 완료되면 `.github/workflows/cleanup-pages-deployments.yml`이 이전 배포 기록을 삭제하고 최신 기록 하나만 유지합니다.
+
 ## 실행
 
 ```bash

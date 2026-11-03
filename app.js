@@ -6,6 +6,8 @@ const MODES = [
   { id: 3, eyebrow: "협력", title: "MODE 03", subtitle: "방탈출", scene: "방탈출" },
 ];
 
+const ROOM_MODEL_URL = "./assets/models/room.glb?v=room-1";
+
 const ICONS = {
   users: "./assets/users.svg", settings: "./assets/settings.svg", bell: "./assets/bell.svg",
   notification: "./assets/notification.svg", logout: "./assets/logout.svg", phone: "./assets/phone.svg",
@@ -59,7 +61,7 @@ function shared3DBackdrop(theme = "room", modelUrl = "") {
 }
 
 function homeScene() {
-  return `${shared3DBackdrop()}
+  return `${shared3DBackdrop("room",ROOM_MODEL_URL)}
     <section class="ui-zone panel-zone" aria-label="모드 선택">
       <div class="topbar"><div class="top-left"><button class="pill home-pill" type="button" data-action="square">Go to SQUARE →</button></div>${actionCluster(false)}</div>
       <div class="home-copy"><h1>Chose your mode</h1><p>Choose an experience to configure your VR environment.</p></div>
@@ -79,7 +81,7 @@ function sectionData() {
 function settingsScene() {
   const mode = MODES[state.mode-1];
   const sections = sectionData();
-  return `${shared3DBackdrop()}
+  return `${shared3DBackdrop("room",ROOM_MODEL_URL)}
     <section class="ui-zone panel-zone" aria-label="환경 설정">
       ${topbar(mode.title,{logout:true,homeAction:false})}
       <aside class="settings-sidebar"><div class="panel-kicker">SECTIONS</div><div class="section-list">
@@ -162,10 +164,11 @@ function startHomeWorld(canvas) {
 
 function resetPlayer(showMessage = true) {
   const inFishingWorld = state.mode === 1 && ["world","review"].includes(state.screen);
+  const inRoomModel = ["home","settings"].includes(state.screen);
   worldPlayer.x = 0;
-  worldPlayer.y = inFishingWorld ? 1.7 : 3.4;
-  worldPlayer.z = inFishingWorld ? 13.4 : 3;
-  worldPlayer.yaw = inFishingWorld ? Math.PI : 0;
+  worldPlayer.y = inFishingWorld ? 1.7 : inRoomModel ? 1.65 : 3.4;
+  worldPlayer.z = inFishingWorld ? 13.4 : inRoomModel ? 3.2 : 3;
+  worldPlayer.yaw = inFishingWorld || inRoomModel ? Math.PI : 0;
   worldPlayer.pitch = 0;
   worldPlayer.bob = 0;
   homeLook.x = 0;
@@ -192,14 +195,18 @@ function updateNavigation(time) {
     const speed = (keys.has("shift") ? 8.4 : 4.8) * delta;
     const sin = Math.sin(worldPlayer.yaw), cos = Math.cos(worldPlayer.yaw);
     const inThemedWorld = ["world","review"].includes(state.screen);
-    const activeTheme = inThemedWorld ? ({1:"fishing",2:"beads",3:"escape"}[state.mode]) : "room";
+    const activeTheme = ["home","settings"].includes(state.screen)
+      ? "roomModel"
+      : inThemedWorld ? ({1:"fishing",2:"beads",3:"escape"}[state.mode]) : "room";
     const bounds = activeTheme === "fishing" ? { x: 10.5, near: -12.2, far: 13.4 }
+      : activeTheme === "roomModel" ? { x: 3.55, near: -3.05, far: 3.2 }
       : activeTheme === "beads" ? { x: 18.5, near: 2.5, far: 40 }
       : activeTheme === "escape" ? { x: 16.5, near: 2.5, far: 39.5 }
       : { x: 18.5, near: 2.5, far: 39 };
     const nextX = Math.max(-bounds.x, Math.min(bounds.x, worldPlayer.x + (sin * forward + cos * strafe) * speed));
     const nextZ = Math.max(bounds.near, Math.min(bounds.far, worldPlayer.z + (cos * forward - sin * strafe) * speed));
     const obstacles = activeTheme === "fishing" ? []
+      : activeTheme === "roomModel" ? [[-2.55,.55,1.45],[2.45,1.65,1.3],[-.55,-2.75,.8],[1.7,-2.8,1.35]]
       : activeTheme === "beads" ? [[0,19,9.7],[-10,17,2.6],[10,17,2.6],[0,27,2.8]]
       : activeTheme === "escape" ? [[-12,34,5],[10,30,5.5],[0,42,5]]
       : [[-10,27,7],[0,16,3.5],[10,24,5],[8.5,19,2.5],[-16.3,36,4],[16,35,5],[-16,10,2]];
@@ -264,10 +271,10 @@ function initTouchControls() {
 
 function bindInteractions() {
   document.querySelectorAll("[data-action='home']").forEach(el=>el.addEventListener("click",()=>{state.screen="home";state.nav="chat";resetPlayer(false);render();}));
-  document.querySelectorAll("[data-action='square']").forEach(el=>el.addEventListener("click",()=>{state.screen="square";state.nav="phone";render();}));
+  document.querySelectorAll("[data-action='square']").forEach(el=>el.addEventListener("click",()=>{state.screen="square";state.nav="phone";resetPlayer(false);render();}));
   document.querySelectorAll("[data-action='world']").forEach(el=>el.addEventListener("click",()=>{state.screen="world";state.nav="chat";resetPlayer(false);render();}));
   document.querySelectorAll("[data-mode-card]").forEach(el=>el.addEventListener("click",e=>{if(e.target.closest("[data-enter]"))return;state.mode=Number(el.dataset.modeCard);render();}));
-  document.querySelectorAll("[data-enter]").forEach(el=>el.addEventListener("click",()=>{state.mode=Number(el.dataset.enter);state.section=0;state.screen="settings";render();}));
+  document.querySelectorAll("[data-enter]").forEach(el=>el.addEventListener("click",()=>{state.mode=Number(el.dataset.enter);state.section=0;state.screen="settings";resetPlayer(false);render();}));
   document.querySelectorAll("[data-section]").forEach(el=>el.addEventListener("click",()=>{state.section=Number(el.dataset.section);render();}));
   document.querySelectorAll("[data-cycle]").forEach(el=>el.addEventListener("click",()=>{el.classList.toggle("active");showToast(el.dataset.cycle);}));
   document.querySelectorAll("[data-nav]").forEach(el=>el.addEventListener("click",()=>{state.nav=el.dataset.nav;if(state.nav==="heart")state.screen="review";render();}));
@@ -337,9 +344,9 @@ document.addEventListener("keydown",event=>{
   if(["w","a","s","d","q","e","shift","arrowup","arrowdown","arrowleft","arrowright"].includes(key)){
     movement.keys.add(key);event.preventDefault();return;
   }
-  if(["1","2","3"].includes(event.key)){state.mode=Number(event.key);state.screen="settings";render();}
+  if(["1","2","3"].includes(event.key)){state.mode=Number(event.key);state.screen="settings";resetPlayer(false);render();}
   else if(key==="r")resetPlayer();
-  else if(event.key==="Escape"||event.key==="Backspace"){state.screen="home";render();}
+  else if(event.key==="Escape"||event.key==="Backspace"){state.screen="home";resetPlayer(false);render();}
   else if(key==="v")toggleStereo();
 });
 document.addEventListener("keyup",event=>movement.keys.delete(event.key.toLowerCase()));

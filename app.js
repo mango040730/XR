@@ -1,3 +1,5 @@
+import { createThreeWorld } from "./three-world.js";
+
 const MODES = [
   { id: 1, eyebrow: "혼자 놀기", title: "MODE 01", subtitle: "낚시터", scene: "숲속 낚시터" },
   { id: 2, eyebrow: "친목도모", title: "MODE 02", subtitle: "비즈 만들기", scene: "함께하는 비즈 공방" },
@@ -17,7 +19,7 @@ if ([1,2,3].includes(Number(initialParams.get("mode")))) state.mode = Number(ini
 const eyes = [...document.querySelectorAll(".eye")];
 let toastTimer;
 let lastTap = 0;
-let homeWorldStops = [];
+let activeWorlds = [];
 const homeLook = { x: 0, y: 0 };
 const worldPlayer = { x: 0, z: 3, yaw: 0, pitch: 0, bob: 0 };
 const movement = { keys: new Set(), x: 0, y: 0 };
@@ -133,16 +135,34 @@ function sceneMarkup() {
 }
 
 function render() {
-  homeWorldStops.forEach(stop => stop());
-  homeWorldStops = [];
+  activeWorlds.forEach(world => world.dispose());
+  activeWorlds = [];
   const html=sceneMarkup();
   eyes.forEach(eye=>eye.innerHTML=html);
   bindInteractions();
-  document.querySelectorAll(".home-3d").forEach(canvas => homeWorldStops.push(startHomeWorld(canvas)));
+  document.querySelectorAll(".home-3d").forEach(canvas => activeWorlds.push(startHomeWorld(canvas)));
   requestAnimationFrame(fitScenes);
 }
 
 function startHomeWorld(canvas) {
+  try {
+    return createThreeWorld(canvas, {
+      getCameraState: () => ({
+        x: worldPlayer.x,
+        y: 3.4 + worldPlayer.bob,
+        z: worldPlayer.z,
+        yaw: worldPlayer.yaw + homeLook.x * .055,
+        pitch: worldPlayer.pitch + homeLook.y * .035
+      }),
+      modelUrl: canvas.dataset.model || null
+    });
+  } catch (error) {
+    console.error("Three.js WebGL initialization failed; using the Canvas fallback.", error);
+    return { dispose: startLegacyCanvasWorld(canvas) };
+  }
+}
+
+function startLegacyCanvasWorld(canvas) {
   const ctx = canvas.getContext("2d", { alpha: false });
   const width = canvas.width;
   const height = canvas.height;

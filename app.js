@@ -1,4 +1,4 @@
-import { createThreeWorld } from "./three-world.js?v=fishing-glb-1";
+import { createThreeWorld } from "./three-world.js?v=fishing-glb-2";
 
 const MODES = [
   { id: 1, eyebrow: "혼자 놀기", title: "MODE 01", subtitle: "낚시터", scene: "숲속 낚시터" },
@@ -107,7 +107,7 @@ function worldHud({square=false,dimmed=false}={}) {
 function worldScene(square=false) {
   const themes = { 1: "fishing", 2: "beads", 3: "escape" };
   const theme = square ? "room" : themes[state.mode];
-  const modelUrl = !square && state.mode === 1 ? "./assets/models/fishing_forest.glb?v=fishing-forest-1" : "";
+  const modelUrl = !square && state.mode === 1 ? "./assets/models/fishing_forest.glb?v=fishing-forest-2" : "";
   return `${shared3DBackdrop(theme,modelUrl)}${worldHud({square})}`;
 }
 
@@ -117,7 +117,7 @@ function stars(group,value) {
 
 function reviewScene() {
   const themes = { 1: "fishing", 2: "beads", 3: "escape" };
-  const modelUrl = state.mode === 1 ? "./assets/models/fishing_forest.glb?v=fishing-forest-1" : "";
+  const modelUrl = state.mode === 1 ? "./assets/models/fishing_forest.glb?v=fishing-forest-2" : "";
   return `${shared3DBackdrop(themes[state.mode],modelUrl)}${worldHud({dimmed:true})}
     <section class="ui-zone panel-zone" aria-label="리뷰">
       <button class="pill review-title" type="button" data-action="home">REVIEW</button>
@@ -163,8 +163,8 @@ function startHomeWorld(canvas) {
 function resetPlayer(showMessage = true) {
   const inFishingWorld = state.mode === 1 && ["world","review"].includes(state.screen);
   worldPlayer.x = 0;
-  worldPlayer.y = inFishingWorld ? 1.8 : 3.4;
-  worldPlayer.z = inFishingWorld ? 11.5 : 3;
+  worldPlayer.y = inFishingWorld ? 1.7 : 3.4;
+  worldPlayer.z = inFishingWorld ? 13.4 : 3;
   worldPlayer.yaw = inFishingWorld ? Math.PI : 0;
   worldPlayer.pitch = 0;
   worldPlayer.bob = 0;
@@ -193,7 +193,7 @@ function updateNavigation(time) {
     const sin = Math.sin(worldPlayer.yaw), cos = Math.cos(worldPlayer.yaw);
     const inThemedWorld = ["world","review"].includes(state.screen);
     const activeTheme = inThemedWorld ? ({1:"fishing",2:"beads",3:"escape"}[state.mode]) : "room";
-    const bounds = activeTheme === "fishing" ? { x: 2.3, near: 5.5, far: 12.3 }
+    const bounds = activeTheme === "fishing" ? { x: 10.5, near: -12.2, far: 13.4 }
       : activeTheme === "beads" ? { x: 18.5, near: 2.5, far: 40 }
       : activeTheme === "escape" ? { x: 16.5, near: 2.5, far: 39.5 }
       : { x: 18.5, near: 2.5, far: 39 };
@@ -203,7 +203,9 @@ function updateNavigation(time) {
       : activeTheme === "beads" ? [[0,19,9.7],[-10,17,2.6],[10,17,2.6],[0,27,2.8]]
       : activeTheme === "escape" ? [[-12,34,5],[10,30,5.5],[0,42,5]]
       : [[-10,27,7],[0,16,3.5],[10,24,5],[8.5,19,2.5],[-16.3,36,4],[16,35,5],[-16,10,2]];
-    const isClear = (x,z) => obstacles.every(([ox,oz,radius]) => Math.hypot(x-ox,z-oz) > radius);
+    const isClear = activeTheme === "fishing"
+      ? (x,z) => !(Math.abs(x) < 5.2 && z > -10.2 && z < 10.2)
+      : (x,z) => obstacles.every(([ox,oz,radius]) => Math.hypot(x-ox,z-oz) > radius);
     if (isClear(nextX,worldPlayer.z)) worldPlayer.x = nextX;
     if (isClear(worldPlayer.x,nextZ)) worldPlayer.z = nextZ;
     worldPlayer.bob = Math.sin(time * .012) * .055;

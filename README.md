@@ -1,6 +1,6 @@
 # VR Interface
 
-> Three.js 전환 작업은 `refactor/threejs-phase-1` 브랜치에서 단계적으로 진행합니다. 전체 계획은 [THREE_REFACTOR_PLAN.md](./THREE_REFACTOR_PLAN.md)를 참고하세요.
+> Three.js 전환은 `main` 브랜치에서 단계적으로 진행합니다. 전체 계획은 [THREE_REFACTOR_PLAN.md](./THREE_REFACTOR_PLAN.md)를 참고하세요.
 
 Figma의 `UI 인터페이스` 디자인을 바탕으로 만든 정적 웹앱입니다. 별도 빌드나 패키지 설치가 필요하지 않습니다.
 

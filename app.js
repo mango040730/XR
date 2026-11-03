@@ -1,4 +1,4 @@
-import { createThreeWorld } from "./three-world.js";
+import { createThreeWorld } from "./three-world.js?v=threejs-phase1";
 
 const MODES = [
   { id: 1, eyebrow: "혼자 놀기", title: "MODE 01", subtitle: "낚시터", scene: "숲속 낚시터" },

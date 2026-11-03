@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#d9d0c8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>VR Interface</title>
+    <link rel="preload" as="image" href="./assets/bell.svg" />
+    <link rel="preload" as="image" href="./assets/notification.svg" />
+    <link rel="preload" as="image" href="./assets/logout.svg" />
+    <link rel="preload" as="image" href="./assets/users.svg" />
+    <link rel="preload" as="image" href="./assets/settings.svg" />
+    <link rel="preload" as="image" href="./assets/phone.svg" />
+    <link rel="preload" as="image" href="./assets/chat.svg" />
+    <link rel="preload" as="image" href="./assets/heart.svg" />
+    <link rel="preload" as="image" href="./assets/star-filled.svg" />
+    <link rel="preload" as="image" href="./assets/star-empty.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="asset-cache" aria-hidden="true">
+      <img src="./assets/bell.svg" alt="" />
+      <img src="./assets/notification.svg" alt="" />
+      <img src="./assets/logout.svg" alt="" />
+      <img src="./assets/users.svg" alt="" />
+      <img src="./assets/settings.svg" alt="" />
+      <img src="./assets/phone.svg" alt="" />
+      <img src="./assets/chat.svg" alt="" />
+      <img src="./assets/heart.svg" alt="" />
+      <img src="./assets/star-filled.svg" alt="" />
+      <img src="./assets/star-empty.svg" alt="" />
+    </div>
+
+    <main id="viewer" aria-live="polite">
+      <section class="eye eye-left" aria-label="VR 화면"></section>
+      <section class="eye eye-right" aria-hidden="true"></section>
+    </main>
+
+    <div id="walkHint" aria-hidden="true">
+      <span class="walk-key">W</span><span class="walk-key">A</span><span class="walk-key">S</span><span class="walk-key">D</span>
+      <span>이동 · 드래그 시점 · R 초기화</span>
+    </div>
+
+    <div id="touchControls" aria-label="3D 공간 이동 컨트롤">
+      <div class="touch-control-group">
+        <div id="movePad" class="touch-pad" role="group" aria-label="이동 조이스틱">
+          <span class="touch-ring"></span><span id="moveStick" class="touch-stick"></span>
+        </div>
+        <span>MOVE</span>
+      </div>
+      <div class="touch-control-group">
+        <div id="lookPad" class="touch-pad look-pad" role="group" aria-label="시점 조이스틱">
+          <span class="look-mark">＋</span>
+        </div>
+        <span>LOOK</span>
+      </div>
+    </div>
+
+    <div id="portraitNotice" role="status">
+      <strong>아이폰을 가로로 돌려주세요</strong>
+      <span>VR 기기에 넣기 전 화면을 두 번 탭하면 좌우 화면으로 전환됩니다.</span>
+    </div>
+
+    <div id="toast" role="status"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>

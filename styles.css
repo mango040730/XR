@@ -33,6 +33,34 @@ body.stereo .eye-right { display: block; border-left: 1px solid rgba(255,255,255
   position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px;
   transform-origin: center; overflow: hidden; background: #f5f5f5;
 }
+.sauna-frame, .fishing-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #22271f; }
+.fishing-frame { background: #262d23; }
+.sauna-back {
+  position: absolute; left: 50%; top: 31px; z-index: 4; min-width: 150px; height: 40px; padding: 0 18px;
+  border: 1px solid rgba(231,232,217,.32); border-radius: 3px; background: rgba(31,39,29,.78); color: #ececdf;
+  font-size: 11px; font-weight: 600; letter-spacing: .1em; backdrop-filter: blur(14px); box-shadow: 0 8px 30px rgba(10,18,10,.16);
+  transform: translateX(-50%);
+}
+.sauna-back:hover { background: rgba(47,61,43,.92); transform: translateX(-50%); }
+.sauna-back:active { transform: translateX(-50%) scale(.97); }
+body.sauna-active #walkHint, body.sauna-active #touchControls { display: none !important; }
+body.indoor-fishing-active #touchControls { display: none !important; }
+.passthrough-hud { pointer-events: none; }
+.passthrough-hud .topbar, .passthrough-hud .bottom-nav, .passthrough-hud button { pointer-events: auto; }
+.fishing-action-dock {
+  position: absolute; left: 284px; top: 510px; width: 632px; height: 82px; padding: 8px 12px;
+  border: 1px solid rgba(141,144,146,.56); border-radius: 28px; background: rgba(43,49,43,.9);
+  display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 14px 38px rgba(9,18,12,.22);
+  backdrop-filter: blur(18px); pointer-events: auto;
+}
+.fishing-action-dock button {
+  width: 192px; height: 64px; padding: 0 13px; border: 0; border-radius: 20px; background: transparent; color: #f0f1e8;
+  display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; white-space: nowrap;
+}
+.fishing-action-dock button:hover { background: rgba(229,232,218,.12); }
+.fishing-action-dock svg { width: 22px; height: 22px; fill: none; stroke: #dce2c7; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+.fishing-action-dock kbd { margin-left: auto; min-width: 24px; height: 24px; padding: 2px 6px; border: 1px solid rgba(221,229,198,.3); border-radius: 6px; color: #d8dec7; background: rgba(35,46,35,.45); font-size: 10px; display: grid; place-items: center; }
+.fishing-dock-divider { width: 1px; height: 36px; background: rgba(220,226,195,.15); }
 .background, .background-wash { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .background { object-fit: cover; }
 .background-wash { background: rgba(245,245,245,.47); }

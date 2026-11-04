@@ -8,9 +8,13 @@ Figma의 `UI 인터페이스` 디자인을 바탕으로 만든 정적 웹앱입�
 
 Three.js와 애드온은 공식 설치 가이드 방식의 import map으로 같은 버전(`0.187.0`)을 사용합니다. `three-world.js`에는 향후 Blender GLB를 불러오기 위한 `GLTFLoader`와 `loadGLB()` 진입점이 포함되어 있습니다.
 
-MODE 01은 설정 화면의 `ENTER`로 월드에 진입할 때 `assets/models/fishing_forest.glb`를 불러옵니다. 홈과 설정 화면에서는 이 낚시터 GLB를 로드하지 않습니다.
+MODE 01 설정에서 `01 실내 낚시터`를 고른 뒤 `ENTER`를 누르면 `assets/indoor-fishing/`에 포함된 절차 생성형 1인칭 낚시 공간이 열립니다. 외부 GLB 없이 나무 데크, 실내 수조, 수면, 좌석, 낚싯대와 물고기를 Three.js 코드로 생성하며 걷기, 착석, 캐스팅, 입질, 릴 감기와 공간 사운드를 지원합니다. 부모 HUD의 빈 영역은 포인터 입력을 통과시켜 낚시터 캔버스 조작을 막지 않으며, 가운데 행동 도크에서 낚시/줄 감기, 앉기/일어서기, 공간 소리를 직접 실행할 수 있습니다.
+
+MODE 01 설정에서 `02 사우나`를 고른 뒤 `ENTER`를 누르면 시작 랜딩 없이 `assets/sauna/`의 1인칭 3D 사우나 내부로 바로 들어갑니다. 사우나의 온도 조절, 착석, 로일리(물 끼얹기), 땀 닦기, 공간 사운드, 이용 안내 UI를 그대로 사용할 수 있습니다.
 
 홈의 모드 선택 화면과 각 모드의 설정 화면은 `assets/models/room.glb`를 공통 배경 공간으로 사용합니다.
+
+MODE 03은 설정 화면의 `ENTER`로 월드에 진입할 때 `assets/models/escape_room.glb`를 불러옵니다.
 
 GitHub Pages는 항상 `https://mango040730.github.io/XR/` 한 주소로 제공됩니다. Pages 배포가 완료되면 `.github/workflows/cleanup-pages-deployments.yml`이 이전 배포 기록을 삭제하고 최신 기록 하나만 유지합니다.
 

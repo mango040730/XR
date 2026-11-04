@@ -1,12 +1,14 @@
-import { createThreeWorld } from "./three-world.js?v=fishing-glb-2";
+import { createThreeWorld } from "./three-world.js?v=escape-glb-1";
 
 const MODES = [
-  { id: 1, eyebrow: "혼자 놀기", title: "MODE 01", subtitle: "낚시터", scene: "숲속 낚시터" },
+  { id: 1, eyebrow: "혼자 놀기", title: "MODE 01", subtitle: "낚시터", scene: "실내 낚시터" },
   { id: 2, eyebrow: "친목도모", title: "MODE 02", subtitle: "비즈 만들기", scene: "함께하는 비즈 공방" },
   { id: 3, eyebrow: "협력", title: "MODE 03", subtitle: "방탈출", scene: "방탈출" },
 ];
 
 const ROOM_MODEL_URL = "./assets/models/room.glb?v=room-2";
+const FISHING_MODEL_URL = "./assets/models/fishing_forest.glb?v=fishing-forest-2";
+const ESCAPE_MODEL_URL = "./assets/models/escape_room.glb?v=escape-room-1";
 
 const ICONS = {
   users: "./assets/users.svg", settings: "./assets/settings.svg", bell: "./assets/bell.svg",
@@ -16,7 +18,7 @@ const ICONS = {
 
 const state = { screen: "home", mode: 1, section: 0, nav: "chat", stereo: false, modeRating: 3, connectionRating: 2 };
 const initialParams = new URLSearchParams(location.search);
-if (["home","settings","world","square","review"].includes(initialParams.get("screen"))) state.screen = initialParams.get("screen");
+if (["home","settings","world","square","review","sauna","indoorFishing"].includes(initialParams.get("screen"))) state.screen = initialParams.get("screen");
 if ([1,2,3].includes(Number(initialParams.get("mode")))) state.mode = Number(initialParams.get("mode"));
 const eyes = [...document.querySelectorAll(".eye")];
 let toastTimer;
@@ -55,6 +57,17 @@ function bottomNav() {
   return `<nav class="bottom-nav" aria-label="VR 도구">${items.map(([id,src,label]) => `<button class="nav-item ${state.nav===id?"active":""}" type="button" data-nav="${id}" aria-label="${label}"><img src="${src}" alt="" /></button>`).join("")}</nav>`;
 }
 
+function fishingActionDock() {
+  const actions = [
+    ["fish", "낚시 / 줄 감기", "F", `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v9a5 5 0 0 0 10 0V8"/><path d="M13 5h6v6"/><circle cx="6" cy="3" r="1"/></svg>`],
+    ["seat", "앉기 / 일어서기", "E", `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5"/><path d="M4 12h16v5H4z"/><path d="M6 17v3m12-3v3"/></svg>`],
+    ["sound", "공간 소리", "M", `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4h4l5 4V6L9 10H5z"/><path d="M17 9a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12"/></svg>`],
+  ];
+  return `<nav class="fishing-action-dock" aria-label="실내 낚시터 행동">${actions.map(([action,label,key,icon]) =>
+    `<button type="button" data-fishing-action="${action}">${icon}<span>${label}</span><kbd>${key}</kbd></button>`
+  ).join(`<span class="fishing-dock-divider" aria-hidden="true"></span>`)}</nav>`;
+}
+
 function shared3DBackdrop(theme = "room", modelUrl = "") {
   const modelAttribute = modelUrl ? ` data-model="${modelUrl}"` : "";
   return `<canvas class="home-3d home-3d--${theme}" data-theme="${theme}"${modelAttribute} width="1280" height="720" aria-hidden="true"></canvas><div class="home-3d-wash home-3d-wash--${theme}"></div>`;
@@ -73,7 +86,7 @@ function homeScene() {
 }
 
 function sectionData() {
-  if (state.mode === 1) return ["숲속 낚시터","배 낚시터","강릉 부둣가","산책"];
+  if (state.mode === 1) return ["실내 낚시터","사우나","강릉 부둣가","산책"];
   if (state.mode === 2) return ["비즈 팔찌","비즈 반지","키링 만들기","자유 공예"];
   return ["초급 방","탐정 사무실","금고실","최종 탈출"];
 }
@@ -98,19 +111,30 @@ function settingsScene() {
     </section>`;
 }
 
-function worldHud({square=false,dimmed=false}={}) {
+function worldHud({square=false,dimmed=false,passthrough=false,bottom="default"}={}) {
   const mode=MODES[state.mode-1];
-  return `<section class="ui-zone ${dimmed?"dimmed":""}" aria-label="${square?"SQAURE":mode.scene}">
+  return `<section class="ui-zone ${dimmed?"dimmed":""} ${passthrough?"passthrough-hud":""}" aria-label="${square?"SQAURE":mode.scene}">
     ${topbar(square?"SQAURE":mode.scene,{logout:square,people:!square&&state.mode===1})}
-    ${bottomNav()}
+    ${bottom==="fishing"?fishingActionDock():bottomNav()}
   </section>`;
 }
 
 function worldScene(square=false) {
   const themes = { 1: "fishing", 2: "beads", 3: "escape" };
+  const modelUrls = { 1: FISHING_MODEL_URL, 3: ESCAPE_MODEL_URL };
   const theme = square ? "room" : themes[state.mode];
-  const modelUrl = !square && state.mode === 1 ? "./assets/models/fishing_forest.glb?v=fishing-forest-2" : "";
+  const modelUrl = square ? "" : modelUrls[state.mode] || "";
   return `${shared3DBackdrop(theme,modelUrl)}${worldHud({square})}`;
+}
+
+function saunaScene() {
+  return `<iframe class="sauna-frame" src="./assets/sauna/index.html" title="숨 — 1인칭 3D 사우나" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    <button class="sauna-back" type="button" data-action="settings" aria-label="모드 1 환경 설정으로 돌아가기">← MODE 01 / 02</button>`;
+}
+
+function indoorFishingScene() {
+  return `<iframe class="fishing-frame" src="./assets/indoor-fishing/index.html" title="물결 — 1인칭 실내 낚시터" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    ${worldHud({passthrough:true,bottom:"fishing"})}`;
 }
 
 function stars(group,value) {
@@ -119,7 +143,7 @@ function stars(group,value) {
 
 function reviewScene() {
   const themes = { 1: "fishing", 2: "beads", 3: "escape" };
-  const modelUrl = state.mode === 1 ? "./assets/models/fishing_forest.glb?v=fishing-forest-2" : "";
+  const modelUrl = ({1:FISHING_MODEL_URL,3:ESCAPE_MODEL_URL})[state.mode] || "";
   return `${shared3DBackdrop(themes[state.mode],modelUrl)}${worldHud({dimmed:true})}
     <section class="ui-zone panel-zone" aria-label="리뷰">
       <button class="pill review-title" type="button" data-action="home">REVIEW</button>
@@ -136,12 +160,16 @@ function sceneMarkup() {
   if(state.screen==="world") body=worldScene(false);
   if(state.screen==="square") body=worldScene(true);
   if(state.screen==="review") body=reviewScene();
+  if(state.screen==="sauna") body=saunaScene();
+  if(state.screen==="indoorFishing") body=indoorFishingScene();
   return `<div class="scene" data-screen="${state.screen}">${body}</div>`;
 }
 
 function render() {
   activeWorlds.forEach(world => world.dispose());
   activeWorlds = [];
+  document.body.classList.toggle("sauna-active", state.screen === "sauna");
+  document.body.classList.toggle("indoor-fishing-active", state.screen === "indoorFishing");
   const html=sceneMarkup();
   eyes.forEach(eye=>eye.innerHTML=html);
   bindInteractions();
@@ -158,17 +186,19 @@ function startHomeWorld(canvas) {
       yaw: worldPlayer.yaw + homeLook.x * .055,
       pitch: worldPlayer.pitch + homeLook.y * .035
     }),
-    modelUrl: canvas.dataset.model || null
+    modelUrl: canvas.dataset.model || null,
+    environment: canvas.dataset.theme || "room"
   });
 }
 
 function resetPlayer(showMessage = true) {
   const inFishingWorld = state.mode === 1 && ["world","review"].includes(state.screen);
+  const inEscapeWorld = state.mode === 3 && ["world","review"].includes(state.screen);
   const inRoomModel = ["home","settings"].includes(state.screen);
   worldPlayer.x = inRoomModel ? -.72 : 0;
-  worldPlayer.y = inFishingWorld ? 1.7 : inRoomModel ? 1.65 : 3.4;
-  worldPlayer.z = inFishingWorld ? 13.4 : inRoomModel ? 4.86 : 3;
-  worldPlayer.yaw = inFishingWorld || inRoomModel ? Math.PI : 0;
+  worldPlayer.y = inFishingWorld || inEscapeWorld ? 1.7 : inRoomModel ? 1.65 : 3.4;
+  worldPlayer.z = inFishingWorld ? 13.4 : inEscapeWorld ? 2.35 : inRoomModel ? 4.86 : 3;
+  worldPlayer.yaw = inFishingWorld || inEscapeWorld || inRoomModel ? Math.PI : 0;
   worldPlayer.pitch = 0;
   worldPlayer.bob = 0;
   homeLook.x = 0;
@@ -201,14 +231,14 @@ function updateNavigation(time) {
     const bounds = activeTheme === "fishing" ? { x: 10.5, near: -12.2, far: 13.4 }
       : activeTheme === "roomModel" ? { x: 2.5, near: -5, far: 4.86 }
       : activeTheme === "beads" ? { x: 18.5, near: 2.5, far: 40 }
-      : activeTheme === "escape" ? { x: 16.5, near: 2.5, far: 39.5 }
+      : activeTheme === "escape" ? { x: 3.1, near: -2.7, far: 2.65 }
       : { x: 18.5, near: 2.5, far: 39 };
     const nextX = Math.max(-bounds.x, Math.min(bounds.x, worldPlayer.x + (sin * forward + cos * strafe) * speed));
     const nextZ = Math.max(bounds.near, Math.min(bounds.far, worldPlayer.z + (cos * forward - sin * strafe) * speed));
     const obstacles = activeTheme === "fishing" ? []
       : activeTheme === "roomModel" ? [[1.65,4.25,1.25],[-2.35,1.65,.85],[-.55,1.1,1.15],[1.72,-3.6,1.55]]
       : activeTheme === "beads" ? [[0,19,9.7],[-10,17,2.6],[10,17,2.6],[0,27,2.8]]
-      : activeTheme === "escape" ? [[-12,34,5],[10,30,5.5],[0,42,5]]
+      : activeTheme === "escape" ? [[-.75,.1,1.35],[-2.6,-2.4,.8],[2.5,-2.4,.8],[2.2,.2,1.1],[-2.75,-1.25,.75]]
       : [[-10,27,7],[0,16,3.5],[10,24,5],[8.5,19,2.5],[-16.3,36,4],[16,35,5],[-16,10,2]];
     const isClear = activeTheme === "fishing"
       ? (x,z) => !(Math.abs(x) < 5.2 && z > -10.2 && z < 10.2)
@@ -271,8 +301,16 @@ function initTouchControls() {
 
 function bindInteractions() {
   document.querySelectorAll("[data-action='home']").forEach(el=>el.addEventListener("click",()=>{state.screen="home";state.nav="chat";resetPlayer(false);render();}));
+  document.querySelectorAll("[data-action='settings']").forEach(el=>el.addEventListener("click",()=>{state.screen="settings";resetPlayer(false);render();}));
   document.querySelectorAll("[data-action='square']").forEach(el=>el.addEventListener("click",()=>{state.screen="square";state.nav="phone";resetPlayer(false);render();}));
-  document.querySelectorAll("[data-action='world']").forEach(el=>el.addEventListener("click",()=>{state.screen="world";state.nav="chat";resetPlayer(false);render();}));
+  document.querySelectorAll("[data-action='world']").forEach(el=>el.addEventListener("click",()=>{
+    state.screen = state.mode === 1 && state.section === 0
+      ? "indoorFishing"
+      : state.mode === 1 && state.section === 1 ? "sauna" : "world";
+    state.nav="chat";
+    resetPlayer(false);
+    render();
+  }));
   document.querySelectorAll("[data-mode-card]").forEach(el=>el.addEventListener("click",e=>{if(e.target.closest("[data-enter]"))return;state.mode=Number(el.dataset.modeCard);render();}));
   document.querySelectorAll("[data-enter]").forEach(el=>el.addEventListener("click",()=>{state.mode=Number(el.dataset.enter);state.section=0;state.screen="settings";resetPlayer(false);render();}));
   document.querySelectorAll("[data-section]").forEach(el=>el.addEventListener("click",()=>{state.section=Number(el.dataset.section);render();}));
@@ -280,6 +318,28 @@ function bindInteractions() {
   document.querySelectorAll("[data-nav]").forEach(el=>el.addEventListener("click",()=>{state.nav=el.dataset.nav;if(state.nav==="heart")state.screen="review";render();}));
   document.querySelectorAll("[data-rating]").forEach(el=>el.addEventListener("click",()=>{const key=el.dataset.rating==="mode"?"modeRating":"connectionRating";state[key]=Number(el.dataset.value);render();}));
   document.querySelectorAll("[data-toast]").forEach(el=>el.addEventListener("click",()=>showToast(el.dataset.toast)));
+  document.querySelectorAll("[data-fishing-action]").forEach(el=>el.addEventListener("click",()=>runFishingAction(el)));
+}
+
+function runFishingAction(button) {
+  const frame = button.closest(".scene")?.querySelector(".fishing-frame");
+  let fishing;
+  try { fishing = frame?.contentWindow?.fishingExperience; } catch (_) {}
+  if (!fishing) { showToast("낚시터를 준비 중입니다"); return; }
+  const action = button.dataset.fishingAction;
+  if (action === "fish") {
+    const wasIdle = fishing.fishingState === "idle";
+    fishing.toggleFishing();
+    showToast(wasIdle ? "낚시를 시작합니다" : "줄을 감습니다");
+  }
+  if (action === "seat") {
+    const wasSeated = fishing.seated;
+    fishing.toggleSeat();
+    showToast(wasSeated ? "자리에서 일어납니다" : "가까운 자리에 앉습니다");
+  }
+  if (action === "sound") {
+    fishing.toggleSound().then(enabled=>showToast(enabled ? "공간 소리를 켰습니다" : "공간 소리를 껐습니다"));
+  }
 }
 
 async function toggleStereo() {

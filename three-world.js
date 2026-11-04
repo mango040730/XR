@@ -78,9 +78,10 @@ function disposeMaterial(material) {
   material.dispose();
 }
 
-export function createThreeWorld(canvas, { getCameraState, modelUrl = null } = {}) {
+export function createThreeWorld(canvas, { getCameraState, modelUrl = null, environment = "room" } = {}) {
   const hasExternalModel = Boolean(modelUrl);
-  const backgroundColor = hasExternalModel ? 0x82928a : 0xb8aa98;
+  const isEscape = environment === "escape";
+  const backgroundColor = isEscape ? 0x171d1f : environment === "fishing" ? 0x82928a : 0xb8aa98;
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
@@ -96,17 +97,17 @@ export function createThreeWorld(canvas, { getCameraState, modelUrl = null } = {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(backgroundColor);
-  scene.fog = new THREE.Fog(backgroundColor, hasExternalModel ? 24 : 38, hasExternalModel ? 58 : 78);
+  scene.fog = new THREE.Fog(backgroundColor, isEscape ? 18 : hasExternalModel ? 24 : 38, isEscape ? 45 : hasExternalModel ? 58 : 78);
 
   const camera = new THREE.PerspectiveCamera(70, VIEW_WIDTH / VIEW_HEIGHT, 0.1, 120);
   camera.rotation.order = "YXZ";
 
-  const hemisphere = new THREE.HemisphereLight(0xfff2dc, 0x40382f, 2.3);
+  const hemisphere = new THREE.HemisphereLight(0xfff2dc, isEscape ? 0x121719 : 0x40382f, isEscape ? 1.25 : 2.3);
   scene.add(hemisphere);
-  const sun = new THREE.DirectionalLight(0xffe0b8, 3.2);
+  const sun = new THREE.DirectionalLight(0xffe0b8, isEscape ? 1.7 : 3.2);
   sun.position.set(-8, 14, 8);
   scene.add(sun);
-  const fill = new THREE.PointLight(0x9fd4cf, 25, 34, 2);
+  const fill = new THREE.PointLight(isEscape ? 0xffb56f : 0x9fd4cf, isEscape ? 12 : 25, 34, 2);
   fill.position.set(9, 8, 30);
   scene.add(fill);
 

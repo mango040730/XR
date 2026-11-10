@@ -1,0 +1,807 @@
+{
+  "stats": {
+    "startTime": "2026-11-10T11:40:27.319Z",
+    "duration": 335340.071,
+    "expected": 52,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "scenarios": [
+    {
+      "title": "mode notice dismisses, stays dismissed during hover, and returns on the next visit over a live world",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 9531
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "four first-fix reference screens render their local assets in the designed slots",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3830
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "every mode expands on hover and keyboard focus, resets on exit, and still enters its servers",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 7373
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "touch users can enter every mode without a hover step",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2347
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "fresh users see only the four first-fix screens through mode, rating and booking",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3167
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "old routes and UI flags never restore the discarded UI; the bare room remains walkable",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3053
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "failed model loading keeps the previous world and uses the original notification",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1870
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "cancelled loading does not reopen a discarded screen after a late model response",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1648
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cardboard keeps the original four-screen panel without extra toolbars or reticle",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1694
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "touch gestures move, cancel and reopen the original menu without any movement widgets",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2700
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "termination notice dismisses once per rating visit and never restarts on star selection",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 9563
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "portrait touch users can advance using a single first-fix pill button",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2227
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "fishing overview and opposite side render actual volume with desktop fallback",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 7193
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "walks and collides then sits casts retrieves stands and resets without leaked seat ownership",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "unexpected",
+          "results": [
+            {
+              "status": "failed",
+              "duration": 15243
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "mobile touch navigation keeps controls reachable",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 4362
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "forest background shows faceted broadleaf trees and parallax outside both windows",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 6597
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cardboard gaze activates the minimal next-step button and the termination notice expires",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 6443
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "neumorphic fishing controls expose keyboard focus switches pressed and disabled states",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 5303
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "neumorphic service login and text inputs keep their native actions",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2307
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "neumorphic service simulation keeps fishing controls clear of service navigation",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 5540
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "pool seams stay stable while walking and looking across both sides",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 6148
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "home and mode UI allow real pointer lock, walking, looking and wall collisions",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 7807
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "rating and booking retain real space movement while modal and text input routes suspend it",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3366
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "touch movement and view use real browser events and stop on cancellation, blur and route changes",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 5976
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "pc: full local service from login to appointment",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 5537
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "mobile: full local service from login to appointment",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 5172
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "full room recovers to server selection and incoming invite can be declined",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 4380
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cardboard renders live stereoscopic panels and gaze activates a real login button",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3262
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "13 original Figma frames render code components and local assets for visual audit",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 14331
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cardboard full journey uses real gaze hits through simulation, conversation and booking",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 47351
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "fishing view /?fishing keeps minimal mode navigation while mouse WASD and fishing keys remain active",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 6952
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "fishing view /?fishing&ui=1 keeps minimal mode navigation while mouse WASD and fishing keys remain active",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 6960
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "service fishing simulation hides its chrome and banners while other service screens keep UI",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 4702
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cardboard fishing shows only the stereoscopic world without a service panel or reticle",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 8022
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "independent swimming renders continuously through camera and quality changes",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 28514
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "vintage teal and walnut render in sunlight and pendant light from both sides",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 9127
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "clear water captures wall-coloured tiles and reflected room across views and quality changes",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 8094
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "solo enters the authored woodworking space; social enters fishing; real movement collides with the workbench",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 10880
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "loads a real WebGL2 canvas and keeps PC mode when immersive VR is unavailable",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1210
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "enters A and B switches leaves and reenters with each configured spawn",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1932
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "WASD changes actual player position and mouse input changes yaw under real pointer lock",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2060
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "blocks the A cube and activates its real interaction from nearby",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3390
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "comfort defaults and interaction state reset across worlds",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1381
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "interacts with a named node in the actual GLB and clears its UI on transition",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 4630
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "loads real GLB bytes applies transforms and disposes assets across repeated replacements",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3880
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "recovers from an actual missing GLB URL without removing the old world",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3131
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "rejects invalid GLB response bytes and can retry with the real room",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1498
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "handles switch during GLB loading and ignores a late successful response",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1501
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "handles cancel during GLB loading and ignores a late successful response",
+      "tests": [
+        {
+          "project": "chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1293
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "production exposes only first-fix UI and loads the real GLB without debug globals",
+      "tests": [
+        {
+          "project": "production-chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1616
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "production social view loads the provided GLB but never exposes test diagnostics or fabricated peers",
+      "tests": [
+        {
+          "project": "production-chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 1437
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "production fishing keeps only the first-fix next-step button",
+      "tests": [
+        {
+          "project": "production-chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 3198
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "production fishing ignores HUD flags and keeps only mode navigation",
+      "tests": [
+        {
+          "project": "production-chromium",
+          "status": "expected",
+          "results": [
+            {
+              "status": "passed",
+              "duration": 2872
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

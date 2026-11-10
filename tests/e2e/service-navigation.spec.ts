@@ -139,7 +139,7 @@ test('touch movement and view use real browser events and stop on cancellation, 
     await expect.poll(async () => (await snapshot(page)).player.yaw).toBeCloseTo(simulationYaw - .2);
     await page.locator('[data-action="finish"]').tap(); await page.locator('[data-action="home"]').tap();
     await expect(page.locator('.service-shell')).toHaveAttribute('data-route', 'my-room');
-    await page.locator('[data-action="nav:modes"]').tap(); await page.locator('[data-action="mode:solo"]').tap();
+    await page.locator('[data-action="nav:modes"]').tap(); await page.locator('[data-action="mode:social"]').tap();
     await page.locator('[data-action="join:fish"]').tap();
     await expect(page.locator('.service-shell')).toHaveAttribute('data-route', 'simulation');
     await expect.poll(async () => (await snapshot(page)).world.activeId).toBe('indoor-fishing');

@@ -26,7 +26,7 @@ test('service fishing simulation hides its chrome and banners while other servic
  await page.goto('/?offline=1&ui=1&legacyServiceReview=1');await expect(page.locator('.service-shell')).toHaveAttribute('data-route','login');
  const click=async(action:string)=>page.locator(`[data-action="${action}"]`).first().click();
  await click('login');await page.getByRole('textbox',{name:'닉네임',exact:true}).fill('물가친구');await click('avatar-next');
- await click('nav:neighborhood-choice');await click('neighborhood:jayang');await click('nav:modes');await click('mode:solo');await click('join:fish');
+ await click('nav:neighborhood-choice');await click('neighborhood:jayang');await click('nav:modes');await click('mode:social');await click('join:fish');
  await expect(page.locator('.service-shell')).toHaveAttribute('data-route','simulation');
  await page.waitForFunction(()=>window.__XR_DEBUG__?.snapshot().world.activeId==='indoor-fishing'&&window.__XR_DEBUG__?.snapshot().world.status==='ready');
  await expect(page.locator('.fishing-hud,.service-stage,.service-chrome')).toHaveCount(3);
@@ -56,7 +56,7 @@ test('Cardboard fishing shows only the stereoscopic world without a service pane
   await page.mouse.move(500,300);await page.mouse.down();await page.mouse.move(500+yaw/.004,300-(pitch-pose.pitch)/.004,{steps:8});await page.mouse.up();
   await page.waitForTimeout(1400);
  }
- await gaze('nav:modes');await gaze('mode:solo');await gaze('join:fish');
+ await gaze('nav:modes');await gaze('mode:social');await gaze('join:fish');
  await expect(page.locator('.service-shell')).toHaveClass(/fishing-space-only/);
  await expect(page.locator('.service-shell')).toHaveClass(/immersive/);
  await expect(page.locator('.fishing-hud > *,.service-chrome > *,.simulation-hud > *')).toHaveCount(0);

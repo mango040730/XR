@@ -1,4 +1,4 @@
-import { ACESFilmicToneMapping, Color, HalfFloatType, Mesh, NoToneMapping, PCFShadowMap, PerspectiveCamera, Scene, SRGBColorSpace, Texture, Vector2, WebGLRenderer, WebGLRenderTarget } from 'three';
+import { ACESFilmicToneMapping, Color, Fog, HalfFloatType, Mesh, NoToneMapping, PCFShadowMap, PerspectiveCamera, Scene, SRGBColorSpace, Texture, Vector2, WebGLRenderer, WebGLRenderTarget } from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -45,6 +45,8 @@ export class Renderer {
   }
   configure(world:WorldInstance|null):void {
     this.root=world?.root??null;this.profile=world?.config.rendering??{};this.low=false;
+    this.camera.fov=this.profile.fov??70;
+    this.scene.fog=this.profile.fog?new Fog(this.profile.fog.color,this.profile.fog.near,this.profile.fog.far):null;
     this.camera.near=this.profile.near??.05;this.camera.far=this.profile.far??150;
     this.webgl.toneMapping=this.profile.filmic?ACESFilmicToneMapping:NoToneMapping;
     this.webgl.toneMappingExposure=this.profile.exposure??1;
@@ -68,7 +70,8 @@ export class Renderer {
   async prepareWorld(world:WorldInstance,signal:AbortSignal):Promise<void>{
     signal.throwIfAborted();
     const staging=new Scene();staging.add(world.root);
-    const camera=this.camera.clone();camera.near=world.config.rendering?.near??.05;camera.far=world.config.rendering?.far??150;camera.updateProjectionMatrix();camera.position.fromArray(world.config.spawn.position);camera.position.y+=world.config.player.eyeHeight;camera.rotation.set(0,world.config.spawn.yaw,0);camera.updateMatrixWorld(true);
+    const fog=world.config.rendering?.fog;staging.fog=fog?new Fog(fog.color,fog.near,fog.far):null;
+    const camera=this.camera.clone();camera.fov=world.config.rendering?.fov??70;camera.near=world.config.rendering?.near??.05;camera.far=world.config.rendering?.far??150;camera.updateProjectionMatrix();camera.position.fromArray(world.config.spawn.position);camera.position.y+=world.config.player.eyeHeight;camera.rotation.set(0,world.config.spawn.yaw,0);camera.updateMatrixWorld(true);
     const previous=this.webgl.toneMapping;
     try {
       let compiled:Promise<import('three').Object3D>;

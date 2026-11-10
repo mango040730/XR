@@ -38,7 +38,7 @@ test('neumorphic service simulation keeps fishing controls clear of service navi
  await page.goto('/?ui=1&fishingUiReview=1&legacyServiceReview=1');
  const click=async(action:string)=>page.locator(`[data-action="${action}"]`).first().click();
  await click('login');await page.getByRole('textbox',{name:'닉네임',exact:true}).fill('물가친구');await click('avatar-next');
- await click('nav:neighborhood-choice');await click('neighborhood:jayang');await click('nav:modes');await click('mode:solo');await click('join:fish');
+ await click('nav:neighborhood-choice');await click('neighborhood:jayang');await click('nav:modes');await click('mode:social');await click('join:fish');
  await page.waitForFunction(()=>window.__XR_DEBUG__?.snapshot().world.activeId==='indoor-fishing');await expect(page.locator('.fishing-hud')).toBeVisible();
  await screenshot(page,info,'neumorphic-service-fishing');
  const footer=await page.locator('.fh-footer').boundingBox(),chrome=await page.locator('.service-chrome').boundingBox();

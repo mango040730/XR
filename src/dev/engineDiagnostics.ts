@@ -46,7 +46,7 @@ export function attachEngineDiagnostics(engine: Engine) {
       xrSettings: { ...engine.xrControls.settings },
       highlights: engine.interactions.highlights.children.length,
       worldRoots: engine.rendering.scene.children.filter(child => child.name.startsWith('world:')).map(child => child.name),
-      render: { calls: engine.rendering.webgl.info.render.calls, triangles: engine.rendering.webgl.info.render.triangles },
+      render: { fov: engine.rendering.camera.fov, fog: engine.rendering.scene.fog?.color.getHexString() ?? null, calls: engine.rendering.webgl.info.render.calls, triangles: engine.rendering.webgl.info.render.triangles },
       memory: { ...engine.rendering.webgl.info.memory }, disposed: { ...disposed },
       activeRootId: active?.root.uuid ?? null,
       models: models.map(model => {

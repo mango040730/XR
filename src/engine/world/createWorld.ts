@@ -50,7 +50,7 @@ export const createWorld: WorldFactory = async (config, { root, signal, progress
   if (config.model) root.add(await new ModelLoader().load(config.model, signal, progress));
   await config.build?.({ root, signal, progress });
   signal.throwIfAborted();
-  if (config.rendering?.shadows) root.traverse(object=>{
+  if (config.rendering?.shadows && !config.rendering.authoredShadows) root.traverse(object=>{
     if (!(object instanceof Mesh)) return;
     const materials=Array.isArray(object.material)?object.material:[object.material];
     object.castShadow=!object.userData.noShadow&&materials.every(m=>!m.transparent);object.receiveShadow=object.castShadow;

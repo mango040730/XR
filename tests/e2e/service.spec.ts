@@ -38,7 +38,7 @@ for(const device of ['pc','mobile']as const)test(`${device}: full local service 
   await page.reload();await route(page,'my-room');expect(errors).toEqual([]);expect(failures).toEqual([]);await context.close();
 });
 test('full room recovers to server selection and incoming invite can be declined',async({page})=>{
-  await onboard(page);await page.evaluate(()=>{const key='xr-spatial-service-demo-v1';const data=JSON.parse(localStorage.getItem(key)!);data.rooms[0].current=data.rooms[0].capacity;localStorage.setItem(key,JSON.stringify(data));});await page.reload();await click(page,'nav:modes');await click(page,'mode:solo');await click(page,'join:fish');await route(page,'error');await expect(page.locator('.ds-subtitle')).toContainText('정원');await click(page,'back');await route(page,'servers');await click(page,'nav:invitations');await click(page,'decline:demo-incoming');await expect(page.locator('.ds-list')).toContainText('거절');
+  await onboard(page);await page.evaluate(()=>{const key='xr-spatial-service-demo-v1';const data=JSON.parse(localStorage.getItem(key)!);data.rooms[0].current=data.rooms[0].capacity;localStorage.setItem(key,JSON.stringify(data));});await page.reload();await click(page,'nav:modes');await click(page,'mode:social');await click(page,'join:fish');await route(page,'error');await expect(page.locator('.ds-subtitle')).toContainText('정원');await click(page,'back');await route(page,'servers');await click(page,'nav:invitations');await click(page,'decline:demo-incoming');await expect(page.locator('.ds-list')).toContainText('거절');
 });
 test('Cardboard renders live stereoscopic panels and gaze activates a real login button',async({page})=>{
   await page.setViewportSize({width:844,height:390});await page.goto('/?legacyServiceReview=1');await click(page,'nav:cardboard-guide');await click(page,'cardboard-start');
@@ -80,7 +80,7 @@ test('Cardboard full journey uses real gaze hits through simulation, conversatio
     await page.waitForTimeout(1400);
   }
   await gaze('login');await route(page,'avatar');await gaze('avatar-next');await gaze('nav:neighborhood-choice');await gaze('neighborhood:jayang');await route(page,'my-room');
-  await gaze('nav:modes');await gaze('mode:solo');await gaze('join:fish');await route(page,'simulation');
+  await gaze('nav:modes');await gaze('mode:social');await gaze('join:fish');await route(page,'simulation');
   const before=await page.evaluate(()=>window.__XR_DEBUG__!.snapshot().player.position);await gaze('step:forward');const after=await page.evaluate(()=>window.__XR_DEBUG__!.snapshot().player.position);expect(Math.hypot(after[0]-before[0],after[2]-before[2])).toBeGreaterThan(.1);
   await gaze('finish');await route(page,'rating');await gaze('mode-rating:4');await gaze('people-rating:5');for(const id of ['chang','ryo','707'])await gaze('person-rating:'+id);await gaze('rate');await route(page,'rating-done');await gaze('home');await route(page,'my-room');
   await gaze('nav:chat');await gaze('chat-preset');await expect(page.locator('.ds-list')).toContainText('오늘 함께해서');await gaze('home');await route(page,'my-room');await gaze('nav:appointments');await gaze('appointment-start');

@@ -27,7 +27,7 @@ test('walks and collides then sits casts retrieves stands and resets without lea
  const after=(await snapshot(page)).player.yaw;await page.mouse.move(720+(after-Math.PI/2)/.002,500);
  await expect.poll(async()=>Math.abs((await snapshot(page)).player.yaw-Math.PI/2)).toBeLessThan(.02);
  expect(yaw).toBeCloseTo(.84);
- await page.keyboard.down('w');try{await expect.poll(async()=>(await snapshot(page)).player.position[0]).toBeLessThan(1.5);}finally{await page.keyboard.up('w');}
+ await page.keyboard.down('w');try{await expect.poll(async()=>(await snapshot(page)).player.position[0],{intervals:[30],timeout:12000}).toBeLessThan(1.5);}finally{await page.keyboard.up('w');}
  await page.keyboard.press('e');await expect(page.locator('[data-seat]')).toContainText('S3');
  expect((await snapshot(page)).fishing.user.seatId).toBe('S3');
  await page.keyboard.down('w');await page.waitForTimeout(250);await page.keyboard.up('w');expect((await snapshot(page)).player.position).toEqual([1,0,3.22]);

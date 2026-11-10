@@ -24,7 +24,7 @@ test('production social view loads the provided GLB but never exposes test diagn
 test('production fishing keeps only the first-fix next-step button',async({page})=>{
  await page.goto('/?offline=1&ui=1');
  await expect(page.locator('[data-action="login"]')).toHaveCount(0);
- await page.locator('[data-action="mode:solo"]').click();
+ await page.locator('[data-action="mode:social"]').click();
  await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','simulation');
  await expect(page.locator('.fishing-hud')).not.toHaveAttribute('hidden','');
  await expect(page.locator('button:visible,a:visible,input:visible')).toHaveCount(1);

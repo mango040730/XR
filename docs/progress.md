@@ -1,5 +1,17 @@
 # 개발 진행 및 검증 기록
 
+## 목공방 추가 및 모드별 공간 연결 — 2026-11-10
+
+사용자 제공 `목공방 디자인.zip`의 작업대 2개·공구·수납 선반·아치창·숲·조명·목재 재질을 네이티브 Three.js 월드로 옮겼습니다. **혼자 활동해요 → 숲속 목공방**, **친목을 다져요 → 기존 실내 낚시터**로 연결했으며 협력 모드는 기존 GLB 공간을 유지합니다. 새 월드는 config와 registry로 등록하고 엔진의 월드 ID 분기를 추가하지 않았습니다.
+
+기존 1인칭 카메라·자기 아바타 숨김·입력·PlayerController·MovementCollision·1차 픽스 UI와 최소 전환 버튼을 사용합니다. ZIP의 별도 React 플레이어·아바타·네트워크·음성·UI는 가져오지 않았고 의존성도 추가하지 않았습니다. 원본 충돌 배치로 벽·작업대·가구를 막고 중앙 통로를 걸을 수 있습니다. 정적 메시를 병합하고 생성 범위의 캐시와 월드별 자원 소유권을 지킵니다. 공통 렌더링 프로필에 시야각·안개·작성된 그림자 유지 설정을 추가해 전환 때 해당 월드의 설정을 적용/해제합니다.
+
+검사: npm run typecheck, npm run build, npm run check 통과(린트·Node 26개 파일/136개·GLB/아바타 검사·프론트/서버 빌드·프로덕션 진단 분리). 실제 Chromium/Apple M4의 전체 브라우저 실행 52/53개 통과 후, 기존 낚시 좌석 테스트가 긴 관찰 간격 때문에 목표 좌석을 지나치던 문제를 30ms 관찰로 보정하고 해당 1개를 재검사해 통과했습니다. 총 53개 시나리오를 확인했습니다. 새 목공방의 포인터 잠금/WASD·작업대 충돌·친목 모드 낚시터 전환·시야각/안개 초기화·자원 해제·목공방 재진입을 실제 입력으로 검증했습니다. 기존 소셜 통합 4개도 통과해 1인칭 눈높이·자기 모델 숨김·원격 표시·방 이동과 기존 기능을 확인했습니다. 브라우저와 Node 검사를 겹쳐 실행한 중간 check에서는 CPU 부하로 기존 낚시 단위 검사 4개가 5초 제한을 넘겼으며 브라우저 종료 후 최종 check를 별도로 재실행해 136개 모두 통과했습니다. [목공방 화면](screenshots/woodworking-pages/woodworking-entry.png) · [이동/충돌 화면](screenshots/woodworking-pages/woodworking-workbench.png) · [브라우저 진단](screenshots/woodworking-pages/woodworking-browser.json) · [전체 회귀](screenshots/woodworking-pages/full-e2e-summary.json) · [낚시 재검사](screenshots/woodworking-pages/fishing-retest-summary.json) · [1인칭 회귀](screenshots/woodworking-pages/social-e2e-summary.json). Pages 재배포를 준비 중입니다.
+
+제한·다음 단계: 도구는 정적 배치이며 목공 게임 동작은 이번 범위에 포함하지 않습니다. 원본 React 전용 N8AO·ContactShadows·Sparkles 대신 기존 렌더러의 ACES·약한 bloom·태양/창/작업등과 balanced 그림자를 사용합니다. 실제 VR 기기·휴대폰 성능은 별도 확인이 필요합니다. 공개 Socket.IO 서버 미설정이라는 기존 Pages 제한은 유지됩니다. [원본 및 포팅 범위](../src/worlds/woodworking/README.md).
+
+---
+
 ## 1인칭·자기 아바타 숨김 및 XR 저장소 교체 — 2026-11-10
 
 사용자 요청에 따라 일반 소셜 시점을 1인칭으로 변경했습니다. 자기 아바타는 생성 직후부터 visible=false이며 이동·인사·착석·VR 여부와 관계없이 본인 시야에 표시하지 않습니다. 원격 복제는 계속 표시하고 기존 애니메이션/스켈레톤·위치·좌석 동기화를 유지합니다. 일반 눈높이 1.65m와 착석 눈높이 1.12m를 실제 브라우저에서 확인했습니다.

@@ -1,0 +1,18 @@
+{
+  "run": {
+    "id": 42805963308,
+    "head_sha": "df8ac05fcf24e873988b4bbeb00f50b61cbfa5cc",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/mango040730/XR/actions/runs/42805963308"
+  },
+  "pages": {
+    "html_url": "https://mango040730.github.io/XR/",
+    "build_type": "workflow",
+    "status": "built",
+    "source": {
+      "branch": "main",
+      "path": "/"
+    }
+  }
+}

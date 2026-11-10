@@ -1,0 +1,116 @@
+@font-face { font-family:Quiet;src:url('/assets/fonts/Pretendard-Medium.woff2');font-display:swap; }
+.fishing-page { margin:0;background:#e7e5e1;overflow:hidden; }
+.fishing-viewport { position:fixed;inset:0; }
+.fishing-viewport canvas { display:block;touch-action:none; }
+.fishing-hud,.fishing-hud * { box-sizing:border-box; }
+.fishing-hud {
+  position:fixed;inset:0;z-index:20;pointer-events:none;
+  font-family:Quiet,'Apple SD Gothic Neo',sans-serif;color:var(--ui-text);text-shadow:none;
+}
+.fishing-hud[hidden],.fishing-hud [hidden] { display:none!important; }
+.fishing-hud :is(button,a,input) { pointer-events:auto; }
+.fishing-hud button { font:inherit;cursor:pointer;padding:11px 16px;border-radius:999px;min-height:44px; }
+.fh-header {
+  display:flex;align-items:center;gap:30px;position:absolute;top:22px;left:24px;right:24px;
+  padding:15px 20px;border:1px solid var(--ui-border);border-radius:27px;
+  background:var(--ui-surface);box-shadow:var(--ui-card);
+}
+.fh-brand { display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;font-size:21px;letter-spacing:1px;line-height:1.2;border-radius:16px; }
+.fh-symbol { display:grid;place-items:center;width:48px;height:48px;flex:none;border-radius:16px;box-shadow:var(--ui-pressed); }
+.fh-symbol svg { width:27px;height:27px; }
+.fh-brand small { display:block;font-size:9px;letter-spacing:2px;margin-top:6px;color:var(--ui-muted); }
+.fh-location { display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:999px;font-size:12px;box-shadow:var(--ui-pressed);color:var(--ui-muted); }
+.fh-location i { width:6px;height:6px;background:#6c8172;border-radius:50%; }
+.fh-location span { border-left:1px solid var(--ui-line);padding-left:12px;margin-left:6px; }
+.fh-tools { margin-left:auto;display:flex;gap:12px;align-items:center; }
+.fh-tools button { display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px; }
+.fh-button-icon { display:inline-flex;width:18px;height:18px;align-items:center;justify-content:center; }
+.fh-button-icon svg { width:18px;height:18px; }
+.fh-tools [data-vr] button {
+  position:static!important;width:auto!important;min-width:90px!important;border-radius:999px!important;
+  font:inherit!important;font-size:11px!important;opacity:1!important;padding:11px 14px!important;
+  color:var(--ui-text)!important;background:var(--ui-surface)!important;
+  border:1px solid var(--ui-border)!important;box-shadow:var(--ui-raised)!important;
+}
+.fh-tools [data-vr] button:disabled { box-shadow:none!important;color:#85868a!important;background:#deddd9!important; }
+.fh-info {
+  position:absolute;left:24px;top:132px;width:300px;padding:24px;
+  border-radius:27px;border:1px solid var(--ui-border);background:var(--ui-surface);box-shadow:var(--ui-card);
+}
+.fh-eyebrow { font-size:8px;letter-spacing:2px;color:var(--ui-muted); }
+.fh-info h1 { font-size:29px;font-weight:500;letter-spacing:-1.1px;margin:12px 0 14px; }
+.fh-info p { font-size:12px;line-height:1.9;color:var(--ui-muted);margin:0; }
+.fh-occupancy { display:flex;gap:10px;margin-top:22px;font-size:10px;color:var(--ui-muted);white-space:nowrap; }
+.fh-occupancy span+span { border-left:1px solid var(--ui-line);padding-left:10px; }
+.fh-crosshair { position:absolute;top:50%;left:50%;width:6px;height:6px;border-radius:50%;background:var(--ui-surface);box-shadow:0 0 0 2px #30323870,0 0 0 4px #ffffff35; }
+.fh-footer {
+  position:absolute;bottom:22px;left:24px;right:24px;padding:18px 22px;
+  background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:27px;box-shadow:var(--ui-card);
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px;
+}
+.fh-notice { display:flex;align-items:center;gap:14px;font-size:12px;min-width:0; }
+.fh-notice p { max-width:560px;line-height:1.7;margin:0;color:var(--ui-muted); }
+.fh-seat { padding:9px 12px;border-radius:999px;white-space:nowrap;font-size:11px;box-shadow:var(--ui-pressed); }
+.fh-actions { display:flex;gap:12px; }
+.fishing-hud .fh-primary { background:#b8bbc0;color:#292d33;border-color:#ffffff66;padding:14px 20px;font-size:12px;font-weight:600; }
+.fishing-hud .fh-primary:hover:enabled { background:#c5c7cb; }
+.fh-primary kbd { margin-left:12px; }
+.fh-stand { font-size:12px!important; }
+.fh-keys { grid-column:1/-1;display:flex;gap:20px;align-items:center;font-size:10px;color:var(--ui-muted);border-top:1px solid var(--ui-line);padding-top:13px; }
+.fishing-hud kbd { font:inherit;font-size:10px;border:1px solid #c3c1bc;border-radius:5px;padding:2px 5px;margin-right:4px;background:#eceae6;color:var(--ui-text); }
+.fh-local { margin-left:auto;font-size:8px;letter-spacing:2px; }
+.fh-guide {
+  pointer-events:auto;position:absolute;right:24px;top:122px;width:380px;padding:24px;
+  border:1px solid var(--ui-border);border-radius:27px;background:var(--ui-surface);box-shadow:var(--ui-card);
+  font-size:12px;line-height:1.9;max-height:calc(100dvh - 285px);overflow:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:#aaa8a4 var(--ui-recess);z-index:2;
+}
+.fh-guide>div:first-child { display:flex;justify-content:space-between;align-items:center;position:sticky;top:-24px;background:var(--ui-surface);padding:8px 0 14px;z-index:1;border-bottom:1px solid var(--ui-line); }
+.fh-guide strong { font-size:16px; }
+.fh-guide button[data-close] { padding:0;width:40px;min-height:40px;font-size:23px;line-height:1; }
+.fh-guide p { color:var(--ui-muted); }
+.fh-guide label { display:flex;align-items:center;gap:13px;padding:12px 0;margin:0;border-bottom:1px solid var(--ui-line);cursor:pointer; }
+.fh-guide input[type=checkbox] { appearance:none;-webkit-appearance:none;width:48px;height:28px;flex:none;margin:0;padding:3px;border-radius:999px;border:1px solid #c8c6c0;background:#d1d1cf;box-shadow:var(--ui-pressed);cursor:pointer; }
+.fh-guide input[type=checkbox]::before { content:'';display:block;width:20px;height:20px;border-radius:50%;background:var(--ui-soft);box-shadow:2px 2px 4px #77777766,-1px -1px 3px #ffffffcc;transition:transform .16s ease; }
+.fh-guide input[type=checkbox]:checked { background:#a4abb4; }
+.fh-guide input[type=checkbox]:checked::before { transform:translateX(19px); }
+.fh-review { display:flex;gap:12px;margin:22px 0; }
+.fh-review button { flex:1;font-size:11px;padding:10px 12px; }
+.fh-guide small { display:block;font-size:10px;color:var(--ui-muted); }
+.fh-touch { display:none; }
+.is-seated .fh-info { opacity:0; }
+.fishing-error { position:fixed;inset:30%;padding:30px;background:#e7e5e1;color:#303238;border-radius:24px;box-shadow:8px 8px 24px #0004;font-family:sans-serif;z-index:100; }
+.service-shell:has(.fishing-hud:not([hidden])) :is(.simulation-help,.simulation-move) { display:none; }
+.service-shell .fh-info { display:none; }
+@media(max-width:1000px) { .fh-location span { display:none; }.fh-header { gap:20px; }.fh-info { width:270px;padding:22px; } }
+@media(max-width:760px) {
+  .fh-header { top:12px;left:12px;right:12px;padding:11px 12px;gap:10px;border-radius:24px; }
+  .fh-brand { font-size:16px;gap:8px;letter-spacing:.5px; }
+  .fh-brand small { font-size:7px;letter-spacing:1.5px;margin-top:4px; }
+  .fh-symbol { width:37px;height:42px;border-radius:13px; }.fh-symbol svg { width:23px;height:23px; }
+  .fh-location { display:none; }.fh-tools { gap:7px; }.fh-tools button { padding:10px;min-width:42px; }
+  .fh-tools button>span:not(.fh-button-icon) { display:none; }
+  .fh-tools [data-vr] button { min-width:0!important;max-width:84px!important;font-size:10px!important;padding:10px 9px!important; }
+  .fh-info { top:104px;left:12px;width:232px;padding:18px;border-radius:24px; }.fh-info h1 { font-size:24px;margin:10px 0; }
+  .fh-info p { font-size:11px; }.fh-eyebrow { font-size:7px; }.fh-occupancy { gap:8px;margin-top:16px;font-size:9px; }.fh-occupancy span+span { padding-left:8px; }
+  .fh-footer { left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));padding:14px;display:flex;flex-wrap:wrap;gap:14px;border-radius:24px; }
+  .fh-notice { font-size:11px;width:100%;gap:10px; }.fh-notice p { max-width:none; }.fh-seat { font-size:10px;padding:8px 10px; }
+  .fh-actions { margin-left:auto; }.fh-primary { padding:12px 15px!important; }.fh-keys { width:100%;font-size:9px;gap:12px;padding-top:12px; }.fh-local { display:none; }
+  .fh-guide { right:12px;left:12px;top:101px;width:auto;padding:20px;max-height:calc(100dvh - 125px);border-radius:24px; }
+  .fh-guide>div:first-child { top:-20px; }.fh-guide button[data-close] { width:44px;min-height:44px; }
+  .fh-touch { display:block;position:absolute;left:14px;bottom:208px;pointer-events:auto;text-align:center;padding:9px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:24px;box-shadow:var(--ui-card); }
+  .fh-touch button { padding:10px 13px;min-width:44px;touch-action:none; }.fh-touch>div { display:flex;gap:7px;margin-top:7px; }
+}
+@media(max-height:600px) {
+  .fh-header { top:8px;left:12px;right:12px;padding:8px 14px; }.fh-location { display:none; }.fh-symbol { width:38px;height:38px; }
+  .fh-info { display:none; }.fh-footer { bottom:8px;padding:12px 16px;gap:10px; }.fh-keys { display:none; }
+  .fh-guide { top:80px;max-height:calc(100dvh - 95px); }.fh-touch { bottom:111px;transform:scale(.83);transform-origin:left bottom; }
+  .service-shell:has(.fishing-hud:not([hidden])) .simulation-top { top:82px; }
+  .service-shell:has(.fishing-hud:not([hidden])) .fh-footer { bottom:70px; }
+  .service-shell:has(.fishing-hud:not([hidden])) .fh-touch { bottom:158px; }
+}
+
+/* Keep input/session bindings alive while presenting an unobstructed fishing world. */
+.fishing-hud.is-space-only { display:none!important; }
+.service-shell.fishing-space-only :is(.service-stage,.service-chrome,.service-touch-controls){display:none!important}
+.service-shell:not(.first-fix-shell):has(.fishing-hud.is-space-only:not([hidden])) :is(.service-stage,.service-chrome) { display:none!important; }

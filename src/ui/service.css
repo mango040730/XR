@@ -1,0 +1,51 @@
+@font-face{font-family:Pretendard;src:url('/assets/fonts/Pretendard-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:Pretendard;src:url('/assets/fonts/Pretendard-SemiBold.woff2') format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:Pretendard;src:url('/assets/fonts/Pretendard-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+:root{--ds-background:#353535;--ds-text:#fff;--ds-muted:#dadada;--ds-glass:rgba(255,255,255,.1);--ds-panel:rgba(255,255,255,.2);--ds-input:rgba(0,0,0,.1);--ds-radius:20px;--ds-body:18px;--ds-title:36px}
+.service-shell{position:fixed;inset:0;background:#353535;font-family:Pretendard,sans-serif;color:white;overflow:hidden}
+.service-viewport{position:absolute;inset:0}.service-viewport canvas{display:block;touch-action:none}
+.service-stage{position:absolute;width:1200px;height:600px;left:50%;top:50%;transform:translate(-50%,-50%) scale(var(--panel-scale,1));transform-origin:center;pointer-events:none}
+.service-stage .design-frame{pointer-events:auto}
+.design-frame{position:relative;width:1200px;height:600px;overflow:hidden;color:var(--ds-text);font-family:Pretendard,sans-serif;font-weight:500;font-size:18px;line-height:normal;box-sizing:border-box}
+.design-frame *{box-sizing:border-box;margin:0;border:0 solid transparent;font-family:inherit}
+.design-frame p,.design-frame h1,.design-frame h2{margin:0;padding:0;font:inherit;letter-spacing:normal}
+.design-frame button,.design-frame input{font:inherit;color:inherit;border-radius:inherit;outline-offset:3px}
+.design-frame button{cursor:pointer;background:transparent;border:0 solid transparent;text-align:inherit;line-height:normal;min-width:0}
+.design-frame input{display:block;min-width:0;width:100%;background:var(--ds-input);padding:12px;border-radius:8px;color:white;outline:none}
+.design-frame button:focus-visible,.design-frame input:focus-visible{outline:2px solid white;outline-offset:3px}
+.design-frame button:hover,.design-frame button[data-selected=true],.design-frame button.gaze-focus{box-shadow:inset 0 0 0 2px rgba(255,255,255,.65)}
+.design-frame img{display:block;user-select:none}
+.design-frame [data-glass]{box-shadow:inset 0 1px 0 rgba(255,255,255,.48),inset 0 0 0 1px rgba(255,255,255,.14);backdrop-filter:none;background-image:linear-gradient(130deg,rgba(255,255,255,.015),rgba(255,255,255,.06))}
+.ds-screen{padding:40px 48px;background:rgba(255,255,255,.1)}
+.design-frame .ds-heading{font-size:36px;font-weight:700;text-align:center;line-height:1.2;margin-bottom:16px}
+.design-frame .ds-subtitle{font-size:18px;color:#dadada;text-align:center;margin-bottom:24px;line-height:1.6}
+.design-frame .ds-panel{background:var(--ds-panel);padding:28px 32px;border-radius:20px;box-shadow:inset 0 1px 0 #ffffff44;display:flex;flex-direction:column;gap:18px}
+.design-frame .ds-title{font-weight:700;font-size:22px;line-height:1.3}.design-frame .ds-copy{font-size:18px;line-height:1.6;color:#dadada;white-space:pre-wrap}
+.design-frame .ds-button{display:flex;align-items:center;justify-content:center;min-height:48px;padding:12px 24px;background:var(--ds-glass);border-radius:1000px;font-size:20px;white-space:normal;text-align:center;box-shadow:inset 0 1px 0 #ffffff44}
+.design-frame .ds-row{display:flex;gap:16px;align-items:stretch}.design-frame .ds-row>*{flex:1;min-width:0}
+.design-frame .ds-field{display:flex;flex-direction:column;gap:12px;font-size:18px;color:white}.design-frame .ds-field input{height:52px;border-radius:8px}
+.design-frame .ds-bottom{position:absolute;bottom:40px;left:48px;right:48px;display:flex;justify-content:center;gap:16px}
+.design-frame .ds-list{display:flex;flex-direction:column;gap:12px;max-height:350px;overflow:auto}
+.design-frame .ds-status{color:#dadada;font-size:16px;line-height:1.6}
+.design-frame .ds-error{background:rgba(0,0,0,.2);border:1px solid #ffffff44;border-radius:16px;padding:20px;white-space:pre-wrap}
+.design-frame .calendar{width:394px;height:316px;background:white;color:#353535;border-radius:24px;padding:22px 25px;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:36px 28px repeat(6,1fr);gap:3px;font-size:14px;text-align:center}
+.design-frame .calendar header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.design-frame .calendar button{background:transparent;color:#555;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.design-frame .calendar button[data-selected=true]{background:#555;color:white}
+.design-frame .calendar .weekday{font-size:14px;align-self:center}
+.service-chrome{position:absolute;bottom:12px;left:16px;right:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:#fff;pointer-events:none}
+.service-chrome button{pointer-events:auto;background:rgba(53,53,53,.8);border:1px solid #ffffff55;border-radius:1000px;color:white;padding:8px 14px;font:inherit;cursor:pointer}
+.service-chrome span{background:#353535aa;padding:4px 8px;border-radius:12px}
+.service-shell.immersive .service-stage{opacity:0;pointer-events:none}.service-shell.immersive .design-frame{pointer-events:none}
+.service-shell.immersive .service-chrome{top:8px;bottom:auto;justify-content:flex-end}.service-shell.immersive .service-chrome span{display:none}
+.service-shell.review .service-chrome{display:none}.service-shell.review .service-viewport{background:#494949}.service-shell.review .service-viewport canvas{visibility:hidden}
+@media(max-width:600px) and (orientation:portrait){.service-chrome{flex-wrap:wrap}.service-chrome span{max-width:220px}.service-stage{top:44%}}
+.design-frame label{display:block}.design-frame section{border:0}.design-frame .home-chat-line{line-height:1.6;font-size:18px}.design-frame .extra-rooms{position:absolute;left:610px;top:430px;width:542px;max-height:130px;overflow:auto}.design-frame .appointment-next{position:absolute;right:48px;bottom:10px}.design-frame .place-choices{position:absolute;left:48px;right:48px;bottom:4px;display:flex;gap:12px}.design-frame .place-choices button{min-height:42px;font-size:16px}.design-frame.simulation-hud{background:transparent;pointer-events:none}.simulation-top{position:absolute;left:48px;right:48px;top:40px;display:flex;align-items:center;justify-content:space-between;gap:20px}.simulation-top>*{pointer-events:auto;background:#353535cc;border-radius:40px;padding:12px 20px}.simulation-help{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);background:#353535cc;padding:14px 22px;border-radius:30px;max-width:950px;text-align:center;white-space:nowrap;font-size:16px}
+html,body,#app{margin:0;width:100%;height:100%;font-synthesis:none}.service-chrome .native-vr-host{pointer-events:auto;max-width:150px}.native-vr-host>button{position:static!important;width:auto!important;padding:8px 12px!important;font:inherit!important;color:white!important;border-radius:30px!important;white-space:nowrap!important}.native-vr-host a{display:none}.service-chrome .sensor-status{max-width:230px;font-size:10px}.service-shell.immersive .service-chrome .sensor-status{display:block}
+/* Figma's transparent 10% root composites over #444444 in the reference export. */
+.service-shell.review .service-viewport{background:#444444}
+.service-chrome>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:40vw}.service-chrome{height:36px;bottom:10px;white-space:nowrap}.service-chrome button{flex-shrink:0}.service-shell.immersive .service-chrome{visibility:hidden;pointer-events:none}.design-frame .vr-panel-tools{display:none}.service-shell.immersive .vr-panel-tools{display:flex;position:absolute;left:400px;right:400px;bottom:0;gap:12px;pointer-events:none}.design-frame .vr-panel-tools button{font-size:14px;min-height:36px;padding:6px 14px;background:#353535d9}.design-frame .simulation-move{position:absolute;bottom:100px;left:48px;display:flex;gap:12px;pointer-events:auto}.design-frame .simulation-move .ds-button{font-size:16px}
+/* SVG image foreignObject cannot blur the host backdrop; keep the original
+   spotlight asset and reproduce its outside-circle blur on the DOM layer. */
+.design-frame [data-node-id="1144:747"]{backdrop-filter:blur(2px);mask-image:radial-gradient(circle 203px at 793px 394px,transparent 99%,black 100%)}
+.design-frame [data-node-id="1144:591"]{backdrop-filter:blur(12px)}

@@ -1,0 +1,59 @@
+@font-face{font-family:'Wanted Sans';src:url('/assets/fonts/WantedSansVariable.woff2') format('woff2');font-weight:100 1000;font-display:swap}
+.fix-frame{--ds-text:#efeeec;--ds-muted:#dbdad8;--ds-input:rgba(255,255,255,.1);font-family:'Wanted Sans',sans-serif;color:#efeeec;background:transparent}
+.fix-frame.live-world-frame{background:transparent}
+.fix-frame .fix-notice{pointer-events:none;animation:fix-mode-notice 3.2s ease both}
+@keyframes fix-mode-notice{
+  0%{opacity:0;visibility:visible}
+  10%,85%{opacity:1;visibility:visible}
+  100%{opacity:0;visibility:hidden}
+}
+.fix-frame [data-glass]{box-shadow:none;background-image:none}
+.fix-frame button{color:inherit;box-shadow:none;transition:background-color .15s ease}
+.fix-frame button:hover{box-shadow:none;background-color:rgba(255,255,255,.2)}
+.fix-frame button:focus-visible,.fix-frame button.gaze-focus{outline:2px solid #efeeec;outline-offset:4px;box-shadow:none}
+.fix-frame button[data-selected=true]{background-color:rgba(255,255,255,.3);box-shadow:inset 0 0 0 1px #efeeec}
+.fix-frame button img{filter:none}
+.fix-frame .fix-star{padding:0;border-radius:0;background:transparent;box-shadow:none}
+.fix-frame button.fix-star[data-selected=true]{background:transparent;box-shadow:none}
+.fix-frame .fix-star:hover{background:transparent;transform:scale(1.08)}
+.fix-frame .fix-mode-list{position:absolute;left:48px;right:48px;bottom:40px;height:400px;display:flex;gap:20px;align-items:flex-end}
+/* Only one card expands: pointer hover takes precedence over keyboard focus and gaze. */
+.fix-frame .fix-mode-card{position:relative;flex:0 0 var(--mode-width,calc((100% - 40px)/3));min-width:0;height:var(--mode-height,200px);overflow:hidden;border:0;border-radius:var(--mode-radius,12px);padding:24px;color:#fff;background:rgba(0,0,0,.6);text-align:left;backdrop-filter:var(--mode-blur,none);transition:flex-basis .2s ease,height .2s ease}
+.fix-frame .fix-mode-card::before{content:'';position:absolute;inset:0;display:var(--mode-gradient,block);background:linear-gradient(to bottom,rgba(102,102,102,0),rgba(0,0,0,.76) 88.462%);z-index:1}
+.fix-frame .fix-mode-image{position:absolute;inset:var(--mode-image-inset,0);width:var(--mode-image-width,100%);height:var(--mode-image-height,100%);object-fit:cover;border-radius:var(--mode-image-radius,12px);pointer-events:none}
+.fix-frame .fix-mode-copy{position:absolute;bottom:24px;left:24px;right:24px;z-index:1;display:flex;flex-direction:column;gap:var(--mode-copy-gap,8px)}
+.fix-frame .fix-mode-title{font-size:22px;line-height:30px;font-weight:600;letter-spacing:.04px}
+.fix-frame .fix-mode-description{display:var(--mode-description,none);margin-top:4px;white-space:nowrap;font-size:18px;line-height:26px;font-weight:400;letter-spacing:.04px}
+.fix-frame .fix-mode-count{display:flex;align-items:center;gap:8px;margin-top:var(--mode-count-margin,0);font-size:14px;line-height:20px;letter-spacing:.04px}
+.fix-frame .fix-mode-list:has(>.fix-mode-card:is(:hover,:focus-visible,.gaze-focus)){--mode-width:261px}
+.fix-frame .fix-mode-card:hover,
+.fix-frame .fix-mode-list:not(:has(>.fix-mode-card:hover))>.fix-mode-card:focus-visible,
+.fix-frame .fix-mode-list:not(:has(>.fix-mode-card:hover,>.fix-mode-card:focus-visible))>.fix-mode-card.gaze-focus{
+  --mode-width:542px;--mode-height:400px;--mode-radius:20px;--mode-blur:blur(4px);--mode-gradient:none;
+  --mode-image-inset:24px;--mode-image-width:calc(100% - 48px);--mode-image-height:233px;--mode-image-radius:10px;
+  --mode-copy-gap:0;--mode-description:block;--mode-count-margin:16px;
+  background:rgba(0,0,0,.6);box-shadow:none;
+}
+.fix-frame .calendar{width:330px;height:329px;border-radius:12px;padding:24px 25px;grid-template-rows:38px 30px repeat(6,minmax(0,1fr));gap:3px;background:#fff;color:#444;font-family:'Wanted Sans',sans-serif}
+.fix-frame .calendar header{font-size:16px;gap:8px}
+.fix-frame .calendar header span{order:-1;margin-right:auto}
+.fix-frame .calendar header button{font-size:20px;min-width:18px}
+.fix-frame .calendar button{padding:0;border-radius:50%;font-size:14px;min-width:0;min-height:0;box-shadow:none;color:#555;background:transparent}
+.fix-frame .calendar>button{width:30px;height:30px;max-height:100%;align-self:center;justify-self:center}
+.fix-frame .calendar button[data-selected=true]{background:#555;color:#fff;box-shadow:none}
+.fix-frame .calendar button:hover{background:#eee;color:#333}
+.fix-frame .calendar .weekday{font-size:14px}
+.fix-frame .fix-place-choices{display:flex;flex-direction:column;gap:8px;width:100%;margin:12px 0}
+.fix-frame .fix-place-choices button{background:rgba(255,255,255,.1);padding:8px 14px;min-height:36px;border-radius:24px;font-size:14px;line-height:20px}
+.fix-frame .fix-place-choices button[data-selected=true]{background:rgba(255,255,255,.3)}
+.fix-frame .fix-individual-ratings{position:absolute;top:535px;left:50%;transform:translateX(-50%);font-size:14px;text-align:center}
+.fix-frame .fix-rating-choices{display:flex;gap:12px;white-space:nowrap}
+.fix-frame .fix-rating-choices button{padding:5px 12px;background:rgba(0,0,0,.6);border-radius:24px;font-size:14px;line-height:20px}
+@media(prefers-reduced-motion:reduce){.fix-frame button{transition:none}}
+@media(prefers-reduced-motion:reduce){
+  .fix-frame .fix-notice{animation-name:fix-mode-notice-reduced}
+}
+@keyframes fix-mode-notice-reduced{
+  0%,99%{opacity:1;visibility:visible}
+  100%{opacity:0;visibility:hidden}
+}

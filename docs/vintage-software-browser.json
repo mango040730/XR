@@ -1,0 +1,688 @@
+{
+  "pageErrors": [],
+  "console": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://127.0.0.1:4173/@vite/client"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://127.0.0.1:4173/@vite/client"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x12c00adc000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "url": "http://127.0.0.1:4173/?fishing"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x12c00adc000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "url": "http://127.0.0.1:4173/?fishing"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x12c00adc000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "url": "http://127.0.0.1:4173/?fishing"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x12c00adc000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+      "url": "http://127.0.0.1:4173/?fishing"
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+      "url": "http://127.0.0.1:4173/@vite/client"
+    }
+  ],
+  "failures": [],
+  "responses": [],
+  "expectedFailures": [],
+  "browser": "158.0.8127.18",
+  "webGL": {
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)"
+  },
+  "finalSnapshot": {
+    "world": {
+      "status": "ready",
+      "activeId": "indoor-fishing",
+      "requestedId": null,
+      "message": "고요낚시 · 실내 낚시터 준비 완료",
+      "error": null
+    },
+    "fishing": {
+      "user": {
+        "id": "local-visitor",
+        "seatId": null,
+        "fishing": "idle",
+        "position": [
+          -6.25,
+          0,
+          -4.35
+        ],
+        "yaw": -2.3,
+        "catchCount": 0,
+        "lastCatch": null
+      },
+      "samples": true,
+      "occupancy": {
+        "S2": "sample:S2",
+        "S4": "sample:S4",
+        "N1": "sample:N1",
+        "N3": "sample:N3",
+        "W1": "sample:W1"
+      },
+      "low": false
+    },
+    "player": {
+      "position": [
+        -6.25,
+        0,
+        -4.35
+      ],
+      "rigOrigin": [
+        -6.25,
+        0,
+        -4.35
+      ],
+      "yaw": -2.3,
+      "pitch": 0
+    },
+    "xr": {
+      "supported": false,
+      "active": false,
+      "pending": false,
+      "reason": "호환 VR 기기를 찾을 수 없습니다. PC 3D 모드를 사용하세요."
+    },
+    "xrControls": {
+      "controllers": "컨트롤러 연결 대기",
+      "tracking": false,
+      "blocked": false,
+      "message": ""
+    },
+    "xrSettings": {
+      "movement": "teleport",
+      "turn": "snap",
+      "deadzone": 0.2,
+      "moveSpeed": 1.5,
+      "snapAngle": 0.5235987755982988,
+      "smoothTurnSpeed": 1.5707963267948966
+    },
+    "highlights": 0,
+    "worldRoots": [
+      "world:indoor-fishing"
+    ],
+    "render": {
+      "calls": 394,
+      "triangles": 254476
+    },
+    "memory": {
+      "geometries": 210,
+      "textures": 39
+    },
+    "disposed": {
+      "geometry": 0,
+      "material": 0,
+      "texture": 0
+    },
+    "activeRootId": "f552d65a-a460-4b02-b38a-f532691d0082",
+    "models": [],
+    "interactables": [
+      {
+        "id": "seat:S1",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:S1",
+        "color": "697969"
+      },
+      {
+        "id": "seat:S1",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:S1",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:S1",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:S1",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:S1",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:S1",
+        "color": "426864"
+      },
+      {
+        "id": "cast:S1",
+        "color": null
+      },
+      {
+        "id": "stand:S1",
+        "color": "426864"
+      },
+      {
+        "id": "stand:S1",
+        "color": null
+      },
+      {
+        "id": "seat:S2",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:S2",
+        "color": "697969"
+      },
+      {
+        "id": "seat:S2",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:S2",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:S2",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:S2",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:S2",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:S2",
+        "color": "426864"
+      },
+      {
+        "id": "cast:S2",
+        "color": null
+      },
+      {
+        "id": "stand:S2",
+        "color": "426864"
+      },
+      {
+        "id": "stand:S2",
+        "color": null
+      },
+      {
+        "id": "seat:S3",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:S3",
+        "color": "697969"
+      },
+      {
+        "id": "seat:S3",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:S3",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:S3",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:S3",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:S3",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:S3",
+        "color": "426864"
+      },
+      {
+        "id": "cast:S3",
+        "color": null
+      },
+      {
+        "id": "stand:S3",
+        "color": "426864"
+      },
+      {
+        "id": "stand:S3",
+        "color": null
+      },
+      {
+        "id": "seat:S4",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:S4",
+        "color": "697969"
+      },
+      {
+        "id": "seat:S4",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:S4",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:S4",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:S4",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:S4",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:S4",
+        "color": "426864"
+      },
+      {
+        "id": "cast:S4",
+        "color": null
+      },
+      {
+        "id": "stand:S4",
+        "color": "426864"
+      },
+      {
+        "id": "stand:S4",
+        "color": null
+      },
+      {
+        "id": "seat:N1",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:N1",
+        "color": "697969"
+      },
+      {
+        "id": "seat:N1",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:N1",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:N1",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:N1",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:N1",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:N1",
+        "color": "426864"
+      },
+      {
+        "id": "cast:N1",
+        "color": null
+      },
+      {
+        "id": "stand:N1",
+        "color": "426864"
+      },
+      {
+        "id": "stand:N1",
+        "color": null
+      },
+      {
+        "id": "seat:N2",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:N2",
+        "color": "697969"
+      },
+      {
+        "id": "seat:N2",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:N2",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:N2",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:N2",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:N2",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:N2",
+        "color": "426864"
+      },
+      {
+        "id": "cast:N2",
+        "color": null
+      },
+      {
+        "id": "stand:N2",
+        "color": "426864"
+      },
+      {
+        "id": "stand:N2",
+        "color": null
+      },
+      {
+        "id": "seat:N3",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:N3",
+        "color": "697969"
+      },
+      {
+        "id": "seat:N3",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:N3",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:N3",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:N3",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:N3",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:N3",
+        "color": "426864"
+      },
+      {
+        "id": "cast:N3",
+        "color": null
+      },
+      {
+        "id": "stand:N3",
+        "color": "426864"
+      },
+      {
+        "id": "stand:N3",
+        "color": null
+      },
+      {
+        "id": "seat:N4",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:N4",
+        "color": "697969"
+      },
+      {
+        "id": "seat:N4",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:N4",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:N4",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:N4",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:N4",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:N4",
+        "color": "426864"
+      },
+      {
+        "id": "cast:N4",
+        "color": null
+      },
+      {
+        "id": "stand:N4",
+        "color": "426864"
+      },
+      {
+        "id": "stand:N4",
+        "color": null
+      },
+      {
+        "id": "seat:W1",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:W1",
+        "color": "697969"
+      },
+      {
+        "id": "seat:W1",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:W1",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:W1",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:W1",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:W1",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:W1",
+        "color": "426864"
+      },
+      {
+        "id": "cast:W1",
+        "color": null
+      },
+      {
+        "id": "stand:W1",
+        "color": "426864"
+      },
+      {
+        "id": "stand:W1",
+        "color": null
+      },
+      {
+        "id": "seat:W2",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:W2",
+        "color": "697969"
+      },
+      {
+        "id": "seat:W2",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:W2",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:W2",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:W2",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:W2",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:W2",
+        "color": "426864"
+      },
+      {
+        "id": "cast:W2",
+        "color": null
+      },
+      {
+        "id": "stand:W2",
+        "color": "426864"
+      },
+      {
+        "id": "stand:W2",
+        "color": null
+      },
+      {
+        "id": "seat:E1",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:E1",
+        "color": "697969"
+      },
+      {
+        "id": "seat:E1",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:E1",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:E1",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:E1",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:E1",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:E1",
+        "color": "426864"
+      },
+      {
+        "id": "cast:E1",
+        "color": null
+      },
+      {
+        "id": "stand:E1",
+        "color": "426864"
+      },
+      {
+        "id": "stand:E1",
+        "color": null
+      },
+      {
+        "id": "seat:E2",
+        "color": "503a2d"
+      },
+      {
+        "id": "seat:E2",
+        "color": "697969"
+      },
+      {
+        "id": "seat:E2",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:E2",
+        "color": "30312d"
+      },
+      {
+        "id": "rod:E2",
+        "color": "39271e"
+      },
+      {
+        "id": "rod:E2",
+        "color": "a27a48"
+      },
+      {
+        "id": "rod:E2",
+        "color": "a27a48"
+      },
+      {
+        "id": "cast:E2",
+        "color": "426864"
+      },
+      {
+        "id": "cast:E2",
+        "color": null
+      },
+      {
+        "id": "stand:E2",
+        "color": "426864"
+      },
+      {
+        "id": "stand:E2",
+        "color": null
+      },
+      {
+        "id": "home",
+        "color": "426864"
+      },
+      {
+        "id": "home",
+        "color": null
+      },
+      {
+        "id": "samples",
+        "color": "426864"
+      },
+      {
+        "id": "samples",
+        "color": null
+      },
+      {
+        "id": "quality",
+        "color": "426864"
+      },
+      {
+        "id": "quality",
+        "color": null
+      }
+    ]
+  }
+}

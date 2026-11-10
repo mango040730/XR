@@ -1,0 +1,18 @@
+{
+  "materials": [
+    { "name": "Slate floor", "color": [0.12, 0.22, 0.29, 1] },
+    { "name": "Pale walls", "color": [0.48, 0.60, 0.66, 1] },
+    { "name": "Mint columns", "color": [0.16, 0.67, 0.48, 1] },
+    { "name": "Amber pedestal", "color": [0.82, 0.43, 0.12, 1] }
+  ],
+  "boxes": [
+    { "name": "Floor", "position": [0, -0.1, 0], "size": [10, 0.2, 12], "material": 0 },
+    { "name": "North wall", "position": [0, 1.5, -6], "size": [10, 3, 0.3], "material": 1 },
+    { "name": "South wall", "position": [0, 1.5, 6], "size": [10, 3, 0.3], "material": 1 },
+    { "name": "West wall", "position": [-5, 1.5, 0], "size": [0.3, 3, 12], "material": 1 },
+    { "name": "East wall", "position": [5, 1.5, 0], "size": [0.3, 3, 12], "material": 1 },
+    { "name": "Column A", "position": [-2.8, 1.2, -2], "size": [0.7, 2.4, 0.7], "material": 2 },
+    { "name": "Column B", "position": [2.8, 1.2, -2], "size": [0.7, 2.4, 0.7], "material": 2 },
+    { "name": "Pedestal", "position": [0, 0.6, -1], "size": [2, 1.2, 2], "material": 3 }
+  ]
+}

@@ -1,0 +1,367 @@
+{
+  "sha256": "9bfaa8255e85d7eff4f33446cae809011d519ebfd3ba2fa35f5a0d2b50f338ea",
+  "bytes": 905176,
+  "meshes": [
+    "Eyes_Clean",
+    "Face_Skin",
+    "Hair_Clean",
+    "Hair_Lower_Rim",
+    "Hand_SkinL",
+    "Hand_SkinR",
+    "Hood_Closed",
+    "Neck_Skin",
+    "Shoes_Clean",
+    "Shorts_Symmetric",
+    "Sleeve_HoodieL",
+    "Sleeve_HoodieR",
+    "Socks_Clean",
+    "Thigh_SkinL",
+    "Thigh_SkinR",
+    "Torso_Hoodie"
+  ],
+  "bones": [
+    "Hips",
+    "Spine",
+    "Chest",
+    "Neck",
+    "Head",
+    "ShoulderL",
+    "UpperArmL",
+    "ForearmL",
+    "HandL",
+    "ShoulderR",
+    "UpperArmR",
+    "ForearmR",
+    "HandR",
+    "UpperLegL",
+    "LowerLegL",
+    "FootL",
+    "UpperLegR",
+    "LowerLegR",
+    "FootR"
+  ],
+  "bounds": {
+    "min": [
+      -0.5633837580680847,
+      0.00035784862358885625,
+      -0.5254175153171834
+    ],
+    "max": [
+      0.5408510565757751,
+      1.899205864736649,
+      0.5219045039120271
+    ]
+  },
+  "worldHeight": 1.75,
+  "scale": 0.9216114113136069,
+  "front": "+Z (Eyes_Clean center)",
+  "runtimeModelYaw": 3.141592653589793,
+  "clips": [
+    {
+      "name": "01_Idle",
+      "duration": 2.0333333015441895,
+      "tracks": 57,
+      "hips": [
+        0,
+        0.3415749669075012,
+        0.07000000029802322
+      ],
+      "min": [
+        -0.5632956809444093,
+        0.000357827020776955,
+        -0.5282463106756732
+      ],
+      "max": [
+        0.5406383333384467,
+        1.8992261963848296,
+        0.5193751811147879
+      ],
+      "userAction": true
+    },
+    {
+      "name": "02_Walk",
+      "duration": 1.100000023841858,
+      "tracks": 57,
+      "hips": [
+        0,
+        0.3415749669075012,
+        0.07000000029802322
+      ],
+      "min": [
+        -0.5633837580680847,
+        -0.0036963072636784014,
+        -0.5254175082854516
+      ],
+      "max": [
+        0.5408510565757751,
+        1.8992059322454655,
+        0.521904513920019
+      ],
+      "userAction": true
+    },
+    {
+      "name": "03_Wave",
+      "duration": 2.0333333015441895,
+      "tracks": 57,
+      "hips": [
+        0,
+        0.3415749669075012,
+        0.07000000029802322
+      ],
+      "min": [
+        -0.5633837580680847,
+        0.000357827020776955,
+        -0.5254175082854516
+      ],
+      "max": [
+        0.5408510565757751,
+        1.8992059322454655,
+        0.521904513920019
+      ],
+      "userAction": true
+    },
+    {
+      "name": "04_Sit",
+      "duration": 3.0333333015441895,
+      "tracks": 57,
+      "hips": [
+        0,
+        0.3415749669075012,
+        0.07000000029802322
+      ],
+      "min": [
+        -0.5633837580680847,
+        0.00038444521143703446,
+        -0.5254175082854516
+      ],
+      "max": [
+        0.5408510565757751,
+        1.8992059322454655,
+        0.521904513920019
+      ],
+      "userAction": true
+    },
+    {
+      "name": "05_Shoulder_Check",
+      "duration": 2.0333333015441895,
+      "tracks": 57,
+      "hips": [
+        0,
+        0.3415749669075012,
+        0.07000000029802322
+      ],
+      "min": [
+        -0.5633837580680847,
+        0.000357827020776955,
+        -0.5254175082854516
+      ],
+      "max": [
+        0.5408510565757751,
+        1.8992059322454655,
+        0.521904513920019
+      ],
+      "userAction": false
+    }
+  ],
+  "validation": {
+    "numErrors": 0,
+    "numWarnings": 16,
+    "numInfos": 16,
+    "numHints": 0,
+    "messages": [
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/meshes/1/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/meshes/5/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/meshes/8/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/meshes/9/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/meshes/12/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_0"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/19"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/20"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/21"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/22"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/23"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/24"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/25"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/26"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/27"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/28"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/29"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/30"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/31"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/32"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/33"
+      },
+      {
+        "code": "NODE_SKINNED_MESH_NON_ROOT",
+        "message": "Node with a skinned mesh is not root. Parent transforms will not affect a skinned mesh.",
+        "severity": 1,
+        "pointer": "/nodes/34"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/accessors/84"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/accessors/85"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/accessors/86"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/accessors/87"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/accessors/88"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/accessors/89"
+      },
+      {
+        "code": "UNUSED_OBJECT",
+        "message": "This object may be unused.",
+        "severity": 2,
+        "pointer": "/accessors/166"
+      }
+    ],
+    "truncated": false
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "pageErrors": [],
+  "console": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://127.0.0.1:5174/@vite/client"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://127.0.0.1:5174/@vite/client"
+    }
+  ],
+  "failures": [],
+  "responses": [],
+  "expectedFailures": [],
+  "browser": "158.0.8127.18",
+  "webGL": {
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)"
+  },
+  "finalSnapshot": null
+}

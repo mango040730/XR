@@ -1,0 +1,12 @@
+.first-fix-shell .service-stage{top:50%}
+.first-fix-shell .service-stage[hidden]{display:none}
+.first-fix-shell .design-frame.explorable-frame{background:transparent;pointer-events:none}
+.first-fix-shell:not(.immersive) .explorable-frame :is(button,input,select,textarea,[class*="backdrop-blur-"]){pointer-events:auto}
+.first-fix-shell .fix-mode-notice{pointer-events:none}
+.first-fix-shell button:disabled{opacity:.45;cursor:default}
+.first-fix-shell .service-stage.space-navigation-stage{top:auto;bottom:24px;transform:translateX(-50%) scale(var(--panel-scale,1));transform-origin:bottom center}
+.fix-space-navigation{background:transparent;pointer-events:none!important}
+.fix-space-navigation .fix-space-next{top:auto;bottom:0;left:50%;transform:translateX(-50%) scale(var(--space-control-scale,1));transform-origin:bottom center;pointer-events:auto}
+.first-fix-standalone-navigation{position:fixed;inset:0;pointer-events:none}
+.first-fix-standalone-navigation .fix-space-navigation{width:100%;height:100%;overflow:visible}
+.first-fix-standalone-navigation .fix-space-next{bottom:24px}

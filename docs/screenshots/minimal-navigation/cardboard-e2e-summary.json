@@ -1,0 +1,12 @@
+{
+  "command": "npm run test:e2e -- --config=playwright.water.config.ts minimal-navigation.spec.ts neumorphic.spec.ts",
+  "stats": {
+    "startTime": "2026-11-10T07:14:50.486Z",
+    "duration": 20702.296,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "errors": []
+}

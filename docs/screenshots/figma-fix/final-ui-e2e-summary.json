@@ -1,0 +1,12 @@
+{
+  "command": "npm run test:e2e -- --config=playwright.water.config.ts figma-fix.spec.ts service.spec.ts --grep 'four first|every mode|pc: full|mobile: full'",
+  "stats": {
+    "startTime": "2026-11-10T05:24:25.052Z",
+    "duration": 29886.659,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "errors": []
+}

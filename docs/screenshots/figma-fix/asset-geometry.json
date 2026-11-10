@@ -1,0 +1,736 @@
+[
+  {
+    "id": "51:919",
+    "assets": [
+      {
+        "slot": "51:920",
+        "path": "/assets/figma-fix/b1086c09-46c7-4dd8-a4c3-f489be2cc40a.png",
+        "naturalWidth": 3024,
+        "naturalHeight": 1964,
+        "width": 1408,
+        "height": 688,
+        "x": -145,
+        "y": -88
+      },
+      {
+        "slot": "51:931",
+        "path": "/assets/figma-fix/3b7ff017-87e7-4678-ad76-2bcc23709570.png",
+        "naturalWidth": 2400,
+        "naturalHeight": 1200,
+        "width": 261,
+        "height": 200,
+        "x": 48,
+        "y": 360
+      },
+      {
+        "slot": "51:937",
+        "path": "/assets/figma-fix/e73e85ab-e1e2-4cb1-9444-90d384774365.svg",
+        "naturalWidth": 16,
+        "naturalHeight": 16,
+        "width": 16,
+        "height": 16,
+        "x": 72,
+        "y": 518
+      },
+      {
+        "slot": "51:950",
+        "path": "/assets/figma-fix/3b7ff017-87e7-4678-ad76-2bcc23709570.png",
+        "naturalWidth": 2400,
+        "naturalHeight": 1200,
+        "width": 261,
+        "height": 200,
+        "x": 891,
+        "y": 360
+      },
+      {
+        "slot": "51:956",
+        "path": "/assets/figma-fix/e73e85ab-e1e2-4cb1-9444-90d384774365.svg",
+        "naturalWidth": 16,
+        "naturalHeight": 16,
+        "width": 16,
+        "height": 16,
+        "x": 915,
+        "y": 518
+      },
+      {
+        "slot": "51:961",
+        "path": "/assets/figma-fix/d1bdb04c-6cf1-47e5-b98c-b1861fd857af.svg",
+        "naturalWidth": 24,
+        "naturalHeight": 24,
+        "width": 24,
+        "height": 24,
+        "x": 72,
+        "y": 49
+      },
+      {
+        "slot": "51:967",
+        "path": "/assets/figma-fix/456bacb1-6556-4bed-a9b4-dcd539b214c4.svg",
+        "naturalWidth": 18,
+        "naturalHeight": 22,
+        "width": 18,
+        "height": 22.03125,
+        "x": 1075,
+        "y": 48.984375
+      },
+      {
+        "slot": "51:970",
+        "path": "/assets/figma-fix/53fbdf02-344e-445c-b4ad-70988cd773ac.svg",
+        "naturalWidth": 24,
+        "naturalHeight": 24,
+        "width": 24,
+        "height": 24,
+        "x": 1104,
+        "y": 48
+      },
+      {
+        "slot": "51:1011",
+        "path": "/assets/figma-fix/80cd961e-cffd-4d56-a8db-52357f816124.png",
+        "naturalWidth": 1136,
+        "naturalHeight": 554,
+        "width": 494,
+        "height": 233,
+        "x": 353,
+        "y": 184
+      },
+      {
+        "slot": "51:978",
+        "path": "/assets/figma-fix/c3954018-7dc1-412c-984c-51b52141fd8b.svg",
+        "naturalWidth": 16,
+        "naturalHeight": 16,
+        "width": 16,
+        "height": 16,
+        "x": 353,
+        "y": 518
+      }
+    ],
+    "typography": [
+      {
+        "text": "친목을 다져요",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "600",
+        "size": "22px"
+      },
+      {
+        "text": "32명 참가 중",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "협력하며 즐겨요",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "600",
+        "size": "22px"
+      },
+      {
+        "text": "21명 참가 중",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "마이룸",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "혼자 활동해요",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "600",
+        "size": "22px"
+      },
+      {
+        "text": "다른 사람들과 같은 공간에서 혼자 활동하며 즐겨요.",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "400",
+        "size": "18px"
+      },
+      {
+        "text": "12명 참가 중",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "원하는 모드를 선택하세요",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      }
+    ]
+  },
+  {
+    "id": "50:1645",
+    "assets": [
+      {
+        "slot": "50:1646",
+        "path": "/assets/figma-fix/f6baebcf-bfe8-4770-a892-22db1330a33e.png",
+        "naturalWidth": 1684,
+        "naturalHeight": 822,
+        "width": 1409.546875,
+        "height": 688,
+        "x": -87.984375,
+        "y": -15.21875
+      },
+      {
+        "slot": "50:1653",
+        "path": "/assets/figma-fix/ea26ac96-ffbd-4de9-adef-e2c42ff70cd1.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 275,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1655",
+        "path": "/assets/figma-fix/ea26ac96-ffbd-4de9-adef-e2c42ff70cd1.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 322.5,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1657",
+        "path": "/assets/figma-fix/ea26ac96-ffbd-4de9-adef-e2c42ff70cd1.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 370,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1659",
+        "path": "/assets/figma-fix/1a281cd9-1b26-4743-819f-d4cfad1bb077.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 417.5,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1661",
+        "path": "/assets/figma-fix/1a281cd9-1b26-4743-819f-d4cfad1bb077.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 465,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1668",
+        "path": "/assets/figma-fix/ea26ac96-ffbd-4de9-adef-e2c42ff70cd1.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 695,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1670",
+        "path": "/assets/figma-fix/ea26ac96-ffbd-4de9-adef-e2c42ff70cd1.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 742.5,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1672",
+        "path": "/assets/figma-fix/ea26ac96-ffbd-4de9-adef-e2c42ff70cd1.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 790,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1674",
+        "path": "/assets/figma-fix/ea26ac96-ffbd-4de9-adef-e2c42ff70cd1.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 837.5,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1676",
+        "path": "/assets/figma-fix/1a281cd9-1b26-4743-819f-d4cfad1bb077.svg",
+        "naturalWidth": 38,
+        "naturalHeight": 38,
+        "width": 38,
+        "height": 38,
+        "x": 885,
+        "y": 348.5
+      },
+      {
+        "slot": "50:1684",
+        "path": "/assets/figma-fix/320d4112-614e-4d6f-be47-fe15b90257b2.svg",
+        "naturalWidth": 24,
+        "naturalHeight": 24,
+        "width": 24,
+        "height": 24,
+        "x": 72,
+        "y": 49
+      },
+      {
+        "slot": "50:1689",
+        "path": "/assets/figma-fix/b4c65f22-4646-40ef-88ad-2d9f48cccfab.svg",
+        "naturalWidth": 18,
+        "naturalHeight": 22,
+        "width": 18,
+        "height": 22.03125,
+        "x": 1075,
+        "y": 49.984375
+      },
+      {
+        "slot": "50:1692",
+        "path": "/assets/figma-fix/5cafba3a-e584-4b43-96c0-e61d1126c634.svg",
+        "naturalWidth": 24,
+        "naturalHeight": 24,
+        "width": 24,
+        "height": 24,
+        "x": 1104,
+        "y": 49
+      }
+    ],
+    "typography": [
+      {
+        "text": "모드 평가하기",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "600",
+        "size": "22px"
+      },
+      {
+        "text": "해당 모드에 대한 경험은 어떠셨나요?",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "400",
+        "size": "18px"
+      },
+      {
+        "text": "함께한 사람들 평가하기",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "600",
+        "size": "22px"
+      },
+      {
+        "text": "모드에서 함께한 사람들은 어떠셨나요?",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "400",
+        "size": "18px"
+      },
+      {
+        "text": "평가 완료",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "마이룸",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "시뮬레이션이 종료되었습니다",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      }
+    ]
+  },
+  {
+    "id": "49:807",
+    "assets": [
+      {
+        "slot": "49:874",
+        "path": "/assets/figma-fix/93a5cea4-38b6-407a-9c1c-664690293bc7.png",
+        "naturalWidth": 3024,
+        "naturalHeight": 1964,
+        "width": 1408,
+        "height": 688,
+        "x": -145,
+        "y": -88
+      },
+      {
+        "slot": "49:911",
+        "path": "/assets/figma-fix/93a5cea4-38b6-407a-9c1c-664690293bc7.png",
+        "naturalWidth": 3024,
+        "naturalHeight": 1964,
+        "width": 1408,
+        "height": 688,
+        "x": -145,
+        "y": -88
+      },
+      {
+        "slot": "49:811",
+        "path": "/assets/figma-fix/f2124c1d-c0ac-4494-b96b-8638bba14023.png",
+        "naturalWidth": 1920,
+        "naturalHeight": 1080,
+        "width": 348.09375,
+        "height": 195.78125,
+        "x": 70.9375,
+        "y": 175.40625
+      },
+      {
+        "slot": "49:821",
+        "path": "/assets/figma-fix/888bf307-3d44-462b-b2d4-2faa68e45316.png",
+        "naturalWidth": 1250,
+        "naturalHeight": 1254,
+        "width": 330,
+        "height": 391,
+        "x": 446.953125,
+        "y": 144
+      },
+      {
+        "slot": "49:1170",
+        "path": "/assets/figma-fix/f367dbaa-93e2-474b-b2cb-c9ae18aec6b4.svg",
+        "naturalWidth": 24,
+        "naturalHeight": 24,
+        "width": 24,
+        "height": 24,
+        "x": 72,
+        "y": 49
+      },
+      {
+        "slot": "49:1175",
+        "path": "/assets/figma-fix/301b10b7-b74f-40cb-85a0-4ba35a1c79fd.svg",
+        "naturalWidth": 18,
+        "naturalHeight": 22,
+        "width": 18,
+        "height": 22.03125,
+        "x": 1074,
+        "y": 49.984375
+      },
+      {
+        "slot": "49:1178",
+        "path": "/assets/figma-fix/df8e861f-403e-4091-831e-37d8cf433658.svg",
+        "naturalWidth": 24,
+        "naturalHeight": 24,
+        "width": 24,
+        "height": 24,
+        "x": 1103,
+        "y": 49
+      }
+    ],
+    "typography": [
+      {
+        "text": "방탈출",
+        "family": "Pretendard, sans-serif",
+        "weight": "700",
+        "size": "20px"
+      },
+      {
+        "text": "XR에서 함께했던 콘텐츠",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "16px"
+      },
+      {
+        "text": "같은 생활권에서 즐길 수 있는 제휴 기업 5건 발견",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "16px"
+      },
+      {
+        "text": "약속만 잡을래요",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "방탈출 검색하기",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "언제 만날까요?",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "600",
+        "size": "28px"
+      },
+      {
+        "text": "캘린더에서 원하는 날짜를",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "선택하고 만날 시간을 선택하세요.",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "09:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "10:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "11:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "12:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "13:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "14:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "15:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "16:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "17:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "18:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "19:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "20:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "21:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "22:00",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "14px"
+      },
+      {
+        "text": "다음",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "마이룸",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "18px"
+      }
+    ]
+  },
+  {
+    "id": "49:1070",
+    "assets": [
+      {
+        "slot": "49:1071",
+        "path": "/assets/figma-fix/4e07ab6c-b56c-4aca-8c2d-326533db3cb7.png",
+        "naturalWidth": 3024,
+        "naturalHeight": 1964,
+        "width": 1408,
+        "height": 688,
+        "x": -145,
+        "y": -88
+      },
+      {
+        "slot": "49:1072",
+        "path": "/assets/figma-fix/4e07ab6c-b56c-4aca-8c2d-326533db3cb7.png",
+        "naturalWidth": 3024,
+        "naturalHeight": 1964,
+        "width": 1408,
+        "height": 688,
+        "x": -145,
+        "y": -88
+      },
+      {
+        "slot": "49:1075",
+        "path": "/assets/figma-fix/931dd49b-1269-41ca-b3cb-a760c2a944be.png",
+        "naturalWidth": 1920,
+        "naturalHeight": 1080,
+        "width": 348.09375,
+        "height": 195.78125,
+        "x": 70.9375,
+        "y": 175.40625
+      },
+      {
+        "slot": "49:1161",
+        "path": "/assets/figma-fix/797120d0-64d6-4db6-939e-7062fffaa228.png",
+        "naturalWidth": 1250,
+        "naturalHeight": 1254,
+        "width": 318,
+        "height": 377,
+        "x": 452.953125,
+        "y": 144
+      },
+      {
+        "slot": "49:1162",
+        "path": "/assets/figma-fix/a91958a9-9a25-4c92-8a64-0731c369bcde.png",
+        "naturalWidth": 1024,
+        "naturalHeight": 657,
+        "width": 1247,
+        "height": 799,
+        "x": 83.953125,
+        "y": 16.5
+      },
+      {
+        "slot": "49:1164",
+        "path": "/assets/figma-fix/8372f731-1f16-404a-b88d-74769d98b3da.svg",
+        "naturalWidth": 24,
+        "naturalHeight": 24,
+        "width": 24,
+        "height": 24,
+        "x": 469,
+        "y": 203.03125
+      },
+      {
+        "slot": "49:1124",
+        "path": "/assets/figma-fix/cf32e8bd-07c8-4fd5-8eec-47c62725078e.svg",
+        "naturalWidth": 24,
+        "naturalHeight": 24,
+        "width": 24,
+        "height": 24,
+        "x": 72,
+        "y": 49
+      },
+      {
+        "slot": "49:1129",
+        "path": "/assets/figma-fix/0dcbcec3-208f-4cf0-9327-4cb218dbee56.svg",
+        "naturalWidth": 18,
+        "naturalHeight": 22,
+        "width": 18,
+        "height": 22.03125,
+        "x": 1074,
+        "y": 49.984375
+      },
+      {
+        "slot": "49:1132",
+        "path": "/assets/figma-fix/0e866038-caa6-4490-934b-ac3bd7ae0267.svg",
+        "naturalWidth": 24,
+        "naturalHeight": 24,
+        "width": 24,
+        "height": 24,
+        "x": 1103,
+        "y": 49
+      }
+    ],
+    "typography": [
+      {
+        "text": "방탈출",
+        "family": "Pretendard, sans-serif",
+        "weight": "700",
+        "size": "20px"
+      },
+      {
+        "text": "XR에서 함께했던 콘텐츠",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "16px"
+      },
+      {
+        "text": "같은 생활권에서 즐길 수 있는 제휴 기업 5건 발견",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "16px"
+      },
+      {
+        "text": "약속만 잡을래요",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "방탈출 검색하기",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "장소 검색하기",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "16px"
+      },
+      {
+        "text": "어디에서 만날까요?",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "600",
+        "size": "28px"
+      },
+      {
+        "text": "지도에서 만날 장소를 선택하세요.",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "400",
+        "size": "18px"
+      },
+      {
+        "text": "이전",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "완료",
+        "family": "Pretendard, sans-serif",
+        "weight": "500",
+        "size": "18px"
+      },
+      {
+        "text": "마이룸",
+        "family": "\"Wanted Sans\", sans-serif",
+        "weight": "500",
+        "size": "18px"
+      }
+    ]
+  }
+]

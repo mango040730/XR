@@ -1,0 +1,20 @@
+import { test,expect,snapshot,screenshot } from './fixtures';
+test('clear water captures wall-coloured tiles and reflected room across views and quality changes',async({page},info)=>{
+ test.setTimeout(90_000);
+ await page.goto('/?offline=1&fishing&ui=1&fishingUiReview=1');await page.waitForFunction(()=>window.__XR_DEBUG__?.snapshot().world.status==='ready');
+ await expect(page.locator('.fishing-error')).toHaveCount(0);
+ await page.locator('[data-help]').click();await page.locator('[data-do="review"]').click();await page.locator('[data-close]').click();
+ await screenshot(page,info,'clear-water-overview');
+ const first=await snapshot(page);expect(first.player.position).toEqual([6.65,0,4.8]);
+ await page.locator('canvas').click();await page.mouse.move(720,500);
+ const pose=(await snapshot(page)).player;await page.mouse.move(720+(pose.yaw-.86)/.002,500+(pose.pitch+.5)/.002);
+ await page.keyboard.press('Escape');await screenshot(page,info,'clear-water-downward');
+ await page.waitForTimeout(1200);await screenshot(page,info,'clear-water-animated');
+ await page.locator('[data-help]').click();await page.locator('[data-do="opposite"]').click();await page.locator('[data-close]').click();
+ await screenshot(page,info,'clear-water-opposite');
+ await page.locator('[data-help]').click();await page.locator('[data-low]').check();await page.locator('[data-close]').click();
+ await screenshot(page,info,'clear-water-low');
+ await page.locator('[data-help]').click();await page.locator('[data-low]').uncheck();await page.locator('[data-close]').click();
+ await page.setViewportSize({width:390,height:844});await screenshot(page,info,'clear-water-mobile');
+ expect((await snapshot(page)).world.activeId).toBe('indoor-fishing');
+});

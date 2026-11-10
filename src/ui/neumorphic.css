@@ -1,0 +1,158 @@
+/* Shared by the live service and fishing HUD. Original design-review frames stay intact. */
+:is(.fishing-hud,.service-shell:not(.review):not(.figma-fix)) {
+  --ui-theme:neumorphic;
+  --ui-surface:#e7e5e1;
+  --ui-soft:#eeece9;
+  --ui-recess:#dddbd7;
+  --ui-text:#303238;
+  --ui-muted:#63666c;
+  --ui-line:#cac8c3;
+  --ui-accent:#2674cb;
+  --ui-border:rgba(255,255,255,.62);
+  --ui-raised:5px 5px 11px rgba(112,108,103,.27),-4px -4px 9px rgba(255,255,255,.88);
+  --ui-pressed:inset 4px 4px 8px rgba(112,108,103,.28),inset -4px -4px 8px rgba(255,255,255,.85);
+  --ui-card:10px 12px 26px rgba(33,31,28,.24),inset 1px 1px 0 rgba(255,255,255,.82);
+  color-scheme:light;
+}
+:is(.fishing-hud,.service-shell:not(.review):not(.figma-fix)) :is(button,input,select,textarea,a) {
+  -webkit-tap-highlight-color:transparent;
+}
+:is(.fishing-hud,.service-shell:not(.review):not(.figma-fix)) :is(button,input,select,textarea,a):focus-visible {
+  outline:3px solid var(--ui-accent)!important;
+  outline-offset:4px;
+}
+.fishing-hud button,
+.service-shell:not(.review):not(.figma-fix) :is(.service-chrome button,.design-frame button) {
+  color:var(--ui-text);
+  background:var(--ui-surface);
+  border:1px solid var(--ui-border);
+  box-shadow:var(--ui-raised);
+  transition:box-shadow .16s ease,background-color .16s ease,color .16s ease;
+}
+.fishing-hud button:hover:enabled,
+.service-shell:not(.review):not(.figma-fix) :is(.service-chrome button,.design-frame button):hover:enabled {
+  background:var(--ui-soft);
+  box-shadow:6px 6px 13px rgba(112,108,103,.3),-4px -4px 10px rgba(255,255,255,.9);
+}
+.fishing-hud button:active:enabled,
+.fishing-hud button[aria-expanded=true]:enabled,
+.service-shell:not(.review):not(.figma-fix) :is(.service-chrome button,.design-frame button):active:enabled,
+.service-shell:not(.review):not(.figma-fix) .design-frame button[data-selected=true]:enabled {
+  background:var(--ui-recess);
+  box-shadow:var(--ui-pressed);
+}
+.fishing-hud button:disabled,
+.service-shell:not(.review):not(.figma-fix) :is(.service-chrome button,.design-frame button):disabled {
+  color:#85868a;
+  background:#deddd9;
+  border-color:#d6d4cf;
+  box-shadow:none;
+  cursor:not-allowed;
+  opacity:1;
+}
+/* Restyle composed service components without changing their data, actions or layout. */
+.service-shell:not(.review):not(.figma-fix),.service-shell:not(.review):not(.figma-fix) * { box-sizing:border-box; }
+.service-shell:not(.review):not(.figma-fix) {
+  --ds-background:var(--ui-surface);
+  --ds-text:var(--ui-text);
+  --ds-muted:var(--ui-muted);
+  --ds-glass:var(--ui-surface);
+  --ds-panel:var(--ui-surface);
+  --ds-input:var(--ui-recess);
+  color:var(--ui-text);
+  background:var(--ui-surface);
+}
+.service-shell:not(.review):not(.figma-fix) .design-frame:not(.simulation-hud) {
+  color:var(--ui-text);
+  background:var(--ui-surface);
+  border:1px solid var(--ui-border);
+  border-radius:30px;
+  box-shadow:var(--ui-card);
+}
+.service-shell:not(.review):not(.figma-fix) .design-frame :is(p,h1,h2,label,[class*="text-"]) { color:inherit; }
+.service-shell:not(.review):not(.figma-fix) .design-frame :is(.ds-copy,.ds-subtitle,.ds-status) { color:var(--ui-muted); }
+.service-shell:not(.review):not(.figma-fix) .design-frame :where([data-glass],.ds-panel,[class*="bg-"][class*="rounded-"]) {
+  color:var(--ui-text);
+  background:var(--ui-surface);
+  background-image:none;
+  border:1px solid var(--ui-border);
+  box-shadow:var(--ui-raised);
+  backdrop-filter:none;
+}
+.service-shell:not(.review):not(.figma-fix) .design-frame :is(.ds-panel,[data-glass]) { border-radius:24px; }
+.service-shell:not(.review):not(.figma-fix) .design-frame button { border-radius:20px; }
+.service-shell:not(.review):not(.figma-fix) .design-frame :is(.ds-button,button[class*="rounded-[1000px]"]) { border-radius:999px; }
+.service-shell:not(.review):not(.figma-fix) .design-frame button :is(p,span) { color:inherit; }
+.service-shell:not(.review):not(.figma-fix) .design-frame button[data-selected=true] {
+  color:var(--ui-accent);
+  outline:1.5px solid var(--ui-accent);
+  outline-offset:1px;
+}
+.service-shell:not(.review):not(.figma-fix) .design-frame button.gaze-focus {
+  outline:3px solid var(--ui-accent);
+  outline-offset:4px;
+}
+.service-shell:not(.review):not(.figma-fix) .design-frame input,
+.service-shell:not(.review):not(.figma-fix) .design-frame :is(select,textarea) {
+  color:var(--ui-text);
+  background:var(--ui-surface);
+  border:1px solid var(--ui-border);
+  border-radius:18px;
+  box-shadow:var(--ui-pressed);
+}
+.service-shell:not(.review):not(.figma-fix) .design-frame input::placeholder { color:var(--ui-muted); }
+.service-shell:not(.review):not(.figma-fix) .design-frame button img[src$=".svg"] { filter:brightness(0) opacity(.66); }
+.service-shell:not(.review):not(.figma-fix) .design-frame :is(.calendar,.ds-error) {
+  color:var(--ui-text);
+  background:var(--ui-surface);
+  border:1px solid var(--ui-border);
+  box-shadow:var(--ui-pressed);
+}
+.service-shell:not(.review):not(.figma-fix) .design-frame .calendar button { box-shadow:none;border-color:transparent;border-radius:50%; }
+.service-shell:not(.review):not(.figma-fix) .design-frame .calendar button[data-selected=true] { background:var(--ui-recess);box-shadow:var(--ui-pressed);color:var(--ui-accent); }
+.service-shell:not(.review):not(.figma-fix) .service-chrome {
+  left:24px;right:24px;bottom:16px;height:46px;
+  border:1px solid var(--ui-border);border-radius:24px;
+  padding:6px 10px;background:var(--ui-surface);box-shadow:var(--ui-card);
+  color:var(--ui-text);
+}
+.service-shell:not(.review):not(.figma-fix) .service-chrome span { background:none;color:var(--ui-muted); }
+.service-shell:not(.review):not(.figma-fix) .service-chrome button { min-height:32px;border-radius:999px;padding:6px 14px; }
+.service-shell:not(.review):not(.figma-fix) .native-vr-host>button {
+  color:var(--ui-text)!important;background:var(--ui-surface)!important;
+  border:1px solid var(--ui-border)!important;box-shadow:var(--ui-raised)!important;
+  font:inherit!important;border-radius:999px!important;opacity:1!important;
+}
+.service-shell:not(.review):not(.figma-fix) .native-vr-host>button:disabled { box-shadow:none!important;color:#85868a!important;background:#deddd9!important; }
+/* Align the simulation controls with the screen edges instead of the scaled form panel. */
+.service-shell[data-route=simulation]:not(.immersive):not(.figma-fix) .service-stage { inset:0;width:100%;height:100%;transform:none;top:0!important; }
+.service-shell[data-route=simulation]:not(.immersive) .simulation-hud { width:100%;height:100%;color:var(--ui-text); }
+.service-shell:not(.review):not(.figma-fix) .simulation-top { left:24px;right:24px;top:24px;gap:16px;font-size:14px; }
+.service-shell:has(.fishing-hud:not([hidden])) .simulation-top { top:120px; }
+.service-shell:not(.review):not(.figma-fix) .simulation-top>button { font-size:14px;white-space:nowrap;flex-shrink:0;min-height:44px; }
+.service-shell:not(.review):not(.figma-fix) .simulation-top>.ds-copy { font-size:14px; }
+.service-shell:not(.review):not(.figma-fix) .simulation-top>* {
+  color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-border);
+  border-radius:999px;padding:12px 20px;box-shadow:var(--ui-raised);
+}
+.service-shell:not(.review):not(.figma-fix) .simulation-help { color:var(--ui-muted);background:var(--ui-surface);box-shadow:var(--ui-raised); }
+.service-shell:has(.fishing-hud:not([hidden])) .fh-footer { bottom:78px; }
+@media(max-width:760px) {
+  .service-shell:not(.review):not(.figma-fix) .service-chrome { left:12px;right:12px;bottom:12px;gap:6px;height:52px;padding:5px 8px; }
+  .service-shell:not(.review):not(.figma-fix) .service-chrome>span:first-child { display:none; }
+  .service-shell:not(.review):not(.figma-fix) .service-chrome button { font-size:10px;padding:6px 8px;min-height:40px; }
+  .service-shell:not(.review):not(.figma-fix) .native-vr-host>button { font-size:10px!important;padding:6px 8px!important; }
+  .service-shell:not(.review):not(.figma-fix) .simulation-top { left:12px;right:12px;gap:8px;font-size:11px; }
+  .service-shell:has(.fishing-hud:not([hidden])) .simulation-top { top:100px; }
+  .service-shell:not(.review):not(.figma-fix) .simulation-top>* { padding:10px 12px; }
+  .service-shell:not(.review):not(.figma-fix) .simulation-top>button,.service-shell:not(.review):not(.figma-fix) .simulation-top>.ds-copy { font-size:11px; }
+  .service-shell:not(.review):not(.figma-fix) .simulation-top .ds-copy { max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .service-shell:has(.fishing-hud:not([hidden])) .fh-footer { bottom:76px; }
+  .service-shell:has(.fishing-hud:not([hidden])) .fh-touch { bottom:270px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  :is(.fishing-hud,.service-shell:not(.review):not(.figma-fix)) :is(button,input,select,textarea) { transition:none!important; }
+}
+@media(forced-colors:active) {
+  :is(.fishing-hud,.service-shell:not(.review):not(.figma-fix)) :is(button,input,select,textarea) { border:1px solid ButtonText;box-shadow:none; }
+}

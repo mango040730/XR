@@ -1,0 +1,17 @@
+.social-ui{position:absolute;inset:0;pointer-events:none;z-index:4;font-size:14px;line-height:1.5}
+.social-ui[hidden],.social-ui [hidden]{display:none!important}
+.social-ui :is(button,input){font:inherit;color:#efeeec}
+.social-ui button{pointer-events:auto;background:rgba(24,24,24,.78);border:1px solid #ffffff30;border-radius:1000px;padding:8px 14px;cursor:pointer;min-height:38px}
+.social-ui button:disabled{opacity:.45;cursor:default}
+.social-ui button[aria-pressed=true]{border-color:#e04d08}
+.social-panel{position:absolute;top:24px;left:24px;max-width:min(420px,calc(100vw - 48px));padding:12px 16px;background:rgba(24,24,24,.82);border-radius:20px;pointer-events:auto;backdrop-filter:blur(4px)}
+.social-status{font-weight:600}.social-actions,.social-join{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-top:8px}
+.social-ui label{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.social-ui input{background:#ffffff12;border:1px solid #ffffff40;border-radius:12px;padding:8px 10px;max-width:100%;min-width:0;box-sizing:border-box}
+.social-ui :is(input,button):focus-visible{outline:2px solid #efeeec;outline-offset:3px}
+.social-error{font-size:12px;max-width:340px;margin:8px 0 0;color:#efeeec}
+.social-chat-toggle{position:absolute;bottom:24px;left:24px}.social-chat{position:absolute;bottom:72px;left:24px;width:min(340px,calc(100vw - 48px));max-height:42vh;background:rgba(24,24,24,.88);border-radius:20px;padding:14px;box-sizing:border-box;pointer-events:auto;backdrop-filter:blur(4px)}
+.social-log{overflow:auto;max-height:25vh;padding:0;margin:0 0 10px;list-style:none;overflow-wrap:anywhere}.social-log li{margin:6px 0}.social-log strong{font-weight:600}
+.social-chat-form{display:flex;gap:8px;align-items:end}.social-chat-form label{flex:1;min-width:0}.social-chat-form input{width:100%}
+@media(max-width:600px){.social-panel{top:12px;left:12px;max-width:calc(100vw - 24px);padding:10px 12px}.social-actions{max-width:320px;gap:6px}.social-ui button{min-height:42px;font-size:13px}.social-chat,.social-chat-toggle{left:12px}}
+.service-shell.immersive .social-ui{display:none}

@@ -1,0 +1,27 @@
+{
+  "browser": "158.0.8127.18",
+  "webGL": {
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)"
+  },
+  "pageErrors": [],
+  "console": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "url": "http://127.0.0.1:4173/@vite/client"
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "url": "http://127.0.0.1:4173/@vite/client"
+    },
+    {
+      "type": "warning",
+      "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been removed. Using PCFShadowMap instead.",
+      "url": "http://127.0.0.1:4173/@vite/client"
+    }
+  ],
+  "failures": [],
+  "responses": []
+}

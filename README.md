@@ -1,41 +1,55 @@
-# VR Interface
+# XR Spatial Platform
 
-> Three.js 전환은 `main` 브랜치에서 단계적으로 진행합니다. 전체 계획은 [THREE_REFACTOR_PLAN.md](./THREE_REFACTOR_PLAN.md)를 참고하세요.
+Three.js 기반 1인칭 3D 소셜 공간입니다. 기존 공간과 Figma 1차 픽스 4개 화면을 유지합니다. 자기 아바타는 본인 시야에 표시하지 않고, 같은 방에 실제로 입장한 다른 사용자의 아바타만 표시합니다.
 
-Figma의 `UI 인터페이스` 디자인을 바탕으로 만든 정적 웹앱입니다. 별도 빌드나 패키지 설치가 필요하지 않습니다.
+공개 웹사이트: https://mango040730.github.io/XR/
 
-1단계 리팩터링에서는 기존 UI와 화면 전환을 유지한 채 배경 렌더러를 Three.js WebGL로 교체했습니다. 현재는 전환 검증용 단일 실내 공간을 렌더링하며, 모드별 공간과 iPhone 양안·센서 처리는 다음 단계에서 순차적으로 이전합니다.
+## 로컬 실행
 
-Three.js와 애드온은 공식 설치 가이드 방식의 import map으로 같은 버전(`0.187.0`)을 사용합니다. `three-world.js`에는 향후 Blender GLB를 불러오기 위한 `GLTFLoader`와 `loadGLB()` 진입점이 포함되어 있습니다.
+Node.js 22.18 이상에서 설치합니다.
 
-MODE 01 설정에서 `01 실내 낚시터`를 고른 뒤 `ENTER`를 누르면 `assets/indoor-fishing/`에 포함된 절차 생성형 1인칭 낚시 공간이 열립니다. 외부 GLB 없이 나무 데크, 실내 수조, 수면, 좌석, 낚싯대와 물고기를 Three.js 코드로 생성하며 걷기, 착석, 캐스팅, 입질, 릴 감기와 공간 사운드를 지원합니다. 부모 HUD의 빈 영역은 포인터 입력을 통과시켜 낚시터 캔버스 조작을 막지 않으며, 가운데 행동 도크에서 낚시/줄 감기, 앉기/일어서기, 공간 소리를 직접 실행할 수 있습니다.
-
-MODE 01 설정에서 `02 사우나`를 고른 뒤 `ENTER`를 누르면 시작 랜딩 없이 `assets/sauna/`의 1인칭 3D 사우나 내부로 바로 들어갑니다. 사우나의 온도 조절, 착석, 로일리(물 끼얹기), 땀 닦기, 공간 사운드, 이용 안내 UI를 그대로 사용할 수 있습니다.
-
-홈의 모드 선택 화면과 각 모드의 설정 화면은 `assets/models/room.glb`를 공통 배경 공간으로 사용합니다.
-
-MODE 03은 설정 화면의 `ENTER`로 월드에 진입할 때 `assets/models/escape_room.glb`를 불러옵니다.
-
-GitHub Pages는 항상 `https://mango040730.github.io/XR/` 한 주소로 제공됩니다. Pages 배포가 완료되면 `.github/workflows/cleanup-pages-deployments.yml`이 이전 배포 기록을 삭제하고 최신 기록 하나만 유지합니다.
-
-## 실행
-
-```bash
-python3 -m http.server 8080
+```sh
+npm ci
 ```
 
-브라우저에서 `http://localhost:8080`을 엽니다. 아이폰에서는 같은 Wi-Fi의 Mac IP로 접속한 뒤 가로 모드에서 화면을 두 번 탭하세요.
+서로 다른 터미널에서 서버와 프론트를 실행합니다.
+
+```sh
+npm run server
+```
+
+```sh
+npm run dev
+```
+
+http://127.0.0.1:5173/?room=demo#my-room 을 브라우저 두 개로 열고 각각 닉네임으로 입장하면 이동·인사·좌석·채팅을 공유합니다. 음성은 각 사용자가 명시적으로 켠 뒤 연결됩니다.
 
 ## 조작
 
-- 키보드 `W`/`A`/`S`/`D` 또는 방향키: 3D 공간 이동
-- 배경 드래그 또는 `Q`/`E`: 시점 회전
-- 키보드 `R`: 시작 위치로 복귀
-- iPhone 가로 모드: 좌측 `MOVE`, 우측 `LOOK` 터치 컨트롤
-- 모드 카드 또는 `ENTER` 버튼: 환경 설정으로 이동
-- 환경 설정의 `ENTER` 버튼: 선택한 VR 장면 입장
-- 하단 하트 버튼: 별점 리뷰 열기
-- 화면 두 번 탭: 좌우 눈 화면 + 전체화면 시도
-- 키보드 `1`/`2`/`3`: 장면 이동
-- 키보드 `V`: VR 보기 전환
-- `Esc` 또는 `Backspace`: 홈으로 복귀
+- WASD: 이동, 마우스: 시점, Esc: 잠금 해제/기존 메뉴
+- 1: 손 흔들기, E: 가까운 좌석/일어나기, Q: 일어나기
+- M: 모드 선택, B: 약속, V: VR 전환
+- 터치 한 손가락: 시점, 두 손가락 밀어 유지: 이동
+
+## GitHub Pages 배포
+
+main에 push하면 `.github/workflows/deploy-pages.yml`이 의존성 설치·검사·프론트/서버 빌드를 거쳐 dist만 같은 Pages 주소에 배포합니다. `/XR/` 하위 경로에 맞춰 모델·폰트·화면 복귀 주소를 빌드합니다.
+
+GitHub Pages는 프론트 정적 호스팅입니다. Node.js/Socket.IO 서버는 별도로 실행해야 합니다. 공개 서버가 준비되면 저장소 Settings → Secrets and variables → Actions → Variables에 `SOCIAL_SERVER_URL`을 HTTPS 주소로 등록하고 Pages 워크플로를 다시 실행합니다. 서버의 ALLOWED_ORIGINS에는 `https://mango040730.github.io`를 포함합니다. 외부망 음성에는 운영 STUN/TURN도 필요합니다.
+
+공개 서버 주소가 없는 Pages 빌드에서는 공간 둘러보기를 제공하고 실시간 연결 준비 상태를 표시합니다. 연결할 수 없는 같은 Origin에 소켓 요청을 반복하거나 가상의 접속자를 만들지 않습니다. 로컬 실행의 실제 멀티플레이어는 유지됩니다.
+
+## 검사 및 문서
+
+```sh
+npm run check
+npm run test:e2e:social
+npm run test:e2e -- --config=playwright.water.config.ts
+```
+
+- [서버/아바타/음성·환경변수·배포 설정](docs/social-multiplayer.md)
+- [기능·검사·제한 기록](docs/progress.md)
+- [원본 GLB 검사 결과](docs/social-avatar-report.json)
+- [기존 README 기록](docs/archive/README-v0.4-original.md)
+
+제공 아바타의 최종 위치는 `public/assets/avatars/cub-scout-v6.glb`입니다. 일반 사용자 동작은 원본 Idle/Walk/Wave/Sit을 사용합니다. 실제 VR 기기·사람 마이크 음질·외부 NAT/TURN 연결은 별도 검증이 필요합니다.

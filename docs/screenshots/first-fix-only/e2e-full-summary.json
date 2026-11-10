@@ -1,0 +1,12 @@
+{
+  "command": "npm run test:e2e -- --config=playwright.water.config.ts",
+  "stats": {
+    "startTime": "2026-11-10T07:00:19.286Z",
+    "duration": 253095.718,
+    "expected": 47,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "errors": []
+}

@@ -1,0 +1,9 @@
+{
+  "extends":"./tsconfig.json",
+  "compilerOptions":{
+    "noEmit":false,"outDir":"server-dist","rootDir":".",
+    "rewriteRelativeImportExtensions":true,"target":"ES2023","module":"NodeNext","moduleResolution":"NodeNext",
+    "jsx":"preserve"
+  },
+  "include":["server","shared"],"exclude":["node_modules","dist","server-dist"]
+}

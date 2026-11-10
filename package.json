@@ -1,0 +1,46 @@
+{
+  "name": "xr-spatial-platform",
+  "private": true,
+  "version": "0.4.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run generate:social-rooms && npm run typecheck && vite build && node scripts/check-production.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "check": "npm run lint && npm test && npm run validate:assets && npm run inspect:avatar && npm run build && npm run server:build",
+    "generate:assets": "node scripts/generate-test-glb.mjs",
+    "validate:assets": "node scripts/validate-assets.mjs",
+    "test:e2e:install": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium",
+    "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
+    "compare:figma": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers node scripts/compare-figma.mjs",
+    "server": "npm run server:build && node --env-file-if-exists=.env.social server-dist/server/index.js",
+    "server:dev": "npm run server:build && node --watch --env-file-if-exists=.env.social server-dist/server/index.js",
+    "generate:social-rooms": "node scripts/export-social-rooms.mjs",
+    "inspect:avatar": "node scripts/inspect-avatar.mjs",
+    "test:e2e:social": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --config=playwright.social.config.ts",
+    "server:build": "tsc -p tsconfig.server.json"
+  },
+  "dependencies": {
+    "socket.io": "4.8.4",
+    "socket.io-client": "4.8.4",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
+    "@types/node": "26.6.6",
+    "@types/three": "0.187.0",
+    "eslint": "10.14.0",
+    "gltf-validator": "2.0.0-dev.3.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.6",
+    "vitest": "5.1.0"
+  }
+}

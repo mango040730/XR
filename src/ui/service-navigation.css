@@ -1,0 +1,17 @@
+/* Empty space reaches the canvas; visible UI surfaces keep their own hit areas. */
+.service-shell:not(.review):is(.figma-fix,[data-route="my-room"]) .design-frame.explorable-frame{
+  background:transparent;border:0;border-radius:0;box-shadow:none;pointer-events:none;
+}
+.service-shell:not(.immersive) .explorable-frame :is(button,input,select,textarea,a,label,[data-glass],[class*="backdrop-blur-"]){pointer-events:auto}
+.service-shell .explorable-frame .fix-mode-notice{pointer-events:none}
+.service-touch-controls{position:absolute;left:16px;bottom:84px;z-index:3;display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,44px);gap:6px;touch-action:none}
+.service-touch-controls[hidden],.service-shell.immersive .service-touch-controls{display:none}
+.service-touch-direction{font:600 22px Pretendard,sans-serif;color:#fff;background:rgba(0,0,0,.6);border:1px solid #ffffff66;border-radius:14px;touch-action:none;user-select:none;cursor:pointer}
+.service-touch-direction:active{background:rgba(255,255,255,.3)}
+.service-touch-direction:focus-visible{outline:2px solid white;outline-offset:3px}
+.service-touch-direction[data-direction=forward]{grid-column:2;grid-row:1}
+.service-touch-direction[data-direction=left]{grid-column:1;grid-row:2}
+.service-touch-direction[data-direction=back]{grid-column:2;grid-row:2}
+.service-touch-direction[data-direction=right]{grid-column:3;grid-row:2}
+.service-chrome .service-touch-toggle{display:none}
+@media(hover:none),(pointer:coarse){.service-chrome .service-touch-toggle{display:inline-flex}}

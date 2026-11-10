@@ -1,0 +1,27 @@
+{
+  "url": "https://mango040730.github.io/XR/?verify=woodworking-20261110#simulation",
+  "browser": "158.0.8127.18",
+  "mapping": {
+    "solo": "woodworking",
+    "social": "indoor-fishing"
+  },
+  "errors": [],
+  "failed": [],
+  "http": [
+    {
+      "url": "https://mango040730.github.io/XR/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "https://mango040730.github.io/XR/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    }
+  ],
+  "sockets": [],
+  "diagnostics": {
+    "engine": "undefined",
+    "social": "undefined",
+    "renderer": "WebKit WebGL",
+    "text": "종료하고 평가하기\n\n공간 둘러보기\n\n실시간 연결을 준비 중입니다."
+  }
+}

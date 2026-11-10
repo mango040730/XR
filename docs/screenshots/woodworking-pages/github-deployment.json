@@ -1,0 +1,16 @@
+{
+  "run": {
+    "id": 42812953009,
+    "head_sha": "8ead0f32bc5905a453ad911865cb8e959432fd95",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/mango040730/XR/actions/runs/42812953009"
+  },
+  "url": "https://mango040730.github.io/XR/",
+  "codeCommit": "74217db799c83bc08bacece30140a5e0a1e2c878",
+  "firstRun": {
+    "id": 42810562281,
+    "initialResult": "Pages publish timeout; build success",
+    "retry": "cancelled for fresh deployment"
+  }
+}

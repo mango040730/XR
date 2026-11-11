@@ -11,7 +11,7 @@ test('solo enters the authored woodworking space; social enters fishing; real mo
   expect(start.models[0].url).toContain('forest-atelier-original.glb');expect(start.models[0].meshes).toBe(43);
   expect(start.render.fov).toBe(77); expect(start.render.fog).toBe('d4dbbd');
   expect(start.player.position).toEqual([0, 0, 5.6]);
-  await expect(page.locator('button:visible,a:visible,input:visible')).toHaveCount(1);
+  await expect(page.locator('button:visible,a:visible,input:visible')).toHaveCount(5);
   await screenshot(page, info, 'woodworking-entry');
   await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
   await page.keyboard.down('w');

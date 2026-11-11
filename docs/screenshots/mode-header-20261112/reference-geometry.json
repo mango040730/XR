@@ -1,0 +1,195 @@
+{
+  "node": "115:330",
+  "boxes": [
+    {
+      "id": "115:385",
+      "x": 48,
+      "y": 40,
+      "width": 1104,
+      "height": 53,
+      "opacity": "1",
+      "display": "flex",
+      "padding": "0px",
+      "position": "absolute",
+      "text": "모드 선택원하는 모드를 선택하세요"
+    },
+    {
+      "id": "115:386",
+      "x": 48,
+      "y": 41.5,
+      "width": 148.890625,
+      "height": 50,
+      "opacity": "0",
+      "display": "flex",
+      "padding": "12px 24px",
+      "position": "relative",
+      "text": "모드 선택"
+    },
+    {
+      "id": "115:390",
+      "x": 500.171875,
+      "y": 48.5,
+      "width": 188.5625,
+      "height": 36,
+      "opacity": "1",
+      "display": "flex",
+      "padding": "8px 24px",
+      "position": "relative",
+      "text": "원하는 모드를 선택하세요"
+    },
+    {
+      "id": "115:391",
+      "x": 524.171875,
+      "y": 56.5,
+      "width": 140.5625,
+      "height": 20,
+      "opacity": "1",
+      "display": "block",
+      "padding": "0px",
+      "position": "relative",
+      "text": "원하는 모드를 선택하세요"
+    },
+    {
+      "id": "115:392",
+      "x": 992,
+      "y": 40,
+      "width": 160,
+      "height": 53,
+      "opacity": "1",
+      "display": "flex",
+      "padding": "12px 20px",
+      "position": "relative",
+      "text": ""
+    },
+    {
+      "id": "115:393",
+      "x": 1012,
+      "y": 54.5,
+      "width": 24,
+      "height": 24,
+      "opacity": "1",
+      "display": "block",
+      "padding": "0px",
+      "position": "relative",
+      "text": ""
+    },
+    {
+      "id": "115:397",
+      "x": 1052,
+      "y": 54.5,
+      "width": 24,
+      "height": 24,
+      "opacity": "1",
+      "display": "block",
+      "padding": "0px",
+      "position": "relative",
+      "text": ""
+    },
+    {
+      "id": "115:399",
+      "x": 1092,
+      "y": 46.5,
+      "width": 40,
+      "height": 40,
+      "opacity": "1",
+      "display": "flex",
+      "padding": "8px",
+      "position": "relative",
+      "text": ""
+    },
+    {
+      "id": "115:400",
+      "x": 1100,
+      "y": 54.5,
+      "width": 24,
+      "height": 24,
+      "opacity": "1",
+      "display": "block",
+      "padding": "0px",
+      "position": "relative",
+      "text": ""
+    }
+  ],
+  "assets": [
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/ebabd1c2-d279-4ee6-af1c-e1ae13f7653a.png",
+      "slot": "115:342",
+      "w": 261,
+      "h": 200,
+      "naturalWidth": 2400,
+      "naturalHeight": 1200
+    },
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/dea537ed-6b8a-48aa-ae8f-afdf0d607d0f.svg",
+      "slot": "115:348",
+      "w": 16,
+      "h": 16,
+      "naturalWidth": 16,
+      "naturalHeight": 16
+    },
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/ebabd1c2-d279-4ee6-af1c-e1ae13f7653a.png",
+      "slot": "115:361",
+      "w": 261,
+      "h": 200,
+      "naturalWidth": 2400,
+      "naturalHeight": 1200
+    },
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/dea537ed-6b8a-48aa-ae8f-afdf0d607d0f.svg",
+      "slot": "115:367",
+      "w": 16,
+      "h": 16,
+      "naturalWidth": 16,
+      "naturalHeight": 16
+    },
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/35f0ac5c-d6b2-43b0-840d-a6559bd75f9c.png",
+      "slot": "115:371",
+      "w": 494,
+      "h": 233,
+      "naturalWidth": 1136,
+      "naturalHeight": 554
+    },
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/dea537ed-6b8a-48aa-ae8f-afdf0d607d0f.svg",
+      "slot": "115:377",
+      "w": 16,
+      "h": 16,
+      "naturalWidth": 16,
+      "naturalHeight": 16
+    },
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/72a8ec20-2cf5-4948-b170-e444c5eca732.svg",
+      "slot": "115:387",
+      "w": 24,
+      "h": 24,
+      "naturalWidth": 24,
+      "naturalHeight": 24
+    },
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/96bc2873-5173-4b8e-b884-f923ffeb6c1c.svg",
+      "slot": "115:394",
+      "w": 18,
+      "h": 22.03125,
+      "naturalWidth": 18,
+      "naturalHeight": 22
+    },
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/0e877032-41f4-4457-8c35-0a3a2c12f981.svg",
+      "slot": "115:397",
+      "w": 24,
+      "h": 24,
+      "naturalWidth": 24,
+      "naturalHeight": 24
+    },
+    {
+      "src": "http://127.0.0.1:5173/assets/figma-update/e61a0dff-bc20-4568-8b9f-0745ff63aa4f.svg",
+      "slot": "115:400",
+      "w": 24,
+      "h": 24,
+      "naturalWidth": 24,
+      "naturalHeight": 24
+    }
+  ]
+}

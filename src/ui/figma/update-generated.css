@@ -1,0 +1,104 @@
+/* Scoped styles from Figma 모드·시뮬레이션 변경. */
+.fix-frame.relative,.fix-frame .relative{position:relative}
+.fix-frame.size-full,.fix-frame .size-full{width:100%;height:100%}
+.fix-frame.absolute,.fix-frame .absolute{position:absolute}
+.fix-frame.backdrop-blur-\[10px\],.fix-frame .backdrop-blur-\[10px\]{backdrop-filter:blur(10px)}
+.fix-frame.content-stretch,.fix-frame .content-stretch{align-content:stretch}
+.fix-frame.flex,.fix-frame .flex{display:flex}
+.fix-frame.flex-col,.fix-frame .flex-col{flex-direction:column}
+.fix-frame.h-\[400px\],.fix-frame .h-\[400px\]{height:400px}
+.fix-frame.items-start,.fix-frame .items-start{align-items:flex-start}
+.fix-frame.justify-end,.fix-frame .justify-end{justify-content:flex-end}
+.fix-frame.left-\[48px\],.fix-frame .left-\[48px\]{left:48px}
+.fix-frame.top-\[160px\],.fix-frame .top-\[160px\]{top:160px}
+.fix-frame.w-\[261px\],.fix-frame .w-\[261px\]{width:261px}
+.fix-frame.gap-\[8px\],.fix-frame .gap-\[8px\]{gap:8px}
+.fix-frame.h-\[200px\],.fix-frame .h-\[200px\]{height:200px}
+.fix-frame.p-\[24px\],.fix-frame .p-\[24px\]{padding:24px}
+.fix-frame.rounded-\[12px\],.fix-frame .rounded-\[12px\]{border-radius:12px}
+.fix-frame.shrink-0,.fix-frame .shrink-0{flex-shrink:0}
+.fix-frame.w-full,.fix-frame .w-full{width:100%}
+.fix-frame.inset-0,.fix-frame .inset-0{inset:0}
+.fix-frame.pointer-events-none,.fix-frame .pointer-events-none{pointer-events:none}
+.fix-frame.max-w-none,.fix-frame .max-w-none{max-width:none}
+.fix-frame.object-cover,.fix-frame .object-cover{object-fit:cover}
+.fix-frame.bg-gradient-to-b,.fix-frame .bg-gradient-to-b{background-image:linear-gradient(to bottom,rgba(102,102,102,0),rgba(0,0,0,.76) 88.462%)}
+.fix-frame.gap-\[16px\],.fix-frame .gap-\[16px\]{gap:16px}
+.fix-frame.\[word-break\:break-word\],.fix-frame .\[word-break\:break-word\]{word-break:break-word}
+.fix-frame.font-\[family-name\:var\(--font-family\,\'Wanted_Sans\:SemiBold\'\)\],.fix-frame .font-\[family-name\:var\(--font-family\,\'Wanted_Sans\:SemiBold\'\)\]{font-family:Wanted Sans,sans-serif;font-weight:600}
+.fix-frame.leading-\[var\(--vr-heading-2-line-height\,30px\)\],.fix-frame .leading-\[var\(--vr-heading-2-line-height\,30px\)\]{line-height:var(--vr-heading-2-line-height,30px)}
+.fix-frame.not-italic,.fix-frame .not-italic{font-style:normal}
+.fix-frame.text-\[color\:var\(--color-gray-50\,\#efeeec\)\],.fix-frame .text-\[color\:var\(--color-gray-50\,\#efeeec\)\]{color:var(--color-gray-50,#efeeec)}
+.fix-frame.text-\[length\:var\(--vr-heading-2-font-size\,22px\)\],.fix-frame .text-\[length\:var\(--vr-heading-2-font-size\,22px\)\]{font-size:var(--vr-heading-2-font-size,22px)}
+.fix-frame.tracking-\[var\(--vr-heading-2-letter-spacing\,0\.04px\)\],.fix-frame .tracking-\[var\(--vr-heading-2-letter-spacing\,0\.04px\)\]{letter-spacing:var(--vr-heading-2-letter-spacing,0.04px)}
+.fix-frame.items-center,.fix-frame .items-center{align-items:center}
+.fix-frame.size-\[16px\],.fix-frame .size-\[16px\]{width:16px;height:16px}
+.fix-frame.block,.fix-frame .block{display:block}
+.fix-frame.font-\[family-name\:var\(--font-family\,\'Wanted_Sans\:Medium\'\)\],.fix-frame .font-\[family-name\:var\(--font-family\,\'Wanted_Sans\:Medium\'\)\]{font-family:Wanted Sans,sans-serif;font-weight:500}
+.fix-frame.leading-\[var\(--vr-caption-line-height\,20px\)\],.fix-frame .leading-\[var\(--vr-caption-line-height\,20px\)\]{line-height:var(--vr-caption-line-height,20px)}
+.fix-frame.text-\[length\:var\(--vr-caption-font-size\,14px\)\],.fix-frame .text-\[length\:var\(--vr-caption-font-size\,14px\)\]{font-size:var(--vr-caption-font-size,14px)}
+.fix-frame.text-center,.fix-frame .text-center{text-align:center}
+.fix-frame.tracking-\[var\(--vr-caption-letter-spacing\,0\.04px\)\],.fix-frame .tracking-\[var\(--vr-caption-letter-spacing\,0\.04px\)\]{letter-spacing:var(--vr-caption-letter-spacing,0.04px)}
+.fix-frame.whitespace-nowrap,.fix-frame .whitespace-nowrap{white-space:nowrap}
+.fix-frame.left-\[calc\(75\%-9px\)\],.fix-frame .left-\[calc\(75\%-9px\)\]{left:calc(75% - 9px)}
+.fix-frame.-translate-x-1\/2,.fix-frame .-translate-x-1\/2{--tx:-50%;transform:translate(var(--tx,0),var(--ty,0)) rotate(var(--rotation,0deg))}
+.fix-frame.bg-\[rgba\(0\,0\,0\,0\.6\)\],.fix-frame .bg-\[rgba\(0\,0\,0\,0\.6\)\]{background:rgba(0,0,0,0.6)}
+.fix-frame.bottom-\[40px\],.fix-frame .bottom-\[40px\]{bottom:40px}
+.fix-frame.gap-\[23px\],.fix-frame .gap-\[23px\]{gap:23px}
+.fix-frame.items-end,.fix-frame .items-end{align-items:flex-end}
+.fix-frame.left-1\/2,.fix-frame .left-1\/2{left:50%}
+.fix-frame.rounded-\[20px\],.fix-frame .rounded-\[20px\]{border-radius:20px}
+.fix-frame.w-\[542px\],.fix-frame .w-\[542px\]{width:542px}
+.fix-frame.flex-\[1_0_0\],.fix-frame .flex-\[1_0_0\]{flex:1 0 0}
+.fix-frame.min-h-px,.fix-frame .min-h-px{min-height:1px}
+.fix-frame.rounded-\[10px\],.fix-frame .rounded-\[10px\]{border-radius:10px}
+.fix-frame.gap-\[4px\],.fix-frame .gap-\[4px\]{gap:4px}
+.fix-frame.font-\[family-name\:var\(--font-family\,\'Wanted_Sans\:Regular\'\)\],.fix-frame .font-\[family-name\:var\(--font-family\,\'Wanted_Sans\:Regular\'\)\]{font-family:Wanted Sans,sans-serif;font-weight:400}
+.fix-frame.leading-\[var\(--vr-body-line-height\,26px\)\],.fix-frame .leading-\[var\(--vr-body-line-height\,26px\)\]{line-height:var(--vr-body-line-height,26px)}
+.fix-frame.text-\[length\:var\(--vr-body-font-size\,18px\)\],.fix-frame .text-\[length\:var\(--vr-body-font-size\,18px\)\]{font-size:var(--vr-body-font-size,18px)}
+.fix-frame.tracking-\[var\(--vr-body-letter-spacing\,0\.04px\)\],.fix-frame .tracking-\[var\(--vr-body-letter-spacing\,0\.04px\)\]{letter-spacing:var(--vr-body-letter-spacing,0.04px)}
+.fix-frame.justify-between,.fix-frame .justify-between{justify-content:space-between}
+.fix-frame.top-\[40px\],.fix-frame .top-\[40px\]{top:40px}
+.fix-frame.w-\[1104px\],.fix-frame .w-\[1104px\]{width:1104px}
+.fix-frame.gap-\[10px\],.fix-frame .gap-\[10px\]{gap:10px}
+.fix-frame.justify-center,.fix-frame .justify-center{justify-content:center}
+.fix-frame.opacity-0,.fix-frame .opacity-0{opacity:0}
+.fix-frame.px-\[24px\],.fix-frame .px-\[24px\]{padding-inline:24px}
+.fix-frame.py-\[12px\],.fix-frame .py-\[12px\]{padding-block:12px}
+.fix-frame.rounded-\[1000px\],.fix-frame .rounded-\[1000px\]{border-radius:1000px}
+.fix-frame.flex-none,.fix-frame .flex-none{flex:none}
+.fix-frame.rotate-180,.fix-frame .rotate-180{--rotation:180deg;transform:translate(var(--tx,0),var(--ty,0)) rotate(var(--rotation,0deg))}
+.fix-frame.size-\[24px\],.fix-frame .size-\[24px\]{width:24px;height:24px}
+.fix-frame.leading-\[var\(--vr-button-line-height\,26px\)\],.fix-frame .leading-\[var\(--vr-button-line-height\,26px\)\]{line-height:var(--vr-button-line-height,26px)}
+.fix-frame.text-\[color\:var\(--color-gray-100\,\#dbdad8\)\],.fix-frame .text-\[color\:var\(--color-gray-100\,\#dbdad8\)\]{color:var(--color-gray-100,#dbdad8)}
+.fix-frame.text-\[length\:var\(--vr-button-font-size\,18px\)\],.fix-frame .text-\[length\:var\(--vr-button-font-size\,18px\)\]{font-size:var(--vr-button-font-size,18px)}
+.fix-frame.tracking-\[var\(--vr-button-letter-spacing\,0\.04px\)\],.fix-frame .tracking-\[var\(--vr-button-letter-spacing\,0\.04px\)\]{letter-spacing:var(--vr-button-letter-spacing,0.04px)}
+.fix-frame.py-\[8px\],.fix-frame .py-\[8px\]{padding-block:8px}
+.fix-frame.rounded-\[48px\],.fix-frame .rounded-\[48px\]{border-radius:48px}
+.fix-frame.h-\[53px\],.fix-frame .h-\[53px\]{height:53px}
+.fix-frame.px-\[20px\],.fix-frame .px-\[20px\]{padding-inline:20px}
+.fix-frame.overflow-clip,.fix-frame .overflow-clip{overflow:clip}
+.fix-frame.inset-\[8\.33\%_16\.67\%\],.fix-frame .inset-\[8\.33\%_16\.67\%\]{inset:8.33% 16.67%}
+.fix-frame.inset-\[-5\%_-6\.25\%\],.fix-frame .inset-\[-5\%_-6\.25\%\]{inset:-5% -6.25%}
+.fix-frame.p-\[8px\],.fix-frame .p-\[8px\]{padding:8px}
+.fix-frame.p-\[20px\],.fix-frame .p-\[20px\]{padding:20px}
+.fix-frame.top-\[496px\],.fix-frame .top-\[496px\]{top:496px}
+.fix-frame.p-\[16px\],.fix-frame .p-\[16px\]{padding:16px}
+.fix-frame.rounded-\[8px\],.fix-frame .rounded-\[8px\]{border-radius:8px}
+.fix-frame.top-\[340px\],.fix-frame .top-\[340px\]{top:340px}
+.fix-frame.w-\[267px\],.fix-frame .w-\[267px\]{width:267px}
+.fix-frame.leading-\[0\],.fix-frame .leading-\[0\]{line-height:0}
+.fix-frame.text-\[color\:var\(--color-gray-200\,\#c4c3c1\)\],.fix-frame .text-\[color\:var\(--color-gray-200\,\#c4c3c1\)\]{color:var(--color-gray-200,#c4c3c1)}
+.fix-frame.text-\[length\:var\(--vr-label-font-size\,16px\)\],.fix-frame .text-\[length\:var\(--vr-label-font-size\,16px\)\]{font-size:var(--vr-label-font-size,16px)}
+.fix-frame.tracking-\[var\(--vr-label-letter-spacing\,0\.04px\)\],.fix-frame .tracking-\[var\(--vr-label-letter-spacing\,0\.04px\)\]{letter-spacing:var(--vr-label-letter-spacing,0.04px)}
+.fix-frame.leading-\[var\(--vr-label-line-height\,22px\)\],.fix-frame .leading-\[var\(--vr-label-line-height\,22px\)\]{line-height:var(--vr-label-line-height,22px)}
+.fix-frame.mb-0,.fix-frame .mb-0{margin-bottom:0}
+.fix-frame.bg-\[rgba\(255\,255\,255\,0\.2\)\],.fix-frame .bg-\[rgba\(255\,255\,255\,0\.2\)\]{background:rgba(255,255,255,0.2)}
+.fix-frame.px-\[12px\],.fix-frame .px-\[12px\]{padding-inline:12px}
+.fix-frame.rounded-\[5px\],.fix-frame .rounded-\[5px\]{border-radius:5px}
+.fix-frame.text-\[rgba\(255\,255\,255\,0\.32\)\],.fix-frame .text-\[rgba\(255\,255\,255\,0\.32\)\]{color:rgba(255,255,255,0.32)}
+.fix-frame.rotate-90,.fix-frame .rotate-90{--rotation:90deg;transform:translate(var(--tx,0),var(--ty,0)) rotate(var(--rotation,0deg))}
+.fix-frame.w-\[1103px\],.fix-frame .w-\[1103px\]{width:1103px}
+.fix-frame.flex-row,.fix-frame .flex-row{flex-direction:row}
+.fix-frame.self-stretch,.fix-frame .self-stretch{align-self:stretch}
+.fix-frame.h-full,.fix-frame .h-full{height:100%}

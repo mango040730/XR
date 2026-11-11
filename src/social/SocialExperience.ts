@@ -49,7 +49,7 @@ export class SocialExperience {
   }
   private editing():boolean{return document.activeElement instanceof HTMLElement&&!!document.activeElement.closest('input,textarea,select,[contenteditable]');}
   private layout():RoomLayout|undefined{return this.roomLayouts.find(l=>l.id===this.engine.worlds.active?.config.id);}
-  setScreen(screen:string):void{if(screen==='rating')this.leave();this.ui.visible(['my-room','modes','simulation'].includes(screen));}
+  setScreen(screen:string):void{if(screen==='rating')this.leave();this.ui.visible(['my-room','modes','simulation'].includes(screen));this.ui.setScreen(screen);}
   private join(nickname:string):void{
     const world=this.engine.worlds.active?.config.id;if(!world||!['ready','error'].includes(this.engine.worlds.state.status)){this.client.error='공간 로딩이 끝난 뒤 입장해 주세요.';this.client.changes.emit();return;}
     this.nickname=nickname;this.applied='';this.localWave=0;this.seatId=null;this.voice.stop();

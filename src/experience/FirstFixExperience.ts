@@ -6,8 +6,10 @@ import { RatingBackdrop } from './RatingBackdrop';
 import { ensureScreenWorld, screenWorld } from './screenWorld';
 import '../ui/service.css';
 import '../ui/figma/fix-generated.css';
+import '../ui/figma/update-generated.css';
 import '../ui/figma-fix.css';
 import '../ui/first-fix.css';
+import '../ui/figma-update.css';
 import { Engine } from '../engine/core/Engine';
 import { SpaceGestureInput } from '../engine/input/SpaceGestureInput';
 import { myRoom } from '../worlds/my-room/config';
@@ -18,7 +20,7 @@ import { ServiceRouter } from '../routing/ServiceRouter';
 import type { Screen } from '../routing/ServiceRouter';
 import type { Draft } from '../ui/ServiceScreens';
 import { element } from '../components/designSystem';
-import { fixFrames, renderFixReview, renderFixScreen, renderSpaceNavigation } from '../ui/FixScreens';
+import { fixFrames, updatedFrames, renderUpdatedReview, renderFixReview, renderFixScreen, renderSpaceNavigation, renderSimulationScreen } from '../ui/FixScreens';
 import { calendar } from '../ui/calendar';
 import { FishingHUD } from '../ui/FishingHUD';
 import { CardboardPresenter } from './CardboardPresenter';
@@ -97,7 +99,12 @@ export class FirstFixExperience {
             this.shell.classList.toggle('immersive', state.active || this.cardboard.active); this.syncInput();
         }));
         const reviewId = new URLSearchParams(location.search).get('designReview');
+        const updatedReview = Object.entries(updatedFrames).find(([, factory]) => factory().dataset.nodeId === reviewId);
         const review = Object.entries(fixFrames).find(([, factory]) => factory().dataset.nodeId === reviewId);
+        if (updatedReview) {
+            this.review = true; this.shell.classList.add('review');
+            this.stage.replaceChildren(renderUpdatedReview(updatedReview[0] as keyof typeof updatedFrames)); this.resize(); return;
+        }
         if (review) {
             this.review = true; this.shell.classList.add('review');
             this.stage.replaceChildren(renderFixReview(review[0] as Screen)); this.resize(); return;
@@ -142,7 +149,7 @@ export class FirstFixExperience {
             this.rendered = screen; this.screenEnteredAt = performance.now();
         }
         const frame = fixFrames[screen] ? renderFixScreen(screen, this.draft, calendar(this.draft), true)
-            : screen === 'simulation' ? renderSpaceNavigation('종료하고 평가하기', 'finish')
+            : screen === 'simulation' ? renderSimulationScreen()
             : screen === 'loading' ? renderSpaceNavigation('취소', 'cancel-loading')
             : renderFixScreen('modes',this.draft,calendar(this.draft),true);
         // Star selection rerenders the panel but must not restart the notification.
@@ -152,7 +159,7 @@ export class FirstFixExperience {
         if (fixFrames[screen]) frame.classList.add('explorable-frame');
         this.stage.replaceChildren(frame); this.shell.dataset.route = screen;
         this.cardboard.setPanel(frame);
-        this.stage.classList.toggle('space-navigation-stage', !fixFrames[screen]);
+        this.stage.classList.toggle('space-navigation-stage', screen === 'loading');
         this.resize(); this.syncInput();
     }
     private navigate(screen: Screen): void {

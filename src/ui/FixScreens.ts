@@ -2,6 +2,8 @@ import ModeFrame from './figma/Fix51_919';
 import RatingFrame from './figma/Fix50_1645';
 import DateFrame from './figma/Fix49_807';
 import PlaceFrame from './figma/Fix49_1070';
+import UpdatedModeFrame from './figma/Update115_330';
+import SimulationFrame from './figma/Update115_855';
 import { bind, button, element } from '../components/designSystem';
 import { modes, participants, places } from '../data/demo';
 import type { Draft } from './ServiceScreens';
@@ -11,6 +13,48 @@ export const fixFrames: Partial<Record<Screen, () => HTMLElement>> = {
     modes: ModeFrame, rating: RatingFrame,
     'appointment-date': DateFrame, 'appointment-place': PlaceFrame,
 };
+export const updatedFrames = { modes: UpdatedModeFrame, simulation: SimulationFrame };
+
+export function renderUpdatedReview(which: keyof typeof updatedFrames): HTMLElement {
+    const root = updatedFrames[which]();
+    root.classList.add('design-frame', 'fix-frame', 'updated-frame');
+    return root;
+}
+
+function socialControl(root: HTMLElement, id: string, control: string, label: string): HTMLButtonElement {
+    const node = action(root, id, '', label) as HTMLButtonElement;
+    delete node.dataset.action;
+    node.dataset.socialControl = control;
+    node.disabled = true;
+    return node;
+}
+
+/** Only mounted once the requested mode world has successfully opened. */
+export function renderSimulationScreen(): HTMLElement {
+    const root = renderUpdatedReview('simulation');
+    root.classList.add('live-world-frame', 'explorable-frame', 'simulation-frame');
+    action(root, '115:867', 'finish', '마이룸 · 종료하고 평가하기');
+    socialControl(root, '115:871', 'panel', '알림 및 참여 정보');
+    const mic = socialControl(root, '115:857', 'mic', '마이크 켜기');
+    mic.classList.add('simulation-mic');
+    mic.setAttribute('aria-pressed', 'false');
+    const log = find(root, '115:861');
+    log.className = 'simulation-log';
+    log.replaceChildren();
+    log.setAttribute('role', 'log'); log.setAttribute('aria-live', 'polite');
+    log.setAttribute('aria-label', '방 채팅');
+    const source = find(root, '115:862');
+    const form = element('form', 'simulation-chat-form');
+    form.dataset.socialControl = 'chat'; form.dataset.nodeId = '115:862';
+    const input = element('input');
+    input.name = 'chat'; input.maxLength = 500; input.required = true;
+    input.placeholder = '채팅 입력하기'; input.setAttribute('aria-label', '채팅 입력하기'); input.disabled = true;
+    const send = action(root, '115:864', '', '메시지 보내기') as HTMLButtonElement;
+    delete send.dataset.action; send.type = 'submit'; send.disabled = true;
+    form.append(input, send); source.replaceWith(form);
+    find(root, '115:860').classList.add('simulation-chat');
+    return root;
+}
 
 function find(root: HTMLElement, id: string): HTMLElement {
     const node = root.querySelector<HTMLElement>(`[data-node-id="${id}"]`);
@@ -49,12 +93,12 @@ export function renderFixReview(which: Screen): HTMLElement {
 }
 
 function modeCards(root: HTMLElement, strict: boolean): void {
-    const compact = find(root, '51:921');
-    const expanded = find(root, '51:972');
+    const compact = find(root, strict ? '115:332' : '51:921');
+    const expanded = find(root, strict ? '115:370' : '51:972');
     const compactImage = compact.querySelector('img')!.getAttribute('src')!;
     const soloImage = expanded.querySelector('img')!.getAttribute('src')!;
-    const peopleIcon = find(root, '51:978').querySelector('img')!.getAttribute('src')!;
-    const compactPeopleIcon = find(root, '51:937').querySelector('img')!.getAttribute('src')!;
+    const peopleIcon = find(root, strict ? '115:377' : '51:978').querySelector('img')!.getAttribute('src')!;
+    const compactPeopleIcon = find(root, strict ? '115:348' : '51:937').querySelector('img')!.getAttribute('src')!;
     const list = element('div', 'fix-mode-list');
     // Keep the design's visual order. No card is permanently selected.
     for (const id of ['social', 'solo', 'team'] as const) {
@@ -64,7 +108,8 @@ function modeCards(root: HTMLElement, strict: boolean): void {
         card.setAttribute('aria-label', mode.name + ' 입장하기');
         const image = element('img', 'fix-mode-image');
         image.src = id === 'solo' ? soloImage : compactImage;
-        image.dataset.designSlot = id === 'solo' ? '51:1011' : id === 'social' ? '51:931' : '51:950';
+        image.dataset.designSlot = strict ? (id === 'solo' ? '115:371' : id === 'social' ? '115:342' : '115:361')
+            : id === 'solo' ? '51:1011' : id === 'social' ? '51:931' : '51:950';
         image.alt = '';
         const copy = element('span', 'fix-mode-copy');
         const title = element('span', 'fix-mode-title', mode.name);
@@ -72,19 +117,20 @@ function modeCards(root: HTMLElement, strict: boolean): void {
         const count = element('span', 'fix-mode-count');
         const icon = element('img');
         icon.src = id === 'solo' ? peopleIcon : compactPeopleIcon;
-        icon.dataset.designSlot = id === 'solo' ? '51:978' : id === 'social' ? '51:937' : '51:956';
+        icon.dataset.designSlot = strict ? (id === 'solo' ? '115:377' : id === 'social' ? '115:348' : '115:367')
+            : id === 'solo' ? '51:978' : id === 'social' ? '51:937' : '51:956';
         icon.alt = ''; icon.width = 16; icon.height = 16;
         count.append(icon, strict ? '접속 인원은 입장 후 확인' : `${mode.count}명 참가 중`);
         copy.append(title, description, count);
         card.append(image, copy);
         list.append(card);
     }
-    compact.remove(); expanded.remove(); find(root, '51:940').remove();
+    compact.remove(); expanded.remove(); find(root, strict ? '115:351' : '51:940').remove();
     root.append(list);
 }
 
 export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLElement, strict = false): HTMLElement {
-    const root = renderFixReview(which);
+    const root = strict && which === 'modes' ? renderUpdatedReview('modes') : renderFixReview(which);
     root.classList.add('live-world-frame');
     // The running world's WebGL canvas is the backdrop for the live service.
     // Keep reference exports intact and retain card thumbnails / map content.
@@ -98,13 +144,19 @@ export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLEleme
     ]) root.querySelectorAll<HTMLElement>(`[data-name="${icon}"]`).forEach(node => bind(node, name, label));
     switch (which) {
         case 'modes': {
-            action(root, '51:960', 'home', '마이룸으로');
-            const notice = find(root, '50:1642');
+            if (strict) {
+                const ghost = find(root, '115:386');
+                ghost.setAttribute('aria-hidden', 'true'); ghost.inert = true;
+                socialControl(root, '115:393', 'panel', '알림');
+                socialControl(root, '115:397', 'panel', '참여 정보');
+                action(root, '115:399', 'nav:appointment-date', '작당모의');
+            } else action(root, '51:960', 'home', '마이룸으로');
+            const notice = find(root, strict ? '115:390' : '50:1642');
             notice.classList.add('fix-notice', 'fix-mode-notice');
             notice.setAttribute('role', 'status');
             notice.setAttribute('aria-live', 'polite');
             notice.setAttribute('aria-atomic', 'true');
-            if (strict && draft.message) find(root, '50:1643').textContent = draft.message;
+            if (strict && draft.message) find(root, '115:391').textContent = draft.message;
             modeCards(root, strict);
             break;
         }

@@ -16,7 +16,8 @@ export default defineConfig({
     viewport: { width: 1440, height: 1000 },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] },
+    // Use Metal on macOS; Linux CI still has a software WebGL fallback.
+    launchOptions: { args: process.platform === 'darwin' ? [] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] },
   },
   projects: [
     { name: 'chromium', testIgnore: ['production.spec.ts','social.spec.ts'], use: { baseURL: 'http://127.0.0.1:4173' } },

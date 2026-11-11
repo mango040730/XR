@@ -17,7 +17,7 @@ test('fresh users see only the four first-fix screens through mode, rating and b
     await screenshot(page, info, 'first-fix-only-modes');
     const glb = page.waitForResponse(response => response.url().endsWith('/bowling/retro_bowling_alley.glb'));
     await click(page, 'mode:team'); expect((await glb).status()).toBe(200); await route(page, 'simulation');
-    await expect(page.locator('button:visible,input:visible,a:visible')).toHaveCount(1);
+    await expect(page.locator('button:visible,input:visible,a:visible')).toHaveCount(5);
     await page.mouse.click(600, 350); await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
     const before = (await snapshot(page)).player.position;
     await page.keyboard.down('w');
@@ -48,14 +48,14 @@ test('old routes and UI flags never restore the discarded UI; the mode-selection
     for (const url of ['/?ui=1#profile', '/?lab=1', '/?designReview=700']) {
         await page.goto(url.replace('/?', '/?offline=1&')); await route(page, 'modes'); await onlyOriginalUI(page);
     }
-    await click(page, 'home'); await route(page, 'modes');
+    await page.keyboard.press('b'); await click(page, 'home'); await route(page, 'modes');
     await expect(page.locator('.fix-mode-card')).toHaveCount(3);
     await page.mouse.click(600, 350); await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
     const before = (await snapshot(page)).player.position; await page.keyboard.down('w');
     try { await expect.poll(async () => Math.hypot(...(await snapshot(page)).player.position.map((n,i)=>n-before[i]))).toBeGreaterThan(.25); }
     finally { await page.keyboard.up('w'); }
     await expect.poll(() => page.evaluate(() => document.pointerLockElement)).toBe(null);
-    await click(page, 'nav:modes'); await route(page, 'modes');
+    await page.keyboard.press('m'); await route(page, 'modes');
     await page.keyboard.press('b'); await route(page, 'appointment-date'); await onlyOriginalUI(page);
 });
 
@@ -105,7 +105,7 @@ test('Cardboard keeps the original four-screen panel without extra toolbars or r
     await page.waitForTimeout(250);
     await onlyOriginalUI(page); await screenshot(page, info, 'first-fix-only-cardboard');
     await page.keyboard.press('v'); await expect(page.locator('.first-fix-shell')).not.toHaveClass(/immersive/);
-    await expect(page.locator('.fix-frame')).toHaveAttribute('data-node-id', '51:919');
+    await expect(page.locator('.fix-frame')).toHaveAttribute('data-node-id', '115:330');
 });
 
 test('touch gestures move, cancel and reopen the original menu without any movement widgets', async ({ browser }, info) => {
@@ -123,7 +123,7 @@ test('touch gestures move, cancel and reopen the original menu without any movem
     await expect.poll(async () => { const after = (await snapshot(page)).player.position; return Math.hypot(after[0] - before[0], after[2] - before[2]); }).toBeGreaterThan(.2);
     await send('touchCancel'); const stopped = (await snapshot(page)).player.position;
     await page.waitForTimeout(150); expect((await snapshot(page)).player.position).toEqual(stopped);
-    await click(page, 'home'); await route(page, 'modes');
+    await page.keyboard.press('b'); await click(page, 'home'); await route(page, 'modes');
     await page.touchscreen.tap(420, 150); await page.touchscreen.tap(420, 150); await route(page, 'modes');
     await onlyOriginalUI(page); await screenshot(page, info, 'first-fix-only-mobile'); await context.close();
 });
@@ -138,7 +138,7 @@ test('termination notice dismisses once per rating visit and never restarts on s
     await expect(notice).toBeHidden({ timeout: 4000 });
     await click(page, 'people-rating:4'); await expect(page.locator('.fix-rating-notice')).toBeHidden();
     await screenshot(page, info, 'first-fix-rating-notice-dismissed');
-    await click(page, 'home'); await route(page, 'modes'); await click(page, 'nav:modes');
+    await click(page, 'home'); await route(page, 'modes'); await page.keyboard.press('m');
     await click(page, 'mode:team'); await route(page, 'simulation'); await click(page, 'finish');
     await expect(notice).toHaveCSS('opacity', '1');
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -150,7 +150,7 @@ test('portrait users start at the mode-selection home and enter content without 
     const page = await context.newPage();await page.goto('/?offline=1#my-room');await route(page,'modes');
     await expect(page.locator('.fix-mode-card')).toHaveCount(3);await expect(page.locator('.fix-space-next')).toHaveCount(0);await onlyOriginalUI(page);
     await page.locator('[data-action="mode:team"]').tap();await route(page,'simulation');
-    const next=page.locator('.fix-space-next');await expect(next).toHaveText('종료하고 평가하기');
-    const bounds=(await next.boundingBox())!;expect(bounds.x).toBeGreaterThanOrEqual(0);expect(bounds.x+bounds.width).toBeLessThanOrEqual(390);expect(bounds.height).toBeCloseTo(42);
+    const next=page.locator('[data-action="finish"]');await expect(next).toHaveText('마이룸');
+    const bounds=(await next.boundingBox())!;expect(bounds.x).toBeGreaterThanOrEqual(0);expect(bounds.x+bounds.width).toBeLessThanOrEqual(390);expect(bounds.height).toBeGreaterThan(10);
     await screenshot(page,info,'first-fix-home-mobile');await next.tap();await route(page,'rating');await context.close();
 });

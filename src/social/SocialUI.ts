@@ -12,6 +12,7 @@ export class SocialUI {
   private log=element('ol','social-log');private chatInput=element('input');
   private mic:HTMLButtonElement;private muteButton:HTMLButtonElement;private seatButton:HTMLButtonElement;private waveButton:HTMLButtonElement;
   private cancel:HTMLButtonElement;private chatToggle:HTMLButtonElement;
+  private frame?:HTMLElement;private frameEvents=new AbortController();
   constructor(host:HTMLElement,private client:SocialClient,private voice:SpatialVoice,callbacks:{join(name:string):void;wave():void;seat():void;leave():void}){
     this.root.setAttribute('aria-label','실시간 소셜');const panel=this.panel;
     this.status.setAttribute('role','status');this.error.setAttribute('role','status');
@@ -39,13 +40,61 @@ export class SocialUI {
     this.error.textContent=this.client.available?(this.client.error||this.voice.error):'';this.error.hidden=!this.error.textContent;
     this.mic.textContent=this.voice.pending?'마이크 권한 확인 중':this.voice.enabled?'음성 끄기':'음성 켜기';this.mic.disabled=this.voice.pending;this.mic.setAttribute('aria-pressed',String(this.voice.enabled));
     this.muteButton.hidden=!this.voice.enabled;this.muteButton.textContent=this.voice.muted?'마이크 켜기':'마이크 음소거';this.muteButton.setAttribute('aria-pressed',String(this.voice.muted));
-    this.waveButton.disabled=!!this.client.self?.seatId;this.updateLog();
+    this.waveButton.disabled=!!this.client.self?.seatId;this.updateLog();this.updateFrame();
   }
   private updateLog():void{
+    this.updateFrame();
     const signature=this.client.history.map(m=>m.id).join(',');if(this.log.dataset.messages===signature)return;
     this.log.dataset.messages=signature;this.log.replaceChildren(...this.client.history.map(m=>{const row=element('li');row.append(element('strong','',m.nickname),document.createTextNode(' '+m.text));return row;}));this.log.scrollTop=this.log.scrollHeight;
   }
+  /** Adapt the existing room chat/voice to the Figma frame; no second client. */
+  setScreen(screen:string):void{
+    this.frameEvents.abort();this.frameEvents=new AbortController();
+    this.root.dataset.screen=screen;this.root.dataset.panelOpen='false';
+    this.frame=this.root.parentElement?.querySelector<HTMLElement>('.updated-frame.live-world-frame')??undefined;
+    const options={signal:this.frameEvents.signal},frame=this.frame;
+    frame?.querySelectorAll<HTMLButtonElement>('[data-social-control="panel"]').forEach(control=>{
+      control.addEventListener('click',()=>{
+        const open=this.root.dataset.panelOpen!=='true';this.root.dataset.panelOpen=String(open);
+        frame.querySelectorAll('[data-social-control="panel"]').forEach(node=>node.setAttribute('aria-expanded',String(open)));
+      },options);
+    });
+    frame?.querySelector('[data-social-control="mic"]')?.addEventListener('click',()=>{
+      if(!this.voice.enabled)void this.voice.start();else this.voice.mute();
+    },options);
+    const form=frame?.querySelector<HTMLFormElement>('[data-social-control="chat"]');
+    form?.addEventListener('submit',event=>{
+      event.preventDefault();const input=form.querySelector('input')!,text=input.value;
+      void this.client.chat(text).then(ok=>{if(ok&&input.value===text)input.value='';});
+    },options);
+    this.updateFrame();
+  }
+  private updateFrame():void{
+    const frame=this.frame;if(!frame)return;
+    const joined=!!this.client.self;
+    frame.querySelectorAll<HTMLButtonElement>('[data-social-control="panel"]').forEach(control=>{
+      control.disabled=!this.client.available;control.setAttribute('aria-expanded',this.root.dataset.panelOpen??'false');
+    });
+    const mic=frame.querySelector<HTMLButtonElement>('[data-social-control="mic"]');
+    if(mic){
+      const active=this.voice.enabled&&!this.voice.muted;
+      mic.disabled=!joined||this.voice.pending;mic.setAttribute('aria-pressed',String(active));
+      mic.setAttribute('aria-label',this.voice.pending?'마이크 권한 확인 중':active?'마이크 음소거':'마이크 켜기');
+      mic.title=mic.getAttribute('aria-label')!;
+      mic.dataset.active=String(active);
+    }
+    frame.querySelectorAll<HTMLInputElement|HTMLButtonElement>('.simulation-chat-form input,.simulation-chat-form button').forEach(control=>control.disabled=!joined);
+    const log=frame.querySelector<HTMLElement>('.simulation-log');
+    if(log){
+      const signature=this.client.history.map(m=>m.id).join(',');
+      if(log.dataset.messages!==signature){
+        log.dataset.messages=signature;
+        log.replaceChildren(...this.client.history.map(m=>element('p','',`[${m.nickname}]: ${m.text}`)));
+        log.scrollTop=log.scrollHeight;
+      }
+    }
+  }
   interaction(label:string,enabled:boolean):void{this.seatButton.textContent=label;this.seatButton.disabled=!enabled;}
   visible(visible:boolean):void{this.root.hidden=!visible;}
-  dispose():void{this.events.abort();this.stops.forEach(stop=>stop());this.root.remove();}
+  dispose():void{this.events.abort();this.frameEvents.abort();this.stops.forEach(stop=>stop());this.root.remove();}
 }

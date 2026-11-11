@@ -1,0 +1,25 @@
+/* Figma 115:330 / 115:855. Keep original asset geometry and live WebGL backdrop. */
+.updated-frame{--ds-muted:#c4c3c1;letter-spacing:.04px}
+.first-fix-shell.review:has(.updated-frame) .service-viewport{background:#bfbfbf}
+.updated-frame .fix-mode-card{color:#efeeec;--mode-blur:blur(10px)}
+.updated-frame .fix-mode-card:hover,
+.updated-frame .fix-mode-list:not(:has(>.fix-mode-card:hover))>.fix-mode-card:focus-visible,
+.updated-frame .fix-mode-list:not(:has(>.fix-mode-card:hover,>.fix-mode-card:focus-visible))>.fix-mode-card.gaze-focus{--mode-blur:blur(10px)}
+.updated-frame [data-social-control]{padding:0;background:transparent;border-radius:0}
+.updated-frame [data-social-control="panel"]{position:relative}
+.updated-frame button:disabled{opacity:1}
+.updated-frame [data-node-id="115:386"]{pointer-events:none}
+.updated-frame .simulation-mic{position:absolute;left:50%;top:496px;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.6);border-radius:1000px;backdrop-filter:blur(10px)}
+.updated-frame .simulation-mic[data-active=true]::after{content:'ON';position:absolute;font-size:14px;font-weight:600}
+.updated-frame .simulation-mic[data-active=true] img{visibility:hidden}
+.updated-frame .simulation-chat{height:220px;pointer-events:auto}
+.updated-frame .simulation-log{flex:1;min-height:0;width:100%;overflow:auto;color:#c4c3c1;font-size:16px;font-weight:500;line-height:22px;overflow-wrap:anywhere}
+.updated-frame .simulation-log p{font:inherit;letter-spacing:.04px}
+.updated-frame .simulation-chat-form{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;width:100%;padding:8px 12px;background:rgba(255,255,255,.2);border-radius:5px}
+.updated-frame .simulation-chat-form input{flex:1;width:0;min-width:0;border:0;border-radius:0;padding:0;background:transparent;font-size:14px;line-height:20px;letter-spacing:.04px}
+.updated-frame .simulation-chat-form input::placeholder{color:rgba(255,255,255,.32);opacity:1}
+.updated-frame .simulation-chat-form button{flex-shrink:0;padding:0}
+.updated-frame .simulation-chat-form button:hover{background:transparent}
+.first-fix-shell .social-ui:is([data-screen=modes],[data-screen=simulation]) .social-panel{top:100px;left:auto;right:48px;max-width:min(420px,calc(100vw - 48px))}
+.first-fix-shell .social-ui:is([data-screen=modes],[data-screen=simulation])[data-panel-open=false] .social-panel{display:none}
+.first-fix-shell .social-ui[data-screen=simulation] :is(.social-chat,.social-chat-toggle){display:none}

@@ -7,7 +7,7 @@ const snap=(page:Page)=>page.evaluate(()=>window.__SOCIAL_DEBUG__!.snapshot());
 async function enter(page:Page,room:string,name:string){
   await page.goto(`${origin}/?room=${room}#my-room`);
   await expect.poll(()=>page.evaluate(()=>!!window.__SOCIAL_DEBUG__?.snapshot().local)).toBe(true);
-  await page.getByLabel('닉네임',{exact:true}).fill(name);await page.locator('[data-action="social-join"]').click();
+  await page.locator('[data-node-id="115:397"]').click();await page.getByLabel('닉네임',{exact:true}).fill(name);await page.locator('[data-action="social-join"]').click();
   await expect.poll(async()=>(await snap(page)).id).toBeTruthy();
 }
 async function walk(page:Page,key:string,predicate:(position:number[])=>boolean){
@@ -16,6 +16,33 @@ async function walk(page:Page,key:string,predicate:(position:number[])=>boolean)
   finally{await page.keyboard.up(key);}
 }
 async function unlock(page:Page){await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(false);}
+
+test('Figma simulation chat and mic reuse the current room connection and typing pauses movement',async({page},info)=>{
+  const second=await chromium.launch({channel:'chromium',args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
+  const b=await second.newPage({viewport:{width:1200,height:600}});
+  try{
+    const room='frame-'+Date.now();await enter(page,room,'프레임 A');await enter(b,room,'프레임 B');
+    for(const p of [page,b]){
+      await p.locator('[data-action="mode:team"]').click();
+      await expect(p.locator('.first-fix-shell')).toHaveAttribute('data-route','simulation',{timeout:40000});
+      await info.attach('simulation-connection',{body:JSON.stringify({snapshot:await snap(p),engine:await p.evaluate(()=>window.__XR_DEBUG__!.snapshot()),error:await p.locator('.social-error').textContent()}),contentType:'application/json'});
+      await expect(p.locator('.simulation-chat-form input')).toBeEnabled();
+    }
+    const input=page.getByRole('textbox',{name:'채팅 입력하기',exact:true});
+    await input.fill('새 프레임에서 보낸 메시지');
+    const before=await page.evaluate(()=>window.__XR_DEBUG__!.snapshot().player.position);
+    await input.press('w');await page.waitForTimeout(200);
+    expect(await page.evaluate(()=>window.__XR_DEBUG__!.snapshot().player.position)).toEqual(before);
+    await input.fill('새 프레임에서 보낸 메시지');await page.getByRole('button',{name:'메시지 보내기'}).click();
+    await expect(b.locator('.simulation-log')).toContainText('[프레임 A]: 새 프레임에서 보낸 메시지');
+    await expect(input).toBeEmpty();
+    const mic=page.locator('.simulation-mic');await mic.click();await expect(mic).toHaveAttribute('aria-pressed','true');
+    await mic.click();await expect(mic).toHaveAttribute('aria-pressed','false');expect((await snap(page)).voice.muted).toBe(true);
+    await page.screenshot({path:info.outputPath('simulation-real-chat.png')});
+    await page.locator('[data-action="finish"]').click();await expect(page.locator('.simulation-frame')).toHaveCount(0);
+    expect((await snap(page)).voice.enabled).toBe(false);
+  }finally{await second.close();}
+});
 
 test('first person stays at eye height and never shows the local avatar while walking',async({page})=>{
   await page.goto(`${origin}/#my-room`);await expect.poll(()=>page.evaluate(()=>!!window.__SOCIAL_DEBUG__?.snapshot().local)).toBe(true);
@@ -59,15 +86,15 @@ test('different rooms stay isolated; switching a world and reconnecting clear th
   try{
     const room='isolation-'+Date.now();await enter(page,room,'A');await enter(b,room+'-other','B');
     expect((await snap(page)).users).toHaveLength(1);expect((await snap(b)).remotes).toHaveLength(0);
-    await b.goto(`${origin}/?room=${room}#my-room`);await b.getByLabel('닉네임',{exact:true}).fill('B');await b.locator('[data-action="social-join"]').click();
+    await b.goto(`${origin}/?room=${room}#my-room`);await b.locator('[data-node-id="115:397"]').click();await b.getByLabel('닉네임',{exact:true}).fill('B');await b.locator('[data-action="social-join"]').click();
     await expect.poll(async()=>(await snap(page)).users.length).toBe(2);
     await b.route('**/bowling/retro_bowling_alley.glb',route=>route.fulfill({status:404,body:'missing'}));
-    await b.locator('.service-stage [data-action="nav:modes"]').click();await b.locator('[data-action="mode:team"]').click();
+    await b.keyboard.press('m');await b.locator('[data-action="mode:team"]').click();
     await expect(b.locator('.fix-mode-notice')).toContainText('공간을 열지 못했어요');expect((await snap(b)).room).toBe('my-room:'+room);
     await b.keyboard.press('m');await walk(b,'w',p=>p[2]>-.9);
     const bId=(await snap(b)).id;await expect.poll(async()=>(await snap(page)).users.find(u=>u.id===bId)?.position[2]??-2).toBeGreaterThan(-.9);
     await unlock(b);
-    await b.locator('.service-stage [data-action="nav:modes"]').click();await b.locator('[data-action="mode:social"]').click();
+    await b.keyboard.press('m');await b.locator('[data-action="mode:social"]').click();
     await expect.poll(async()=>(await snap(b)).room).toBe('indoor-fishing:'+room);await expect.poll(async()=>(await snap(page)).users.length).toBe(1);expect((await snap(b)).remotes).toHaveLength(0);
     const id=(await snap(page)).id;await page.context().setOffline(true);await expect.poll(async()=>(await snap(page)).id).toBeNull();await page.context().setOffline(false);
     await expect.poll(async()=>(await snap(page)).id,{timeout:20000}).toBeTruthy();expect((await snap(page)).id).not.toBe(id);expect((await snap(page)).users).toHaveLength(1);

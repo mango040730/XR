@@ -1,0 +1,354 @@
+{
+  "config": {
+    "argv": [
+      "/usr/local/bin/node",
+      "/Users/gimlyeogyeong/Downloads/공간 실험/node_modules/.bin/playwright",
+      "test",
+      "tests/e2e/figma-mode-simulation.spec.ts"
+    ],
+    "configFile": "/Users/gimlyeogyeong/Downloads/공간 실험/playwright.config.ts",
+    "rootDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [
+          "production.spec.ts",
+          "social.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "production-chromium",
+        "name": "production-chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "production.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "snapshotDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [
+          "production.spec.ts",
+          "social.spec.ts"
+        ],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 30000,
+        "use": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.8127.18 Safari/537.36",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium",
+          "channel": "chromium",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "launchOptions": {
+            "args": []
+          },
+          "baseURL": "http://127.0.0.1:4173"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      },
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "production-chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "snapshotDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [],
+        "testMatch": "production.spec.ts",
+        "timeout": 30000,
+        "use": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.8127.18 Safari/537.36",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium",
+          "channel": "chromium",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "launchOptions": {
+            "args": []
+          },
+          "baseURL": "http://127.0.0.1:4174"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "production-chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "figma-mode-simulation.spec.ts",
+      "file": "figma-mode-simulation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "updated Figma references preserve every original asset and its rendered geometry",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2793,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T16:09:54.874Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "updated-reference-115-330",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-e31f4-t-and-its-rendered-geometry-chromium/attachments/updated-reference-115-330-06062dd22a1dfcf5a4151db4f22fc3305babaf10.png"
+                    },
+                    {
+                      "name": "updated-reference-115-855",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-e31f4-t-and-its-rendered-geometry-chromium/attachments/updated-reference-115-855-98a1cb195181a2ced79bd972ab5127bd6ccbe26d.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-e31f4-t-and-its-rendered-geometry-chromium/attachments/browser-diagnostics-52bc95c2e4cba9717ee1475b8d0368b8c6f0890d.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "21556d710db358efd8f4-cd5e2650b0edae45d68e",
+          "file": "figma-mode-simulation.spec.ts",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "simulation frame appears only after successful mode entry and disappears on rating or home",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 19924,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T16:09:58.650Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "updated-live-modes",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/updated-live-modes-404caf98b46006e237e125c0719fa13f1f05d840.png"
+                    },
+                    {
+                      "name": "updated-simulation-solo",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/updated-simulation-solo-c8d9a73757cd216211ce5f730826bea3ccfa20dd.png"
+                    },
+                    {
+                      "name": "updated-simulation-social",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/updated-simulation-social-d4d6752e1fe976f4ce0df576c82de1326f68e214.png"
+                    },
+                    {
+                      "name": "updated-simulation-team",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/updated-simulation-team-35c65969d8e47a99cfe5197c2c13ad39961e3488.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/browser-diagnostics-5a76df2c6e2b0113cc567aff1ae585a5d01b44a0.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "21556d710db358efd8f4-8bf8e812961027302bd0",
+          "file": "figma-mode-simulation.spec.ts",
+          "line": 37,
+          "column": 1
+        },
+        {
+          "title": "updated mobile frame keeps chat, microphone and return controls inside the viewport",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6342,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-11T16:10:18.589Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "updated-simulation-mobile",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-264b2-ontrols-inside-the-viewport-chromium/attachments/updated-simulation-mobile-14cdde62efaff40cb3690ad878ec4a90b09191ac.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-264b2-ontrols-inside-the-viewport-chromium/attachments/browser-diagnostics-ae67996c9acf3fd99f030249e8d77272c63c45d3.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "21556d710db358efd8f4-98366cd30b1ddbd86976",
+          "file": "figma-mode-simulation.spec.ts",
+          "line": 70,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-11T16:09:48.265Z",
+    "duration": 36812.102,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "url": "https://mango040730.github.io/XR/?verify=atelier-unlocked-20261111#rating",
+  "browser": "158.0.8127.18",
+  "unlocked": true,
+  "newAtelierGLB": true,
+  "ratingUsesCapturedFrame": true,
+  "separateFishingRating": true,
+  "errors": [],
+  "failed": [],
+  "responses": [
+    {
+      "url": "https://mango040730.github.io/XR/assets/models/my-room/myroom-v2-2.7.1.glb",
+      "status": 200
+    },
+    {
+      "url": "https://mango040730.github.io/XR/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "https://mango040730.github.io/XR/assets/models/woodworking-original/forest-atelier-original.glb",
+      "status": 200
+    },
+    {
+      "url": "https://mango040730.github.io/XR/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "https://mango040730.github.io/XR/assets/models/my-room/myroom-v2-2.7.1.glb",
+      "status": 200
+    },
+    {
+      "url": "https://mango040730.github.io/XR/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "https://mango040730.github.io/XR/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    }
+  ],
+  "sockets": [],
+  "globals": {
+    "engine": "undefined",
+    "social": "undefined"
+  }
+}

@@ -44,3 +44,16 @@ describe('woodworking mode and world ownership', () => {
     buildScene(root, () => sceneNode('group', {})); expect(root.children).toHaveLength(1); disposeObject(root);
   });
 });
+
+describe('attached atelier GLB material ownership',()=>{
+ it('clones all owned GPU resources and restores authored normal and shadow flags without changing the template',async()=>{
+  const {cloneAtelierModel}=await import('../src/worlds/woodworking/model');
+  const texture=new DataTexture(),material=new MeshStandardMaterial({map:texture,normalMap:texture,roughness:.71,metalness:.08,transparent:true,opacity:.6});
+  material.normalScale.set(1,-1);material.userData.atelierRender={normalScale:[1,1],depthWrite:false,flatShading:true};
+  const mesh=new Mesh(new BoxGeometry(),material);mesh.userData.atelierShadow={cast:false,receive:true};const source=new Group();source.add(mesh);
+  const a=cloneAtelierModel(source).children[0] as Mesh<BoxGeometry,MeshStandardMaterial>,b=cloneAtelierModel(source).children[0] as Mesh;
+  expect(a.geometry).not.toBe(mesh.geometry);expect(a.material).not.toBe(material);expect(a.material.map).not.toBe(texture);expect(a.material.normalMap).toBe(a.material.map);expect(a.geometry).not.toBe(b.geometry);
+  expect(a.material.roughness).toBe(.71);expect(a.material.opacity).toBe(.6);expect(a.material.normalScale.toArray()).toEqual([1,1]);expect(material.normalScale.toArray()).toEqual([1,-1]);expect(a.castShadow).toBe(false);expect(a.receiveShadow).toBe(true);
+  let released=0;texture.addEventListener('dispose',()=>released++);disposeObject(a);expect(released).toBe(0);disposeObject(b);disposeObject(source);expect(released).toBe(1);
+ });
+});

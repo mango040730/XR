@@ -29,6 +29,7 @@ export class Engine {
   private cleanups: Array<() => void> = [];
   private previousTime: number | null = null;
   private disposed = false;
+  worldFrozen = false;
 
   constructor(viewport: HTMLElement, vrHost: HTMLElement, configs: readonly WorldConfig[]) {
     this.rendering = new Renderer(viewport);
@@ -38,9 +39,9 @@ export class Engine {
     this.rendering.scene.add(this.interactions.highlights);
     this.xrControls = new XRControllerSystem(this.rendering, this.player, this.interactions);
     const canvas = this.rendering.webgl.domElement;
-    this.input = new DesktopInput(canvas, (x, y) => this.player.look(x, y), message => this.notices.emit(message));
+    this.input = new DesktopInput(canvas, (x, y) => this.player.look(x, y));
     this.xr = new XRManager(this.rendering.webgl, vrHost, () => {
-      this.input.unlock();
+      this.input.clear();
       const session = this.rendering.webgl.xr.getSession();
       if (session) this.xrControls.start(session);
       this.previousTime = null;
@@ -48,7 +49,7 @@ export class Engine {
       this.xrControls.stop(); this.rendering.restoreSize(); this.previousTime = null;
     });
     this.cleanups.push(this.worlds.changes.subscribe(state => {
-      this.input.unlock();
+      this.input.clear();
       const active = this.worlds.active;
       if (state.status === 'ready' && active) {
         this.behavior?.dispose(); this.behavior = undefined; this.behaviorRoot = active.root.uuid;
@@ -65,24 +66,25 @@ export class Engine {
       this.xr.setWorldReady(!!active && state.status !== 'loading');
     }));
     this.cleanups.push(this.xr.changes.subscribe(() => this.syncInput()));
-    canvas.addEventListener('mousedown', event => {
-      if (event.button === 0 && this.input.enabled && document.pointerLockElement === canvas) this.interactions.activate();
+    canvas.addEventListener('click', event => {
+      if (event.button === 0 && this.input.enabled && !(event instanceof PointerEvent && event.pointerType==='touch')) this.interactions.activate();
     }, { signal: this.events.signal });
     canvas.addEventListener('webglcontextlost', event => {
-      event.preventDefault(); this.input.enabled = false; this.input.unlock();
+      event.preventDefault(); this.input.enabled = false; this.input.clear();
       this.notices.emit('그래픽 컨텍스트가 중단되었습니다. 페이지를 새로고침하세요.');
     }, { signal: this.events.signal });
     this.rendering.webgl.setAnimationLoop((time, frame) => {
       const delta = this.previousTime === null ? 0 : (time - this.previousTime) / 1000;
       this.previousTime = time;
-      if (this.xr.state.active && frame) this.xrControls.update(frame, time, delta);
+      if (this.xr.state.active && frame) this.xrControls.update(frame, time, delta, !this.worldFrozen);
       if (this.input.enabled) {
         this.player.update(this.input.readMovement(), delta);
         this.player.updateCamera();
         this.interactions.update(this.rendering.camera);
       }
-      if (this.behaviorRoot === this.worlds.active?.root.uuid) this.behavior?.update(time / 1000, delta);
+      if (!this.worldFrozen && this.behaviorRoot === this.worlds.active?.root.uuid) this.behavior?.update(time / 1000, delta);
       this.frames.emit({ time, delta });
+      if(this.worldFrozen&&!this.presenter&&!this.xr.state.active)return;
       this.player.updateCamera();
       this.rendering.prepareFrame();
       if (this.presenter && !this.xr.state.active) this.presenter();
@@ -92,14 +94,17 @@ export class Engine {
   }
 
   private syncInput(): void {
-    this.input.enabled = this.desktopAllowed && !!this.worlds.active && this.worlds.state.status !== 'loading' && !this.xr.state.active && !this.xr.state.pending;
+    this.input.enabled = this.desktopAllowed && !this.worldFrozen && !!this.worlds.active && this.worlds.state.status !== 'loading' && !this.xr.state.active && !this.xr.state.pending;
     if (!this.input.enabled) this.input.clear();
   }
 
   setDesktopEnabled(enabled: boolean): void {
     this.desktopAllowed = enabled; this.syncInput();
-    if (!enabled) this.input.unlock();
+    if (!enabled) this.input.clear();
   }
+
+  setWorldFrozen(frozen:boolean):void{this.worldFrozen=frozen;this.syncInput();}
+  captureFrame():string{this.rendering.prepareFrame();this.rendering.render(0);return this.rendering.webgl.domElement.toDataURL('image/png');}
 
   async enterWorld(id: string): Promise<void> {
     if (this.disposed || this.xr.state.pending) return;

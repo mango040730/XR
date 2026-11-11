@@ -1,3 +1,4 @@
+import {lookAt} from './fixtures';
 import { test,expect,chromium } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
@@ -10,12 +11,11 @@ async function enter(page:Page,room:string,name:string){
   await expect.poll(async()=>(await snap(page)).id).toBeTruthy();
 }
 async function walk(page:Page,key:string,predicate:(position:number[])=>boolean){
-  if(!await page.evaluate(()=>!!document.pointerLockElement))await page.mouse.click(640,420);
   await page.keyboard.down(key);
   try{await expect.poll(async()=>predicate((await page.evaluate(()=>window.__XR_DEBUG__!.snapshot())).player.position),{timeout:12000,intervals:[30]}).toBe(true);}
   finally{await page.keyboard.up(key);}
 }
-async function unlock(page:Page){await page.keyboard.press('Escape');await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(false);}
+async function unlock(page:Page){await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(false);}
 
 test('first person stays at eye height and never shows the local avatar while walking',async({page})=>{
   await page.goto(`${origin}/#my-room`);await expect.poll(()=>page.evaluate(()=>!!window.__SOCIAL_DEBUG__?.snapshot().local)).toBe(true);
@@ -84,7 +84,7 @@ test('explicit microphone opt-in negotiates real WebRTC audio, spatial range, mu
     await expect.poll(async()=>(await voice(page))[0]?.received??0,{timeout:20000}).toBeGreaterThan(0);await expect.poll(async()=>(await voice(b))[0]?.received??0).toBeGreaterThan(0);
     await expect.poll(async()=>(await voice(page))[0]?.gain??0).toBeGreaterThan(.9);
     await b.locator('[data-action="social-mute"]').click();expect((await snap(b)).voice.muted).toBe(true);await b.locator('[data-action="social-mute"]').click();
-    await b.mouse.click(640,420);await b.mouse.move(640,420);const yaw=(await b.evaluate(()=>window.__XR_DEBUG__!.snapshot())).player.yaw;await b.mouse.move(640+yaw/.002,420);
+    await lookAt(b,0);
     // Pass the actual portal plant instead of trying to walk through its GLB collision box.
     await walk(b,'a',p=>p[0]<2.5);
     await walk(b,'w',p=>p[2]<-3.15);await expect.poll(async()=>(await voice(page))[0]?.gain??1).toBeLessThan(.999);

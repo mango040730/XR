@@ -1,3 +1,4 @@
+import type { N8AOPass } from 'n8ao';
 import { materialTextures } from '../assets/materialTextures';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
@@ -27,6 +28,8 @@ export class Renderer {
   private scenePass?:RenderPass;
   private ao?:GTAOPass;
   private fxaa?:ShaderPass;
+  private n8?:N8AOPass;
+  private N8?:typeof N8AOPass;
 
   constructor(host: HTMLElement) {
     this.host = host;
@@ -42,7 +45,7 @@ export class Renderer {
     this.webgl.info.autoReset=false;
     this.webgl.xr.enabled = true;
     this.webgl.xr.setReferenceSpaceType('local-floor');
-    this.webgl.domElement.setAttribute('aria-label', '3D 공간. 클릭 후 WASD로 이동, 마우스로 시점 조절. Esc로 해제.');
+    this.webgl.domElement.setAttribute('aria-label', '3D 공간. WASD 또는 방향키로 바로 이동, 마우스 드래그로 시점 조절.');
     this.host.append(this.webgl.domElement);
     this.scene.background = new Color('#172b3a');
     this.observer = new ResizeObserver(() => this.resize());
@@ -57,18 +60,25 @@ export class Renderer {
     this.camera.near=this.profile.near??.05;this.camera.far=this.profile.far??150;
     this.webgl.toneMapping=this.profile.filmic?ACESFilmicToneMapping:NoToneMapping;
     this.webgl.toneMappingExposure=this.profile.exposure??1;
+    this.webgl.shadowMap.type=PCFShadowMap;
     this.webgl.shadowMap.needsUpdate=true;
     this.disposeEffects();
     if((this.profile.bloom||this.profile.ao)&&!this.softwareGPU){
       const target=new WebGLRenderTarget(1,1,{type:HalfFloatType,samples:Math.min(2,this.webgl.capabilities.maxSamples)});
       this.composer=new EffectComposer(this.webgl,target);
-      this.scenePass=new RenderPass(this.scene,this.camera);this.composer.addPass(this.scenePass);
-      if(this.profile.ao){
+      if(this.profile.ao?.algorithm==='n8ao'&&this.N8){
+        this.n8=new this.N8(this.scene,this.camera,1,1);this.n8.setQualityMode('High');
+        Object.assign(this.n8.configuration,{aoRadius:this.profile.ao.radius,intensity:this.profile.ao.intensity,distanceFalloff:.8,denoiseRadius:5,halfRes:true,depthAwareUpsampling:true,gammaCorrection:false});
+        // n8ao's legacy MRT shim exposes texture as an array; Three r187 expects texture[0].
+        const mrt=this.n8.depthDownsampleTarget;if(mrt)Object.defineProperty(mrt,'texture',{configurable:true,get:()=>mrt.textures[0]});
+        this.composer.addPass(this.n8);
+      }else{this.scenePass=new RenderPass(this.scene,this.camera);this.composer.addPass(this.scenePass);}
+      if(this.profile.ao&&this.profile.ao.algorithm!=='n8ao'){
         this.ao=new GTAOPass(this.scene,this.camera,1,1);this.ao.blendIntensity=this.profile.ao.intensity;
         this.ao.updateGtaoMaterial({radius:this.profile.ao.radius,distanceExponent:1.5,thickness:.55,scale:1,samples:8});
         this.ao.updatePdMaterial({lumaPhi:10,depthPhi:3,normalPhi:6,radius:4,rings:2,samples:8});this.composer.addPass(this.ao);
       }
-      if(this.profile.bloom){this.bloom=new UnrealBloomPass(new Vector2(1,1),this.profile.bloom,.32,1.15);this.composer.addPass(this.bloom);}
+      if(this.profile.bloom){this.bloom=new UnrealBloomPass(new Vector2(1,1),this.profile.bloom,.32,this.profile.bloomThreshold??1.15);this.composer.addPass(this.bloom);}
       this.output=new OutputPass();this.composer.addPass(this.output);
       if(this.profile.fxaa){this.fxaa=new ShaderPass(FXAAShader);this.composer.addPass(this.fxaa);}
     }
@@ -87,6 +97,7 @@ export class Renderer {
     const camera=this.camera.clone();camera.fov=fieldOfView(world.config.rendering??{},camera.aspect);camera.near=world.config.rendering?.near??.05;camera.far=world.config.rendering?.far??150;camera.updateProjectionMatrix();camera.position.fromArray(world.config.spawn.position);camera.position.y+=world.config.player.eyeHeight;camera.rotation.set(0,world.config.spawn.yaw,0);camera.updateMatrixWorld(true);
     const previous=this.webgl.toneMapping;
     try {
+      if(world.config.rendering?.ao?.algorithm==='n8ao'&&!this.softwareGPU&&!this.N8)this.N8=(await import('n8ao')).N8AOPass;
       await world.prepare?.(staging,this.webgl,signal);signal.throwIfAborted();
       staging.environmentIntensity=world.config.rendering?.environmentIntensity??1;
       let compiled:Promise<import('three').Object3D>;
@@ -125,7 +136,12 @@ export class Renderer {
     this.camera.updateProjectionMatrix();
   }
   private disposeEffects():void{
-    this.ao?.dispose();this.fxaa?.dispose();this.bloom?.dispose();this.output?.dispose();this.scenePass?.dispose();this.composer?.dispose();
+    // n8ao 2.0.1 inherits an empty Pass.dispose: release its own targets, textures and fullscreen materials.
+    if(this.n8){const released=new Set<object>();for(const value of Object.values(this.n8)){
+      if(!value||typeof value!=='object'||value===this.scene||value===this.camera||released.has(value))continue;
+      released.add(value);if('dispose' in value&&typeof value.dispose==='function')value.dispose();
+    }}
+    this.n8=undefined;this.ao?.dispose();this.fxaa?.dispose();this.bloom?.dispose();this.output?.dispose();this.scenePass?.dispose();this.composer?.dispose();
     this.ao=undefined;this.fxaa=undefined;this.bloom=undefined;this.output=undefined;this.scenePass=undefined;this.composer=undefined;
   }
   restoreSize(): void { this.resize(); }

@@ -18,12 +18,12 @@ test('fresh users see only the four first-fix screens through mode, rating and b
     const glb = page.waitForResponse(response => response.url().endsWith('/test-room/scene.glb'));
     await click(page, 'mode:team'); expect((await glb).status()).toBe(200); await route(page, 'simulation');
     await expect(page.locator('button:visible,input:visible,a:visible')).toHaveCount(1);
-    await page.mouse.click(600, 350); await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(true);
+    await page.mouse.click(600, 350); await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
     const before = (await snapshot(page)).player.position;
     await page.keyboard.down('w');
     try { await expect.poll(async () => before[0] - (await snapshot(page)).player.position[0]).toBeGreaterThan(.25); }
     finally { await page.keyboard.up('w'); }
-    await page.keyboard.press('Escape'); await expect.poll(() => page.evaluate(() => document.pointerLockElement)).toBe(null);
+    await expect.poll(() => page.evaluate(() => document.pointerLockElement)).toBe(null);
     await route(page, 'simulation');
     await screenshot(page, info, 'first-fix-minimal-simulation');
     await click(page, 'finish'); await route(page, 'rating'); await onlyOriginalUI(page);
@@ -50,11 +50,11 @@ test('old routes and UI flags never restore the discarded UI; the bare room rema
     }
     await click(page, 'home'); await route(page, 'my-room');
     await expect(page.locator('button:visible,input:visible,a:visible')).toHaveCount(1);
-    await page.mouse.click(600, 350); await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(true);
+    await page.mouse.click(600, 350); await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
     const before = (await snapshot(page)).player.position; await page.keyboard.down('w');
     try { await expect.poll(async () => Math.hypot(...(await snapshot(page)).player.position.map((n,i)=>n-before[i]))).toBeGreaterThan(.25); }
     finally { await page.keyboard.up('w'); }
-    await page.keyboard.press('Escape'); await expect.poll(() => page.evaluate(() => document.pointerLockElement)).toBe(null);
+    await expect.poll(() => page.evaluate(() => document.pointerLockElement)).toBe(null);
     await click(page, 'nav:modes'); await route(page, 'modes');
     await page.keyboard.press('b'); await route(page, 'appointment-date'); await onlyOriginalUI(page);
 });

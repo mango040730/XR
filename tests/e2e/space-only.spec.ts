@@ -1,4 +1,4 @@
-import {test,expect,snapshot,screenshot} from './fixtures';
+import {test,expect,snapshot,screenshot,lookAt} from './fixtures';
 
 for(const url of ['/?fishing','/?fishing&ui=1'])test(`fishing view ${url} keeps minimal mode navigation while mouse WASD and fishing keys remain active`,async({page},info)=>{
  await page.goto(url.replace('/?', '/?offline=1&'));await page.waitForFunction(()=>window.__XR_DEBUG__?.snapshot().world.status==='ready');
@@ -9,9 +9,9 @@ for(const url of ['/?fishing','/?fishing&ui=1'])test(`fishing view ${url} keeps 
   expect((await snapshot(page)).interactables.filter(i=>/^(cast:|stand:|home$|samples$|quality$)/.test(i.id))).toHaveLength(0);
  };
  await assertClear();await screenshot(page,info,'space-only-entry');
- await page.locator('canvas').click();await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(true);
- await page.mouse.move(720,500);const pose=(await snapshot(page)).player;
- await page.mouse.move(720+(pose.yaw-Math.PI/2)/.002,500);
+ await page.locator('canvas').click();await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(false);
+ await page.mouse.move(720,500);
+ await lookAt(page,Math.PI/2);
  await page.keyboard.down('w');try{await expect.poll(async()=>(await snapshot(page)).player.position[0],{intervals:[30]}).toBeLessThan(1.5);}finally{await page.keyboard.up('w');}
  await page.keyboard.press('e');await expect.poll(async()=>(await snapshot(page)).fishing.user.seatId).toBe('S3');
  await page.keyboard.press('f');expect((await snapshot(page)).fishing.user.fishing).toBe('cast');

@@ -39,6 +39,7 @@ export function attachEngineDiagnostics(engine: Engine) {
         color: object instanceof Mesh && object.material instanceof MeshStandardMaterial ? object.material.color.getHexString() : null });
     });
     return {
+      worldFrozen: engine.worldFrozen,
       world: { ...engine.worlds.state },
       myRoom: active?.root.userData.myRoom ?? null,
       fishing: active?.root.userData.fishing ?? null,

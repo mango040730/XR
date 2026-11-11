@@ -1,5 +1,5 @@
 import { mkdir,writeFile } from 'node:fs/promises';
-import { test,expect,snapshot,screenshot } from './fixtures';
+import { test,expect,snapshot,screenshot, lookAt } from './fixtures';
 test.beforeEach(async({page})=>{
  await page.goto('/?offline=1&fishing&ui=1&fishingUiReview=1');await page.waitForFunction(()=>window.__XR_DEBUG__?.snapshot().world.status==='ready');
  await expect(page.locator('.fishing-hud')).toBeVisible();
@@ -21,10 +21,10 @@ test('fishing overview and opposite side render actual volume with desktop fallb
 });
 test('walks and collides then sits casts retrieves stands and resets without leaked seat ownership',async({page},info)=>{
  // Move around the southeast corner, along the real rear aisle, using real pointer lock/WASD.
- await page.locator('canvas').click();await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(true);
+ await page.locator('canvas').click();await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(false);
  // Face west, exactly, via browser mouse input relative to the known spawn heading.
  const yaw=(await snapshot(page)).player.yaw;await page.mouse.move(720,500);
- const after=(await snapshot(page)).player.yaw;await page.mouse.move(720+(after-Math.PI/2)/.002,500);
+ await lookAt(page,Math.PI/2);
  await expect.poll(async()=>Math.abs((await snapshot(page)).player.yaw-Math.PI/2)).toBeLessThan(.02);
  expect(yaw).toBeCloseTo(.84);
  await page.keyboard.down('w');try{await expect.poll(async()=>(await snapshot(page)).player.position[0],{intervals:[30],timeout:12000}).toBeLessThan(1.5);}finally{await page.keyboard.up('w');}
@@ -35,8 +35,8 @@ test('walks and collides then sits casts retrieves stands and resets without lea
  await page.keyboard.press('f');expect((await snapshot(page)).fishing.user.fishing).toBe('cast');
  await expect(page.locator('[data-message]')).toContainText('30초~2분');
  // A naturally downward seated view, delivered through ordinary mouse input.
- await page.mouse.move(720,500);const seatedPose=(await snapshot(page)).player;
- await page.mouse.move(720+seatedPose.yaw/.002,500+(seatedPose.pitch+.55)/.002);await page.keyboard.press('Escape');await screenshot(page,info,'fishing-seated');
+ await page.mouse.move(720,500);
+ await lookAt(page,0,-.55);await page.keyboard.press('Escape');await screenshot(page,info,'fishing-seated');
  await page.clock.fastForward(28_000);expect((await snapshot(page)).fishing.user.fishing).toBe('cast');
  await page.clock.fastForward(92_001);
  await expect.poll(async()=>(await snapshot(page)).fishing.user.fishing).toBe('caught');
@@ -47,7 +47,7 @@ test('walks and collides then sits casts retrieves stands and resets without lea
  await page.locator('[data-primary]').click();expect((await snapshot(page)).fishing.user.fishing).toBe('idle');
  await page.clock.resume();
  await page.locator('[data-do="stand"]').click();expect((await snapshot(page)).player.position).toEqual([1,0,4.25]);expect((await snapshot(page)).fishing.user.seatId).toBeNull();
- await page.locator('canvas').click();await page.mouse.move(720,500);const current=(await snapshot(page)).player.yaw;await page.mouse.move(720+current/.002,500);
+ await page.locator('canvas').click();await page.mouse.move(720,500);await lookAt(page,0);
  await page.keyboard.down('w');try{await page.waitForTimeout(1600);}finally{await page.keyboard.up('w');}
  // Chair blocks forward movement. Pool protection is also checked separately in unit tests.
  expect((await snapshot(page)).player.position[2]).toBeGreaterThanOrEqual(3.8);

@@ -1,4 +1,4 @@
-import { test, expect, enter, snapshot, screenshot, renderFrames } from './fixtures';
+import { test, expect, enter, snapshot, screenshot, renderFrames, lookAt } from './fixtures';
 
 test.beforeEach(async ({ page }) => {
   const response = await page.goto('/?lab=1&legacyServiceReview=1');
@@ -43,13 +43,13 @@ test('enters A and B switches leaves and reenters with each configured spawn', a
   expect((await snapshot(page)).player.position).toEqual([0, 0, 6]);
 });
 
-test('WASD changes actual player position and mouse input changes yaw under real pointer lock', async ({ page }) => {
+test('WASD changes actual player position and mouse input changes yaw without pointer lock', async ({ page }) => {
   await enter(page, 'test-world-a');
   await page.locator('#speed').focus();
   await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
   await expect(page.locator('[data-speed-output]')).toHaveText('4.0 m/s');
   await page.locator('canvas').click();
-  await expect.poll(() => page.evaluate(() => document.pointerLockElement?.tagName)).toBe('CANVAS');
+  await expect.poll(() => page.evaluate(() => document.pointerLockElement?.tagName)).toBe(undefined);
   for (const [key, axis, sign] of [['w', 2, -1], ['s', 2, 1], ['d', 0, 1], ['a', 0, -1]] as const) {
     const before = (await snapshot(page)).player.position[axis];
     await page.keyboard.down(key);
@@ -58,7 +58,7 @@ test('WASD changes actual player position and mouse input changes yaw under real
     } finally { await page.keyboard.up(key); }
   }
   const yaw = (await snapshot(page)).player.yaw;
-  await page.mouse.move(950, 550, { steps: 4 });
+  await lookAt(page,yaw-.3);
   await expect.poll(async () => Math.abs((await snapshot(page)).player.yaw - yaw)).toBeGreaterThan(0.05);
   await page.keyboard.press('Escape');
   await expect.poll(() => page.evaluate(() => document.pointerLockElement === null)).toBe(true);
@@ -67,7 +67,7 @@ test('WASD changes actual player position and mouse input changes yaw under real
 test('blocks the A cube and activates its real interaction from nearby', async ({ page }) => {
   await enter(page, 'test-world-a');
   await page.locator('canvas').click();
-  await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(true);
+  await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
   await page.keyboard.down('w');
   try {
     await expect.poll(async () => (await snapshot(page)).player.position[2]).toBeLessThan(2.9);
@@ -98,7 +98,7 @@ test('comfort defaults and interaction state reset across worlds', async ({ page
 test('interacts with a named node in the actual GLB and clears its UI on transition', async ({ page }, info) => {
   await enter(page, 'glb-test-room');
   await page.locator('canvas').click();
-  await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(true);
+  await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
   await page.keyboard.down('d');
   try { await expect.poll(async () => (await snapshot(page)).player.position[2]).toBeLessThan(0.05); }
   finally { await page.keyboard.up('d'); }
@@ -107,7 +107,7 @@ test('interacts with a named node in the actual GLB and clears its UI on transit
   finally { await page.keyboard.up('w'); }
   const bounds = await page.locator('canvas').boundingBox(); expect(bounds).not.toBeNull();
   const x = bounds!.x + bounds!.width / 2; const y = bounds!.y + bounds!.height / 2 + 150;
-  await page.mouse.move(x, y, { steps: 4 });
+  await lookAt(page,(await snapshot(page)).player.yaw,-.3);
   await expect(page.locator('[data-hint]')).toContainText('GLB 받침대');
   await page.mouse.click(x, y);
   await expect(page.locator('[data-action]')).toContainText('GLB 받침대 선택됨');

@@ -1,0 +1,392 @@
+{
+  "sourceCommit": "738ad8318bba9f8af95e973777c34d072b9a1279",
+  "originalGitStatus": "",
+  "originalUnchanged": true,
+  "exportMethod": "Original Forest/Atelier components rendered through R3F test renderer and the original StaticBatch; no remodeled replacements.",
+  "authoredStaticMeshCount": 1031,
+  "exportedMeshBatches": 43,
+  "triangles": 108934,
+  "uniqueSourceTextures": 9,
+  "embeddedImages": 19,
+  "lightRecordsForCode": 21,
+  "spotLights": 8,
+  "binaryBytes": 11732792,
+  "sha256": "e0ea1fee3962a65eceae8d18a43ed61a9e567b7259abd4af9de70b566161767d",
+  "roundTrip": {
+    "meshesEqual": true,
+    "positionMaxError": 0,
+    "normalMaxError": 0,
+    "uvMaxError": 0,
+    "pbrAndTexturePresenceEqual": true,
+    "worldPositionsEqual": true,
+    "embeddedNormalMapRgbaEqual": true,
+    "embeddedRoughnessGreenChannelEqual": true,
+    "emissiveAndAlphaEqual": true,
+    "originalNormalScaleRestoredFromMaterialExtras": true
+  },
+  "materialChecks": [
+    {
+      "batch": 0,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 1,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 2,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 3,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 4,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 5,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 6,
+      "colorError": 0,
+      "roughness": 0.95,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 7,
+      "colorError": 0,
+      "roughness": 0.86,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 8,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 9,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 10,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 11,
+      "colorError": 0,
+      "roughness": 0.1,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 12,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 13,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 14,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 15,
+      "colorError": 0,
+      "roughness": 0.74,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 16,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 17,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 18,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 19,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 20,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 21,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 22,
+      "colorError": 0,
+      "roughness": 0.5,
+      "metalness": 0.65,
+      "maps": []
+    },
+    {
+      "batch": 23,
+      "colorError": 0,
+      "roughness": 0.5,
+      "metalness": 0.65,
+      "maps": []
+    },
+    {
+      "batch": 24,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 25,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 26,
+      "colorError": 0,
+      "roughness": 0.5,
+      "metalness": 0.65,
+      "maps": []
+    },
+    {
+      "batch": 27,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 28,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 29,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 30,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 31,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": [
+        "map"
+      ]
+    },
+    {
+      "batch": 32,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": [
+        "map"
+      ]
+    },
+    {
+      "batch": 33,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 34,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": [
+        "map"
+      ]
+    },
+    {
+      "batch": 35,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 36,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 37,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": [
+        "map"
+      ]
+    },
+    {
+      "batch": 38,
+      "colorError": 0,
+      "roughness": 0.84,
+      "metalness": 0,
+      "maps": [
+        "map",
+        "normalMap",
+        "roughnessMap"
+      ]
+    },
+    {
+      "batch": 39,
+      "colorError": 0,
+      "roughness": 0.92,
+      "metalness": 0,
+      "maps": []
+    },
+    {
+      "batch": 40,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": [
+        "map"
+      ]
+    },
+    {
+      "batch": 41,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": [
+        "map"
+      ]
+    },
+    {
+      "batch": 42,
+      "colorError": 0,
+      "roughness": 1,
+      "metalness": 0,
+      "maps": []
+    }
+  ],
+  "browserVisualVerification": false,
+  "limitations": [
+    "GLB stores the actual geometry/materials, not the final shaded frame. Light rig and postprocessing are supplied as code.",
+    "Canvas-generated signs and wood albedo use the original drawing commands; platform font rasterization may vary slightly.",
+    "Online avatars and UI are dynamic and intentionally not stored in the static GLB."
+  ]
+}

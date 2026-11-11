@@ -159,7 +159,7 @@ export class CardboardPresenter {
         this.reticle.material.color.set(target ? '#b6ffe7' : 'white');
         if (dwell.activate && target)
             this.activate(target);
-        const worldTarget = !target ? this.engine.interactions.updateRay('gaze', this.ray.ray, camera.getWorldPosition(new Vector3())) : null;
+        const worldTarget = !target && !this.engine.worldFrozen ? this.engine.interactions.updateRay('gaze', this.ray.ray, camera.getWorldPosition(new Vector3())) : null;
         if (this.worldDwell.update(worldTarget?.uuid || '', time).activate)
             this.engine.interactions.activate('gaze');
     }

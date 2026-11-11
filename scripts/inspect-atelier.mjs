@@ -1,0 +1,27 @@
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {Box3,Vector3,Raycaster} from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import validator from 'gltf-validator';
+import {disposeObject} from '../src/engine/assets/disposeObject.ts';
+const bytes=await readFile(new URL('../public/assets/models/woodworking-original/forest-atelier-original.glb',import.meta.url));
+if(createHash('sha256').update(bytes).digest('hex')!=='e0ea1fee3962a65eceae8d18a43ed61a9e567b7259abd4af9de70b566161767d')throw new Error('첨부 원본 GLB와 해시가 다릅니다.');
+const report=await validator.validateBytes(new Uint8Array(bytes));
+const unexpected=report.issues.messages.filter(m=>m.severity<=1&&m.code!=='MESH_PRIMITIVE_GENERATED_TANGENT_SPACE');
+if(report.issues.numErrors||unexpected.length)throw new Error(JSON.stringify(unexpected));
+const length=bytes.readUInt32LE(12),data=JSON.parse(bytes.subarray(20,20+length));
+if(data.meshes.length!==43||data.materials.length!==43||data.images.length!==19)throw new Error('목공방 메시·재질·텍스처 구성이 다릅니다.');
+if(data.nodes.filter(n=>n.mesh!==undefined).some(n=>!n.extras?.atelierShadow))throw new Error('원본 그림자 flag 누락');
+if(data.materials.some(m=>!m.extras?.atelierRender))throw new Error('원본 재질 렌더링 flag 누락');
+// Geometry-only inspection in Node; browsers load the unmodified GLB and embedded PNGs via useGLTF.
+const geometry=JSON.parse(JSON.stringify(data));delete geometry.materials;delete geometry.textures;delete geometry.images;
+for(const mesh of geometry.meshes)for(const primitive of mesh.primitives)delete primitive.material;
+const json=Buffer.from(JSON.stringify(geometry)),padded=Buffer.alloc(Math.ceil(json.length/4)*4,32);json.copy(padded);
+const binary=bytes.subarray(20+length),container=Buffer.alloc(20+padded.length+binary.length);
+container.writeUInt32LE(0x46546c67,0);container.writeUInt32LE(2,4);container.writeUInt32LE(container.length,8);container.writeUInt32LE(padded.length,12);container.writeUInt32LE(0x4e4f534a,16);padded.copy(container,20);binary.copy(container,20+padded.length);
+const {scene}=await new GLTFLoader().parseAsync(container.buffer.slice(container.byteOffset,container.byteOffset+container.byteLength),'');
+const bounds=new Box3().setFromObject(scene,true);let triangles=0;scene.traverse(o=>{if(o.isMesh)triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3;});
+const floor=new Raycaster(new Vector3(.13,1.65,5.63),new Vector3(0,-1,0),0,3).intersectObject(scene,true)[0];
+if(!floor||Math.abs(floor.point.y)>.001)throw new Error('목공방 바닥 높이 불일치');
+if(triangles!==108934||!bounds.containsPoint(new Vector3(0,0,5.6)))throw new Error('원본 크기/시작 위치가 다릅니다.');
+console.log(JSON.stringify({asset:'forest-atelier-original.glb',meshes:43,materials:43,embeddedImages:19,triangles,bounds:{min:bounds.min.toArray(),max:bounds.max.toArray()},validator:{errors:report.issues.numErrors,generatedTangentWarnings:report.issues.numWarnings},spawn:[0,0,5.6],actualFloorY:floor.point.y,eyeHeight:1.65}));disposeObject(scene);

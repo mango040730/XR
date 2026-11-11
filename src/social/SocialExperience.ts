@@ -117,6 +117,7 @@ export class SocialExperience {
     try{const state=await this.client.seat(id);if(state)this.applySeat(state.seatId);}finally{this.seatPending=false;}
   }
   private update(delta:number):void{
+    if(this.engine.worldFrozen)return;
     const scope=this.scope;if(!scope||!['ready','error'].includes(this.engine.worlds.state.status)||this.engine.worlds.active?.root!==scope.world)return;
     this.engine.player.setThirdPerson(false);
     const feet=this.engine.player.feet;this.moving=feet.distanceToSquared(scope.last)>.000005;scope.last.copy(feet);

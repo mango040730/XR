@@ -59,7 +59,7 @@ export class XRControllerSystem {
     this.state = state; this.changes.emit(state);
   }
 
-  update(frame: XRFrame, time: number, delta: number): void {
+  update(frame: XRFrame, time: number, delta: number, locomotion=true): void {
     if (!this.session || !this.world) return;
     this.time = time;
     const reference = this.rendering.webgl.xr.getReferenceSpace();
@@ -80,7 +80,7 @@ export class XRControllerSystem {
     const accepted = this.player.updateXRHead(new Vector3(position.x, position.y, position.z), new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w));
     if (!accepted) this.input.clear();
     const intent = this.input.sample(this.settings, delta);
-    if (accepted) {
+    if (accepted && locomotion) {
       this.player.rotateXR(intent.turn);
       this.player.update(this.input.readMovement(), delta, this.player.xrHeading, this.settings.moveSpeed);
     }
@@ -95,14 +95,14 @@ export class XRControllerSystem {
       const matrix = new Matrix4().multiplyMatrices(this.player.rig.matrixWorld, new Matrix4().fromArray(controllerPose.transform.matrix));
       const ray = new Ray(new Vector3().setFromMatrixPosition(matrix), new Vector3(0, 0, -1).transformDirection(matrix));
       this.visuals.ray(i, ray);
-      if (intent.teleportSource === source && accepted) {
+      if (intent.teleportSource === source && accepted && locomotion) {
         this.interactions.clearHover(channel);
         const candidate = this.teleport!.aim(ray, this.player.feet, this.player.bodyHeight);
         this.visuals.teleport(candidate); message = candidate.reason;
         if (intent.teleportRelease && candidate.valid && candidate.point && this.player.teleportXR(candidate.point)) {
           this.visuals.hidePointers(); message = '텔레포트 완료'; break;
         }
-      } else if (accepted) {
+      } else if (accepted && locomotion) {
         this.interactions.updateRay(channel, ray, observer);
         if (select) this.interactions.activate(channel);
       } else this.interactions.clearHover(channel);

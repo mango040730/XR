@@ -1,9 +1,9 @@
-import { test,expect,snapshot,screenshot } from './fixtures';
+import { test,expect,snapshot,screenshot, lookAt } from './fixtures';
 import type { Page } from '@playwright/test';
 async function look(page:Page,yaw:number,pitch:number){
- await page.locator('canvas').click();await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(true);
- await page.mouse.move(720,500);const pose=(await snapshot(page)).player;
- await page.mouse.move(720+(pose.yaw-yaw)/.002,500+(pose.pitch-pitch)/.002);
+ await page.locator('canvas').click();await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(false);
+ await page.mouse.move(720,500);
+ await lookAt(page,yaw,pitch);
 }
 test('forest background shows faceted broadleaf trees and parallax outside both windows',async({page},info)=>{
  test.setTimeout(60_000);

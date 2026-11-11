@@ -1,3 +1,6 @@
+import {WorldManager} from '../src/engine/world/WorldManager';
+import {Scene} from 'three';
+import type {Engine} from '../src/engine/core/Engine';
 import { TeleportSystem } from '../src/engine/player/TeleportSystem';
 import {describe,expect,it} from 'vitest';
 import {Box3,Group,Ray,Vector3} from 'three';
@@ -5,7 +8,7 @@ import {createWorld} from '../src/engine/world/createWorld';
 import {CollisionSystem} from '../src/engine/collision/CollisionSystem';
 import {myRoom} from '../src/worlds/my-room/config';
 import {myRoomSeats} from '../src/worlds/my-room/seats';
-import {screenWorld} from '../src/experience/screenWorld';
+import {screenWorld,ensureScreenWorld} from '../src/experience/screenWorld';
 import {screens} from '../src/routing/ServiceRouter';
 import {RoomService} from '../server/RoomService';
 import type {RoomLayout} from '../shared/social';
@@ -13,14 +16,21 @@ import type {RoomLayout} from '../shared/social';
 const collision=()=>new CollisionSystem({floors:myRoom.floors.map(f=>({minX:f.center[0]-f.size[0]/2,maxX:f.center[0]+f.size[0]/2,minZ:f.center[1]-f.size[1]/2,maxZ:f.center[1]+f.size[1]/2,y:f.y,polygon:f.polygon})),maxStepHeight:myRoom.player.maxStepHeight,solids:myRoom.boxes.map(b=>new Box3().setFromCenterAndSize(new Vector3(...b.position),new Vector3(...b.size)))});
 
 describe('provided GLB my room and screen ownership',()=>{
- it('uses my room on every non-content route with or without a finished session',()=>{
+ it('uses my room outside content, keeping the finished content world for rating',()=>{
   for(const screen of screens){
    const expected=screen==='loading'?null:['simulation','pause','confirm-home'].includes(screen)?'indoor-fishing':'my-room';
    expect(screenWorld(screen,{mode:'social',ended:false})).toBe(expected);
-   expect(screenWorld(screen,{mode:'social',ended:true})).toBe(screen==='loading'?null:'my-room');
+   expect(screenWorld(screen,{mode:'social',ended:true})).toBe(screen==='loading'?null:['rating','rating-done'].includes(screen)?'indoor-fishing':'my-room');
   }
   expect(screenWorld('simulation',{mode:'solo',ended:false})).toBe('woodworking');
   expect(screenWorld('simulation',{mode:'team',ended:false})).toBe('glb-test-room');
+ });
+ it('does not replace the preserved my room when a content request fails and the mode screen resumes',async()=>{
+  const config={...myRoom,model:undefined,build:undefined,prepare:undefined};
+  const manager=new WorldManager([config,{...config,id:'unavailable'}],new Scene(),(world,context)=>world.id==='unavailable'?Promise.reject(new Error('HTTP 404')):createWorld(world,context));
+  await manager.enter('my-room');const root=manager.active!.root;await manager.enter('unavailable');
+  const engine={worlds:manager,enterWorld:(id:string)=>manager.enter(id)} as Engine;
+  await ensureScreenWorld(engine,'modes',{mode:'solo',ended:false});expect(manager.active!.root).toBe(root);expect(manager.state.error).toBe('HTTP 404');manager.dispose();
  });
  it('has a supported spawn and valid stand locations for actual lounge furniture',()=>{
   const system=collision();expect(system.canStand(new Vector3(...myRoom.spawn.position),.22,1.75)).toBe(true);

@@ -1,4 +1,5 @@
-import { ensureScreenWorld } from './screenWorld';
+import { RatingBackdrop } from './RatingBackdrop';
+import { ensureScreenWorld, screenWorld } from './screenWorld';
 import { FishingHUD } from '../ui/FishingHUD';
 import '../ui/service.css';
 import '../ui/figma/generated.css';
@@ -33,6 +34,7 @@ export class ServiceExperience {
     private chrome = element('div', 'service-chrome');
     private vrHost = element('div');
     private fishingHUD: FishingHUD;
+    private ratingBackdrop: RatingBackdrop;
     private cardboard: CardboardPresenter;
     private touchControls: ServiceTouchControls;
     private renderedScreen?: Screen;
@@ -49,6 +51,7 @@ export class ServiceExperience {
         this.shell.append(this.viewport, this.stage, this.chrome);
         host.append(this.shell);
         this.engine = new Engine(this.viewport, this.vrHost, [myRoom, ...worlds]);
+        this.ratingBackdrop=new RatingBackdrop(this.engine,this.viewport);
         this.fishingHUD = new FishingHUD(this.shell, this.engine);
         this.router = new ServiceRouter(screen => {
             const data = this.store.value;
@@ -70,7 +73,7 @@ export class ServiceExperience {
         this.shell.addEventListener('focusin', event => this.syncInput(this.isEditing(event.target)), { signal: this.events.signal });
         this.shell.addEventListener('focusout', event => this.syncInput(this.isEditing(event.relatedTarget)), { signal: this.events.signal });
         this.cleanups.push(this.engine.frames.subscribe(({ delta }) => {
-            if (this.touchControls.enabled && this.engine.worlds.state.status === 'ready')
+            if (this.touchControls.enabled && this.engine.worlds.active && this.engine.worlds.state.status !== 'loading')
                 this.engine.player.update(this.touchControls.readMovement(), delta);
         }));
         this.stage.addEventListener('click', event => { const node = (event.target as HTMLElement).closest<HTMLElement>('[data-action]'); if (node)
@@ -168,7 +171,8 @@ export class ServiceExperience {
     }
     private syncInput(editing = this.isEditing(document.activeElement)): void {
         const immersive = this.cardboard.active || this.engine.xr.state.active || this.engine.xr.state.pending;
-        const enabled = allowsServiceMovement(this.router.current, immersive, editing);
+        this.ratingBackdrop.sync(this.router.current,this.store.value.session?.id,immersive,screenWorld(this.router.current,this.store.value.session));
+        const enabled = !['rating','rating-done'].includes(this.router.current) && allowsServiceMovement(this.router.current, immersive, editing);
         this.fishingHUD.setEnabled(this.router.current === 'simulation' && !this.cardboard.active);
         this.engine.setDesktopEnabled(enabled);
         this.touchControls.setEnabled(enabled && !this.fishingHUD.handlesTouch);
@@ -179,7 +183,7 @@ export class ServiceExperience {
             this.chrome.replaceChildren();
             return;
         }
-        const hint = isExplorableScreen(this.router.current) ? '빈 공간 클릭 · WASD 이동 · 마우스 시점 · Esc로 UI 선택' : '실시간 연결 없음';
+        const hint = isExplorableScreen(this.router.current) ? 'WASD·방향키 바로 이동 · 마우스 드래그로 시점' : '실시간 연결 없음';
         const label = element('span', '', `로컬 데모 · ${this.cardboard.active ? 'Cardboard VR' : this.engine.xr.state.active ? '헤드셋 VR' : 'PC / 터치'} · ${this.store.repository.error || this.draft.message || hint}`);
         const vr = button(this.cardboard.active ? 'VR 종료' : 'VR 박스 모드', this.cardboard.active ? 'cardboard-stop' : 'nav:cardboard-guide');
         const center = button('패널 정면 맞추기', 'recenter');
@@ -270,6 +274,7 @@ export class ServiceExperience {
                     break;
                 }
                 case 'finish':
+                    if(!this.cardboard.active&&!this.engine.xr.state.active)this.ratingBackdrop.capture(this.store.value.session?.id);
                     this.store.finish();
                     this.draft.modeRating = this.draft.peopleRating = 0;
                     this.draft.ratings = {};
@@ -460,7 +465,7 @@ export class ServiceExperience {
         this.cardboard.recenter();
     }
     async dispose(): Promise<void> {
-        this.disposed=true; this.fishingHUD.dispose(); this.touchControls.dispose(); this.events.abort(); this.cleanups.forEach(fn => fn()); this.detachDiagnostics?.(); this.router.dispose(); this.cardboard.dispose(); this.avatar.removeFromParent(); this.avatar.traverse(n => { if (n instanceof Mesh) {
+        this.disposed=true; this.ratingBackdrop.dispose();this.fishingHUD.dispose(); this.touchControls.dispose(); this.events.abort(); this.cleanups.forEach(fn => fn()); this.detachDiagnostics?.(); this.router.dispose(); this.cardboard.dispose(); this.avatar.removeFromParent(); this.avatar.traverse(n => { if (n instanceof Mesh) {
         n.geometry.dispose();
         (n.material as MeshStandardMaterial).dispose();
     } }); await this.engine.dispose(); this.shell.remove(); }

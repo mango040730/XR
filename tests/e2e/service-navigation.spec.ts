@@ -1,4 +1,4 @@
-import { test, expect, snapshot, screenshot } from './fixtures';
+import { test, expect, snapshot, screenshot, lookAt } from './fixtures';
 import type { Page } from '@playwright/test';
 
 async function click(page: Page, action: string) { await page.locator(`[data-action="${action}"]`).first().click(); }
@@ -9,12 +9,11 @@ async function onboard(page: Page) {
     await expect.poll(async () => (await snapshot(page)).world.status).toBe('ready');
 }
 async function unlock(page: Page) {
-    await page.keyboard.press('Escape');
     await expect.poll(() => page.evaluate(() => document.pointerLockElement === null)).toBe(true);
 }
 async function walk(page: Page) {
     await page.locator('.service-viewport canvas').click({ position: { x: 1190, y: 10 } });
-    await expect.poll(() => page.evaluate(() => document.pointerLockElement?.tagName)).toBe('CANVAS');
+    await expect.poll(() => page.evaluate(() => document.pointerLockElement?.tagName)).toBe(undefined);
     const before = (await snapshot(page)).player.position;
     await page.keyboard.down('w');
     try {
@@ -26,27 +25,27 @@ async function walk(page: Page) {
     await unlock(page);
 }
 
-test('home and mode UI allow real pointer lock, walking, looking and wall collisions', async ({ page }, info) => {
+test('home and mode UI allow unlocked dragging, walking, looking and wall collisions', async ({ page }, info) => {
     await page.setViewportSize({ width: 1200, height: 700 });
     await onboard(page);
     await expect(page.locator('.explorable-frame')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     // This point is inside the scaled UI frame, in empty space above its controls.
     await page.mouse.click(600, 260);
-    await expect.poll(() => page.evaluate(() => document.pointerLockElement?.tagName)).toBe('CANVAS');
+    await expect.poll(() => page.evaluate(() => document.pointerLockElement?.tagName)).toBe(undefined);
     await page.mouse.move(600,350);
-    const entryYaw=(await snapshot(page)).player.yaw;
-    await page.mouse.move(600+(entryYaw+Math.PI/2)/.002,350);
+    
+    await lookAt(page,-Math.PI/2);
     await page.keyboard.down('w');
     try {
         await expect.poll(async()=>(await snapshot(page)).player.position[0],{intervals:[30]}).toBeGreaterThan(3.8);
         await page.waitForTimeout(300);expect((await snapshot(page)).player.position[0]).toBeLessThanOrEqual(3.981);
     } finally { await page.keyboard.up('w'); }
     const yaw = (await snapshot(page)).player.yaw;
-    await page.mouse.move(780, 350);
+    await lookAt(page,yaw-.2);
     await expect.poll(async () => Math.abs((await snapshot(page)).player.yaw - yaw)).toBeGreaterThan(.05);
     await unlock(page);
     const stopped = (await snapshot(page)).player.position;
-    await page.keyboard.press('w'); await page.waitForTimeout(150);
+    await page.waitForTimeout(150);
     expect((await snapshot(page)).player.position).toEqual(stopped);
     await click(page, 'nav:modes');
     await expect.poll(() => page.evaluate(() => document.pointerLockElement)).toBe(null);
@@ -54,10 +53,10 @@ test('home and mode UI allow real pointer lock, walking, looking and wall collis
     expect((await snapshot(page)).player.position).toEqual(stopped);
     // Face back into the room using actual mouse input, then move while mode UI is open.
     await page.mouse.click(600, 260);
-    await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(true);
+    await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
     await page.mouse.move(600, 350);
-    const modePose = (await snapshot(page)).player;
-    await page.mouse.move(600 + (modePose.yaw - Math.PI/2) / .002, 350);
+    
+    await lookAt(page,Math.PI/2);
     await page.keyboard.down('w');
     try { await expect.poll(async () => (await snapshot(page)).player.position[0]).toBeLessThan(stopped[0] - .25); }
     finally { await page.keyboard.up('w'); }
@@ -70,20 +69,15 @@ test('home and mode UI allow real pointer lock, walking, looking and wall collis
     expect((await snapshot(page)).player.position).toEqual(serverPose.position);
 });
 
-test('rating and booking retain real space movement while modal and text input routes suspend it', async ({ page }) => {
+test('rating freezes the content view while booking permits movement and text input suspends it', async ({ page }) => {
     await page.setViewportSize({ width: 1200, height: 700 });
     await onboard(page); await click(page, 'nav:modes'); await click(page, 'mode:team'); await click(page, 'join:fish');
     await expect(page.locator('.service-shell')).toHaveAttribute('data-route', 'simulation');
     await click(page, 'finish');
     await expect(page.locator('.service-shell')).toHaveAttribute('data-route', 'rating');
-    // Rating has returned to the new my room; wait for its real GLB before moving.
-    await expect.poll(async()=>(await snapshot(page)).world.activeId).toBe('my-room');
-    await page.mouse.click(1190, 10);
-    await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(true);
-    await page.mouse.move(600, 350);
-    const pose = (await snapshot(page)).player;
-    await page.mouse.move(600 + pose.yaw / .002, 350); await unlock(page);
-    await walk(page);
+    await expect.poll(async()=>(await snapshot(page)).world.activeId).toBe('glb-test-room');
+    const frozen=(await snapshot(page)).player;await page.keyboard.down('w');await page.waitForTimeout(200);await page.keyboard.up('w');expect((await snapshot(page)).player).toEqual(frozen);
+    await expect(page.locator('.rating-space-frame')).toBeVisible();
     await click(page, 'home');
     await expect(page.locator('.service-shell')).toHaveAttribute('data-route', 'my-room');
     await click(page, 'nav:appointments'); await click(page, 'appointment-start');

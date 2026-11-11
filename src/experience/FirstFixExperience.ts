@@ -1,4 +1,5 @@
-import { ensureScreenWorld } from './screenWorld';
+import { RatingBackdrop } from './RatingBackdrop';
+import { ensureScreenWorld, screenWorld } from './screenWorld';
 import '../ui/service.css';
 import '../ui/figma/fix-generated.css';
 import '../ui/figma-fix.css';
@@ -30,6 +31,7 @@ export class FirstFixExperience {
     private stage = element('main', 'service-stage');
     private vrHost = element('div');
     private fishing: FishingHUD;
+    private ratingBackdrop: RatingBackdrop;
     private gestures: SpaceGestureInput;
     private cardboard: CardboardPresenter;
     private events = new AbortController();
@@ -46,6 +48,7 @@ export class FirstFixExperience {
     constructor(host: HTMLElement) {
         this.shell.append(this.viewport, this.stage); host.append(this.shell);
         this.engine = new Engine(this.viewport, this.vrHost, [myRoom, ...worlds]);
+        this.ratingBackdrop=new RatingBackdrop(this.engine,this.viewport);
         this.fishing = new FishingHUD(this.shell, this.engine, undefined, { touchLook: false });
         this.router = new ServiceRouter(screen => firstFixRoute(screen, this.store.value.session));
         const canvas = this.engine.rendering.webgl.domElement; canvas.tabIndex = -1;
@@ -60,7 +63,6 @@ export class FirstFixExperience {
         window.addEventListener('keydown', event => {
             if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || this.editing()) return;
             if (event.code === 'Escape') {
-                if (document.pointerLockElement) return;
                 if (this.cardboard.active) { this.cardboard.stop(); this.syncInput(); return; }
                 if (this.router.current === 'loading') void this.home();
                 else if (this.router.current === 'simulation') this.perform('finish');
@@ -77,7 +79,7 @@ export class FirstFixExperience {
                 if (!this.disposed) { this.cardboard.recenter();this.syncInput(); }
             });
         }), this.engine.frames.subscribe(({ delta }) => {
-            if (this.engine.worlds.state.status !== 'ready' || this.cardboard.active || this.engine.xr.state.active) return;
+            if (this.engine.worldFrozen || (!this.engine.worlds.active || this.engine.worlds.state.status === 'loading') || this.cardboard.active || this.engine.xr.state.active) return;
             const intent = this.gestures.readMovement();
             if (intent.right || intent.forward) this.engine.player.update(intent, delta);
         }), this.engine.xr.changes.subscribe(state => {
@@ -102,7 +104,8 @@ export class FirstFixExperience {
     }
     private syncInput(focus: EventTarget | null = document.activeElement): void {
         if (this.disposed || this.review) return;
-        const enabled = this.router.current !== 'loading' && !this.editing(focus) && !this.cardboard.active && !this.engine.xr.state.active && !this.engine.xr.state.pending;
+        this.ratingBackdrop.sync(this.router.current,this.store.value.session?.id,this.cardboard.active||this.engine.xr.state.active,screenWorld(this.router.current,this.store.value.session));
+        const enabled = !['loading','rating','rating-done'].includes(this.router.current) && !this.editing(focus) && !this.cardboard.active && !this.engine.xr.state.active && !this.engine.xr.state.pending;
         this.engine.setDesktopEnabled(enabled); this.gestures.setEnabled(enabled);
         this.fishing.setEnabled(this.router.current === 'simulation' && !this.cardboard.active);
     }
@@ -161,6 +164,7 @@ export class FirstFixExperience {
                 this.store.join(mode.id, room.id); void this.enter(mode.world, 'simulation'); return;
             }
             if (name === 'finish') {
+                if(!this.cardboard.active&&!this.engine.xr.state.active)this.ratingBackdrop.capture(this.store.value.session?.id);
                 this.fishing.cancel(); this.store.finish();
                 this.draft.modeRating = this.draft.peopleRating = 0; this.navigate('rating'); return;
             }
@@ -192,7 +196,7 @@ export class FirstFixExperience {
         const request = ++this.request; this.navigate('loading');
         await this.engine.enterWorld(world);
         if (request !== this.request || this.disposed) return;
-        if (this.engine.worlds.state.status === 'error') { this.notice('공간을 열지 못했어요. 모드를 다시 선택해 주세요.'); return; }
+        if (this.engine.worlds.state.status === 'error') { this.notice('공간을 열지 못했어요. '+(this.engine.worlds.state.error??'모드를 다시 선택해 주세요.')); return; }
         if (screen==='simulation') this.resumableWorld=world;
         this.navigate(screen); this.cardboard.recenter();
     }
@@ -207,7 +211,7 @@ export class FirstFixExperience {
     }
     async dispose(): Promise<void> {
         this.disposed = true; ++this.request; this.events.abort(); this.cleanups.forEach(cleanup => cleanup());
-        this.detachDiagnostics?.(); this.router.dispose(); this.gestures.dispose(); this.fishing.dispose(); this.cardboard.dispose();
+        this.ratingBackdrop.dispose();this.detachDiagnostics?.(); this.router.dispose(); this.gestures.dispose(); this.fishing.dispose(); this.cardboard.dispose();
         await this.engine.dispose(); this.shell.remove();
     }
 }

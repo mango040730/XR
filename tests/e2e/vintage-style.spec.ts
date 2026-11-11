@@ -1,5 +1,5 @@
 import { mkdir,writeFile } from 'node:fs/promises';
-import { test,expect,snapshot,screenshot } from './fixtures';
+import { test,expect,snapshot,screenshot, lookAt } from './fixtures';
 
 test('vintage teal and walnut render in sunlight and pendant light from both sides',async({page},info)=>{
  test.setTimeout(60_000);
@@ -7,8 +7,8 @@ test('vintage teal and walnut render in sunlight and pendant light from both sid
  await screenshot(page,info,'vintage-entry');
  await page.locator('[data-help]').click();await page.locator('[data-do="review"]').click();await page.locator('[data-close]').click();
  await screenshot(page,info,'vintage-overview');
- await page.locator('canvas').click();await page.mouse.move(720,500);const pose=(await snapshot(page)).player;
- await page.mouse.move(720+(pose.yaw-.86)/.002,500+(pose.pitch+.5)/.002);
+ await page.locator('canvas').click();await page.mouse.move(720,500);
+ await lookAt(page,.86,-.5);
  await page.keyboard.press('Escape');await screenshot(page,info,'vintage-water-and-materials');
  await page.locator('[data-help]').click();await page.locator('[data-do="opposite"]').click();await page.locator('[data-close]').click();
  await screenshot(page,info,'vintage-opposite');

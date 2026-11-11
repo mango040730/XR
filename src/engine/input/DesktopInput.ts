@@ -1,50 +1,61 @@
 import type { InputSource, MovementInput } from './types';
 
+const movementKeys = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight']);
+const editing = (target: EventTarget | null): boolean => target instanceof HTMLElement && !!target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"])');
+
+/** Keyboard movement is immediate. Dragging the world looks around without locking the cursor. */
 export class DesktopInput implements InputSource {
   private keys = new Set<string>();
   private events = new AbortController();
+  private drag: { id: number; x: number; y: number; distance: number } | null = null;
+  private suppressClick = false;
   enabled = false;
 
-  constructor(private canvas: HTMLCanvasElement, look: (x: number, y: number) => void, report: (message: string) => void) {
+  constructor(private canvas: HTMLCanvasElement, look: (x: number, y: number) => void) {
     const options = { signal: this.events.signal };
     document.addEventListener('keydown', event => {
-      if (event.code === 'Escape' && document.pointerLockElement === canvas) {
-        this.unlock();
-        return;
-      }
-      if (this.enabled && document.pointerLockElement === canvas && ['KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(event.code)) {
-        event.preventDefault(); this.keys.add(event.code);
-      }
+      if (!this.enabled || editing(event.target) || event.ctrlKey || event.metaKey || event.altKey || !movementKeys.has(event.code)) return;
+      event.preventDefault(); this.keys.add(event.code);
     }, options);
     document.addEventListener('keyup', event => this.keys.delete(event.code), options);
-    document.addEventListener('mousemove', event => {
-      if (this.enabled && document.pointerLockElement === canvas) look(event.movementX, event.movementY);
+    canvas.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'touch' || event.button !== 0) return;
+      canvas.focus({preventScroll:true});
+      if (!this.enabled) return;
+      this.suppressClick=false;this.drag={id:event.pointerId,x:event.clientX,y:event.clientY,distance:0};
+      canvas.setPointerCapture(event.pointerId);
     }, options);
-    // Acquiring lock can deliver this event after the first keydown. Clear only
-    // on loss, otherwise an immediately held W gets erased until pressed again.
-    document.addEventListener('pointerlockchange', () => {
-      if (document.pointerLockElement !== canvas) this.clear();
+    window.addEventListener('pointermove', event => {
+      const drag=this.drag;
+      if (!drag || event.pointerId!==drag.id) return;
+      if (!this.enabled || !(event.buttons&1)) { this.clearDrag();return; }
+      const x=event.clientX-drag.x,y=event.clientY-drag.y;drag.distance+=Math.hypot(x,y);drag.x=event.clientX;drag.y=event.clientY;
+      look(x,y);
     }, options);
-    document.addEventListener('pointerlockerror', () => report('마우스 잠금이 거부되었습니다. 화면을 다시 클릭하세요.'), options);
-    window.addEventListener('blur', () => this.clear(), options);
-    document.addEventListener('visibilitychange', () => this.clear(), options);
-    canvas.addEventListener('click', event => {
-      if (event instanceof PointerEvent && event.pointerType === 'touch') return;
-      if (!this.enabled || document.pointerLockElement === canvas) return;
-      if (!canvas.requestPointerLock) { report('이 브라우저는 마우스 잠금을 지원하지 않습니다. PC Chrome/Edge에서 실행하세요.'); return; }
-      try {
-        const result = canvas.requestPointerLock();
-        if (result) void result.catch(() => report('마우스 잠금이 취소되었습니다. 화면을 다시 클릭하세요.'));
-      } catch { report('마우스 잠금을 시작할 수 없습니다. 화면을 다시 클릭하세요.'); }
+    window.addEventListener('pointerup', event => {
+      if (this.drag?.id!==event.pointerId) return;
+      this.suppressClick=this.drag.distance>3;this.clearDrag();
     }, options);
+    for (const name of ['pointercancel','lostpointercapture'] as const)
+      canvas.addEventListener(name,event=>{if(this.drag?.id===event.pointerId)this.clearDrag();},options);
+    // A look drag must not also activate the object now under the centre of the view.
+    canvas.addEventListener('click',event=>{
+      if (!this.suppressClick) return;
+      this.suppressClick=false;event.preventDefault();event.stopImmediatePropagation();
+    },options);
+    window.addEventListener('blur',()=>this.clear(),options);
+    document.addEventListener('visibilitychange',()=>this.clear(),options);
+    document.addEventListener('focusin',event=>{if(editing(event.target))this.clear();},options);
   }
-
   readMovement(): MovementInput {
-    if (!this.enabled || document.pointerLockElement !== this.canvas) return { right: 0, forward: 0 };
-    return { right: Number(this.keys.has('KeyD')) - Number(this.keys.has('KeyA')),
-      forward: Number(this.keys.has('KeyW')) - Number(this.keys.has('KeyS')) };
+    if (!this.enabled) return {right:0,forward:0};
+    return {right:Number(this.keys.has('KeyD')||this.keys.has('ArrowRight'))-Number(this.keys.has('KeyA')||this.keys.has('ArrowLeft')),
+      forward:Number(this.keys.has('KeyW')||this.keys.has('ArrowUp'))-Number(this.keys.has('KeyS')||this.keys.has('ArrowDown'))};
   }
-  clear(): void { this.keys.clear(); }
-  unlock(): void { this.clear(); if (document.pointerLockElement === this.canvas) document.exitPointerLock(); }
-  dispose(): void { this.unlock(); this.events.abort(); }
+  private clearDrag(): void {
+    const drag=this.drag;this.drag=null;
+    if (drag&&this.canvas.hasPointerCapture(drag.id)) this.canvas.releasePointerCapture(drag.id);
+  }
+  clear(): void {this.keys.clear();this.clearDrag();}
+  dispose(): void {this.clear();this.events.abort();}
 }

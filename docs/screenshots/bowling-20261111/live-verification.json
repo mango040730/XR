@@ -1,0 +1,24 @@
+{
+  "url": "https://mango040730.github.io/XR/?verify=bowling-20261111#rating",
+  "browser": "158.0.8127.18",
+  "bowlingGLBLoaded": true,
+  "unlocked": true,
+  "ratingCaptured": true,
+  "errors": [],
+  "failed": [],
+  "responses": [
+    {
+      "url": "https://mango040730.github.io/XR/assets/models/bowling/retro_bowling_alley.glb",
+      "status": 200
+    },
+    {
+      "url": "https://mango040730.github.io/XR/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    }
+  ],
+  "globals": {
+    "engine": "undefined",
+    "sourceDebug": "undefined",
+    "sourceScene": "undefined"
+  }
+}

@@ -138,7 +138,7 @@ test('termination notice dismisses once per rating visit and never restarts on s
     await expect(notice).toBeHidden({ timeout: 4000 });
     await click(page, 'people-rating:4'); await expect(page.locator('.fix-rating-notice')).toBeHidden();
     await screenshot(page, info, 'first-fix-rating-notice-dismissed');
-    await click(page, 'home'); await route(page, 'modes'); await page.keyboard.press('m');
+    await page.keyboard.press('m'); await route(page, 'modes'); await page.keyboard.press('m');
     await click(page, 'mode:team'); await route(page, 'simulation'); await click(page, 'finish');
     await expect(notice).toHaveCSS('opacity', '1');
     await page.emulateMedia({ reducedMotion: 'reduce' });

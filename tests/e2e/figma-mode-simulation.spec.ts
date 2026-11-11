@@ -62,7 +62,7 @@ test('simulation frame appears only after successful mode entry and disappears o
         await page.locator('[data-action="finish"]').click();
         await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route', 'rating');
         await expect(page.locator('.simulation-frame')).toHaveCount(0);
-        await page.locator('[data-action="home"]').click();
+        await page.keyboard.press('m');
         await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route', 'modes', { timeout: 40000 });
     }
 });

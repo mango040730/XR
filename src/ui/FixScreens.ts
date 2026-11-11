@@ -4,6 +4,8 @@ import DateFrame from './figma/Fix49_807';
 import PlaceFrame from './figma/Fix49_1070';
 import UpdatedModeFrame from './figma/Update115_330';
 import SimulationFrame from './figma/Update115_855';
+import RatingOneFrame from './figma/Update115_403';
+import RatingTwoFrame from './figma/Update115_442';
 import { bind, button, element } from '../components/designSystem';
 import { modes, participants, places } from '../data/demo';
 import type { Draft } from './ServiceScreens';
@@ -13,7 +15,8 @@ export const fixFrames: Partial<Record<Screen, () => HTMLElement>> = {
     modes: ModeFrame, rating: RatingFrame,
     'appointment-date': DateFrame, 'appointment-place': PlaceFrame,
 };
-export const updatedFrames = { modes: UpdatedModeFrame, simulation: SimulationFrame };
+// rating2 is prepared for future pages; live rating always uses rating1.
+export const updatedFrames = { modes: UpdatedModeFrame, simulation: SimulationFrame, rating1: RatingOneFrame, rating2: RatingTwoFrame };
 
 export function renderUpdatedReview(which: keyof typeof updatedFrames): HTMLElement {
     const root = updatedFrames[which]();
@@ -130,7 +133,8 @@ function modeCards(root: HTMLElement, strict: boolean): void {
 }
 
 export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLElement, strict = false): HTMLElement {
-    const root = strict && which === 'modes' ? renderUpdatedReview('modes') : renderFixReview(which);
+    const root = strict && (which === 'modes' || which === 'rating')
+        ? renderUpdatedReview(which === 'rating' ? 'rating1' : 'modes') : renderFixReview(which);
     root.classList.add('live-world-frame');
     // The running world's WebGL canvas is the backdrop for the live service.
     // Keep reference exports intact and retain card thumbnails / map content.
@@ -161,6 +165,23 @@ export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLEleme
             break;
         }
         case 'rating': {
+            if (strict) {
+                notice(find(root, '115:440'), 'fix-rating-notice');
+                const complete = action(root, '115:436', 'rate', '평가 완료') as HTMLButtonElement;
+                const filled = find(root, '115:411').querySelector('img')!.src;
+                const outline = find(root, '115:417').querySelector('img')!.src;
+                for (const [ids, name, value, label] of [
+                    [[411, 413, 415, 417, 419], 'mode-rating', draft.modeRating, '모드'],
+                    [[426, 428, 430, 432, 434], 'people-rating', draft.peopleRating, '참여 경험'],
+                ] as const) ids.forEach((id, i) => {
+                    const star = action(root, '115:' + id, name + ':' + (i + 1), `${label} ${i + 1}점`);
+                    star.classList.add('fix-star');
+                    star.querySelector('img')!.src = i < value ? filled : outline;
+                    selected(star, i < value);
+                });
+                complete.disabled = !draft.modeRating || !draft.peopleRating;
+                break;
+            }
             notice(find(root, '50:1694'), 'fix-rating-notice');
             action(root, '50:1683', 'home', '마이룸으로');
             action(root, '50:1678', 'rate', '평가 완료');
@@ -175,10 +196,6 @@ export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLEleme
                 star.querySelector('img')!.src = i < value ? filled : outline;
                 selected(star, i < value);
             });
-            if (strict) {
-                (find(root, '50:1678') as HTMLButtonElement).disabled = !draft.modeRating || !draft.peopleRating;
-                break;
-            }
             // Legacy regression fixtures retain their former supplemental controls.
             const details = element('div', 'fix-individual-ratings');
             details.setAttribute('aria-label', '개별 참여자 평가');

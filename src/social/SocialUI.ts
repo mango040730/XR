@@ -5,6 +5,7 @@ import type { SpatialVoice } from './SpatialVoice';
 export class SocialUI {
   readonly root=element('aside','social-ui fix-frame');
   private events=new AbortController();private stops:Array<()=>void>;
+  private panel=element('div','social-panel');
   private status=element('span','social-status');private error=element('p','social-error');
   private joinForm=element('form','social-join');private nickname=element('input');
   private tools=element('div','social-actions');private chatPanel=element('section','social-chat');
@@ -12,7 +13,7 @@ export class SocialUI {
   private mic:HTMLButtonElement;private muteButton:HTMLButtonElement;private seatButton:HTMLButtonElement;private waveButton:HTMLButtonElement;
   private cancel:HTMLButtonElement;private chatToggle:HTMLButtonElement;
   constructor(host:HTMLElement,private client:SocialClient,private voice:SpatialVoice,callbacks:{join(name:string):void;wave():void;seat():void;leave():void}){
-    this.root.setAttribute('aria-label','실시간 소셜');const panel=element('div','social-panel');
+    this.root.setAttribute('aria-label','실시간 소셜');const panel=this.panel;
     this.status.setAttribute('role','status');this.error.setAttribute('role','status');
     const label=element('label','','닉네임');this.nickname.name='nickname';this.nickname.maxLength=24;this.nickname.required=true;this.nickname.setAttribute('autocomplete','nickname');this.nickname.value=sessionStorage.getItem('xr-social-nickname')??'';label.append(this.nickname);
     const join=this.button('입장','social-join',()=>{});join.type='submit';
@@ -33,9 +34,9 @@ export class SocialUI {
   }
   private button(label:string,action:string,run:()=>void):HTMLButtonElement{const b=element('button','',label);b.type='button';b.dataset.action=action;b.addEventListener('click',run,{signal:this.events.signal});return b;}
   private update():void{
-    const joined=!!this.client.self;this.root.dataset.connected=String(joined);this.status.textContent=joined?`${this.client.self!.nickname} · ${this.client.snapshot?.users.length??1}명 접속 중`:this.client.status;
+    const joined=!!this.client.self;this.root.dataset.connected=String(joined);this.status.textContent=joined?`${this.client.self!.nickname} · ${this.client.snapshot?.users.length??1}명 접속 중`:'';this.status.hidden=!joined;this.panel.hidden=!this.client.available;
     this.joinForm.hidden=joined||!this.client.available;this.tools.hidden=!joined;this.cancel.hidden=!this.client.desired;this.chatToggle.hidden=!joined;if(!joined)this.chatPanel.hidden=true;
-    this.error.textContent=this.client.error||this.voice.error;this.error.hidden=!this.error.textContent;
+    this.error.textContent=this.client.available?(this.client.error||this.voice.error):'';this.error.hidden=!this.error.textContent;
     this.mic.textContent=this.voice.pending?'마이크 권한 확인 중':this.voice.enabled?'음성 끄기':'음성 켜기';this.mic.disabled=this.voice.pending;this.mic.setAttribute('aria-pressed',String(this.voice.enabled));
     this.muteButton.hidden=!this.voice.enabled;this.muteButton.textContent=this.voice.muted?'마이크 켜기':'마이크 음소거';this.muteButton.setAttribute('aria-pressed',String(this.voice.muted));
     this.waveButton.disabled=!!this.client.self?.seatId;this.updateLog();

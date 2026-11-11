@@ -40,6 +40,8 @@ export function attachEngineDiagnostics(engine: Engine) {
     });
     return {
       worldFrozen: engine.worldFrozen,
+      presentationActive:engine.presentationActive,
+      doorAngle:active?.root.getObjectByName('Home door hinge')?.rotation.y??null,
       world: { ...engine.worlds.state },
       myRoom: active?.root.userData.myRoom ?? null,
       fishing: active?.root.userData.fishing ?? null,

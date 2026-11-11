@@ -1,3 +1,5 @@
+import {doorway} from './doorway';
+import {preparePortal} from './portal';
 import { verifyRoomVersion } from './verify';
 import { Light, DirectionalLight } from 'three';
 import type { WorldConfig } from '../../engine/world/types';
@@ -8,7 +10,7 @@ import { bakeContacts } from './contact';
 
 export const myRoom: WorldConfig = {
   id: 'my-room', name: '마이룸', description: '따뜻한 차와 책이 있는 개인 라운지 · 디자인 2.7.1',
-  spawn: { position: [3.45,.02,-1.2], yaw: Math.atan2(2.9,-2.6), pitch: -.158 },
+  spawn: { position: doorway.arrival, yaw: doorway.inwardYaw },
   player: { speed: 1.8, eyeHeight: 1.65, radius: .22, height: 1.75, maxStepHeight: .18 },
   rendering: { filmic: true, exposure: 1.1, shadows: true, authoredShadows: true, fov: 66, responsiveFov: {portrait:78,medium:72}, near: .06, far: 55, ao: {intensity:.48,radius:.27}, fxaa: true, maxPixelRatio: 1.25, environmentIntensity: .14 },
   lighting: { sky: '#f4ecdf', ground: '#a28c70', intensity: 0, sun: 0, background: '#F4EEE6' },
@@ -22,6 +24,7 @@ export const myRoom: WorldConfig = {
     if(!model)throw new Error('마이룸 GLB를 찾지 못했습니다.');
     prepareMyRoom(model as import('three').Group);
     root.userData.myRoom={...verifyRoomVersion(model as import('three').Group),source:layout.asset};
+    preparePortal(model as import('three').Group);
   },
   async prepare(context) {
     await prepareLighting(context);context.signal.throwIfAborted();

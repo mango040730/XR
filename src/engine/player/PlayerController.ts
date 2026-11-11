@@ -22,6 +22,7 @@ export class PlayerController {
   thirdPerson = false;
 
   get feet(): Vector3 { return (this.xrFeet ?? this.rig.position).clone(); }
+  get movementExitPosition():Vector3|undefined{return this.movementExit?.clone();}
   get eyePosition(): Vector3 {
     if (this.xrFeet && this.head) return this.feet.add(new Vector3(0,this.head.y + this.seatHeightOffset,0));
     return this.camera.getWorldPosition(new Vector3());
@@ -130,18 +131,18 @@ export class PlayerController {
     this.xrFeet.copy(target); this.alignXRRig(); return true;
   }
 
-  place(position: Vector3, yaw: number, eyeHeight = this.settings?.eyeHeight ?? 1.65): void {
+  place(position: Vector3, yaw: number, eyeHeight = this.settings?.eyeHeight ?? 1.65, pitch=0): void {
     this.seated = false; this.movementExit = null; this.seatHeightOffset = 0; this.pendingSeatHeight = false;
     if (this.xrFeet) {
       this.xrFeet.copy(position); this.rig.rotation.y = yaw - this.headYaw; this.alignXRRig();
     } else {
-      this.rig.position.copy(position); this.rig.rotation.set(0,yaw,0); this.pitch = 0;
-      this.camera.position.set(0,eyeHeight,0); this.camera.rotation.set(0,0,0);
+      this.rig.position.copy(position); this.rig.rotation.set(0,yaw,0); this.pitch = pitch;
+      this.camera.position.set(0,eyeHeight,0); this.camera.rotation.set(pitch,0,0,'YXZ');
     }
   }
   /** Only presentation seats opt into standing on movement. Network seats keep explicit authority. */
-  sit(position: Vector3, yaw: number, movementExit?: Vector3): void {
-    this.place(position,yaw,1.12); this.seated = true;this.movementExit=movementExit?.clone()??null;
+  sit(position: Vector3, yaw: number, movementExit?: Vector3, pitch=0): void {
+    this.place(position,yaw,1.12,pitch); this.seated = true;this.movementExit=movementExit?.clone()??null;
     // Already physically seated users keep their native local-floor height.
     this.seatHeightOffset = this.xrFeet && this.head ? Math.min(0,1.12-this.head.y) : 0;
     this.alignXRRig();

@@ -35,6 +35,7 @@ test('two actual browser processes share movement, real GLB actions, exclusive s
     await page.mouse.click(640,420);await page.keyboard.down('w');
     await expect.poll(async()=>(await snap(b)).remotes[0].animation).toBe('walk');await page.keyboard.up('w');
     const aId=(await snap(page)).id;await expect.poll(async()=>(await snap(b)).users.find(u=>u.id===aId)!.position[2]).toBeLessThan(5.9);
+    await walk(page,'w',p=>p[2]>-.8);
     await b.keyboard.press('1');await expect.poll(async()=>(await snap(page)).remotes[0].animation).toBe('wave');await expect.poll(async()=>(await snap(page)).remotes[0].animation).toBe('idle');
     await page.keyboard.press('e');
     await expect.poll(async()=>(await snap(page)).users.find(u=>u.id===aId)!.seatId).toBe('owner-chair');await expect.poll(async()=>(await snap(b)).remotes[0].animation).toBe('sit');
@@ -84,11 +85,9 @@ test('explicit microphone opt-in negotiates real WebRTC audio, spatial range, mu
     await expect.poll(async()=>(await voice(page))[0]?.received??0,{timeout:20000}).toBeGreaterThan(0);await expect.poll(async()=>(await voice(b))[0]?.received??0).toBeGreaterThan(0);
     await expect.poll(async()=>(await voice(page))[0]?.gain??0).toBeGreaterThan(.9);
     await b.locator('[data-action="social-mute"]').click();expect((await snap(b)).voice.muted).toBe(true);await b.locator('[data-action="social-mute"]').click();
-    await lookAt(b,0);
-    // Pass the actual portal plant instead of trying to walk through its GLB collision box.
-    await walk(b,'a',p=>p[0]<2.5);
-    await walk(b,'w',p=>p[2]<-3.15);await expect.poll(async()=>(await voice(page))[0]?.gain??1).toBeLessThan(.999);
-    await walk(b,'s',p=>p[2]>-2.0);await expect.poll(async()=>(await voice(page))[0]?.gain??0).toBeGreaterThan(.999);
+    await lookAt(b,Math.PI);
+    await walk(b,'w',p=>p[2]>.1);await expect.poll(async()=>(await voice(page))[0]?.gain??1).toBeLessThan(.999);
+    await walk(b,'s',p=>p[2]<-2);await expect.poll(async()=>(await voice(page))[0]?.gain??0).toBeGreaterThan(.999);
     await unlock(b);await b.locator('[data-action="social-voice"]').click();await expect.poll(async()=>(await snap(page)).voice.peers).toBe(0);expect((await snap(b)).voice.enabled).toBe(false);
   }finally{await context.close();}
 });

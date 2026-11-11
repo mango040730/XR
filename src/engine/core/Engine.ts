@@ -30,6 +30,7 @@ export class Engine {
   private previousTime: number | null = null;
   private disposed = false;
   worldFrozen = false;
+  presentationActive=false;
 
   constructor(viewport: HTMLElement, vrHost: HTMLElement, configs: readonly WorldConfig[]) {
     this.rendering = new Renderer(viewport);
@@ -76,7 +77,7 @@ export class Engine {
     this.rendering.webgl.setAnimationLoop((time, frame) => {
       const delta = this.previousTime === null ? 0 : (time - this.previousTime) / 1000;
       this.previousTime = time;
-      if (this.xr.state.active && frame) this.xrControls.update(frame, time, delta, !this.worldFrozen);
+      if (this.xr.state.active && frame) this.xrControls.update(frame, time, delta, !this.worldFrozen&&!this.presentationActive);
       if (this.input.enabled) {
         this.player.update(this.input.readMovement(), delta);
         this.player.updateCamera();
@@ -94,7 +95,7 @@ export class Engine {
   }
 
   private syncInput(): void {
-    this.input.enabled = this.desktopAllowed && !this.worldFrozen && !!this.worlds.active && this.worlds.state.status !== 'loading' && !this.xr.state.active && !this.xr.state.pending;
+    this.input.enabled = this.desktopAllowed && !this.worldFrozen && !this.presentationActive && !!this.worlds.active && this.worlds.state.status !== 'loading' && !this.xr.state.active && !this.xr.state.pending;
     if (!this.input.enabled) this.input.clear();
   }
 
@@ -103,6 +104,7 @@ export class Engine {
     if (!enabled) this.input.clear();
   }
 
+  setPresentationActive(active:boolean):void{this.presentationActive=active;this.syncInput();}
   setWorldFrozen(frozen:boolean):void{this.worldFrozen=frozen;this.syncInput();}
   captureFrame():string{this.rendering.prepareFrame();this.rendering.render(0);return this.rendering.webgl.domElement.toDataURL('image/png');}
 

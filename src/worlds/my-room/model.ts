@@ -28,7 +28,7 @@ export function batchMyRoom(root: Group): void {
   root.updateMatrixWorld(true);
   const inverse = root.matrixWorld.clone().invert(), batches = new Map<string, Mesh[]>(), original = new Set<BufferGeometry>();
   root.traverse(object => {
-    if (!(object instanceof Mesh) || Array.isArray(object.material) || object.material.transparent) return;
+    if (!(object instanceof Mesh) || Array.isArray(object.material) || object.material.transparent || object.userData.animatedDoor) return;
     const key = `${object.material.uuid}/${object.castShadow}/${object.receiveShadow}/${Object.keys(object.geometry.attributes).sort().join(',')}`;
     const meshes = batches.get(key) ?? []; meshes.push(object); batches.set(key, meshes);
   });

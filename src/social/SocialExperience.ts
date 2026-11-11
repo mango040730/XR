@@ -31,10 +31,10 @@ export class SocialExperience {
       }else if(state.status==='error'&&this.scope)this.scope.world.add(this.scope.root);
       else if(state.status==='idle'){this.leave();this.unmount();}
     }),engine.frames.subscribe(frame=>this.update(frame.delta)),this.client.changes.subscribe(()=>this.network()),this.client.corrections.subscribe(state=>{
-      if(['ready','error'].includes(this.engine.worlds.state.status)&&!state.seatId)this.engine.player.place(new Vector3(...state.position),state.yaw);
+      if(!this.engine.presentationActive&&['ready','error'].includes(this.engine.worlds.state.status)&&!state.seatId)this.engine.player.place(new Vector3(...state.position),state.yaw);
     })];
     window.addEventListener('keydown',event=>{
-      if(event.repeat||event.ctrlKey||event.metaKey||event.altKey||(event.target instanceof HTMLElement&&event.target.closest('input,textarea,select,[contenteditable]')))return;
+      if(this.engine.presentationActive||event.repeat||event.ctrlKey||event.metaKey||event.altKey||(event.target instanceof HTMLElement&&event.target.closest('input,textarea,select,[contenteditable]')))return;
       if(event.code==='Digit1'){event.preventDefault();this.wave();}
       if(event.code==='KeyE'&&this.client.self){event.preventDefault();event.stopImmediatePropagation();void this.interact();}
       if(event.code==='KeyQ'&&this.client.self?.seatId){event.preventDefault();event.stopImmediatePropagation();void this.requestSeat(null);}
@@ -117,7 +117,7 @@ export class SocialExperience {
     try{const state=await this.client.seat(id);if(state)this.applySeat(state.seatId);}finally{this.seatPending=false;}
   }
   private update(delta:number):void{
-    if(this.engine.worldFrozen)return;
+    if(this.engine.worldFrozen||this.engine.presentationActive)return;
     const scope=this.scope;if(!scope||!['ready','error'].includes(this.engine.worlds.state.status)||this.engine.worlds.active?.root!==scope.world)return;
     this.engine.player.setThirdPerson(false);
     const feet=this.engine.player.feet;this.moving=feet.distanceToSquared(scope.last)>.000005;scope.last.copy(feet);

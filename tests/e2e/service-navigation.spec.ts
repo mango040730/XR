@@ -34,6 +34,7 @@ test('home and mode UI allow unlocked dragging, walking, looking and wall collis
     await expect.poll(() => page.evaluate(() => document.pointerLockElement?.tagName)).toBe(undefined);
     await page.mouse.move(600,350);
     
+    await lookAt(page,Math.PI);await page.keyboard.down('w');try{await expect.poll(async()=>(await snapshot(page)).player.position[2]).toBeGreaterThan(-1.4);}finally{await page.keyboard.up('w');}
     await lookAt(page,-Math.PI/2);
     await page.keyboard.down('w');
     try {

@@ -1,0 +1,88 @@
+{
+  "url": "http://127.0.0.1:5173/?v=door-journey-20261111#modes",
+  "browser": "158.0.8127.18",
+  "results": [
+    {
+      "mode": "team",
+      "motionChangesCamera": true,
+      "contentWalks": true,
+      "ratingRetainsFrame": true,
+      "returnsToRoom": true
+    },
+    {
+      "mode": "social",
+      "motionChangesCamera": true,
+      "contentWalks": true,
+      "ratingRetainsFrame": true,
+      "returnsToRoom": true
+    },
+    {
+      "mode": "solo",
+      "motionChangesCamera": true,
+      "contentWalks": true,
+      "ratingRetainsFrame": true,
+      "returnsToRoom": true
+    }
+  ],
+  "preEntryPlaceholdersRemoved": true,
+  "globals": {
+    "engine": "undefined",
+    "social": "undefined"
+  },
+  "models": [
+    {
+      "url": "http://127.0.0.1:5173/assets/models/my-room/myroom-v2-2.7.1.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/models/bowling/retro_bowling_alley.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/models/my-room/myroom-v2-2.7.1.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/models/my-room/myroom-v2-2.7.1.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/models/woodworking-original/forest-atelier-original.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/models/my-room/myroom-v2-2.7.1.glb",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/assets/avatars/cub-scout-v6.glb",
+      "status": 200
+    }
+  ],
+  "errors": [],
+  "failed": []
+}

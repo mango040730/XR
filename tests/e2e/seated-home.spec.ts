@@ -15,6 +15,6 @@ test('fresh and old home URLs immediately show mode cards from the owner chair, 
  await page.locator('[data-action="home"]').click();await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','modes');expect((await snapshot(page)).player.seated).toBe(true);
  await page.locator('[data-action="mode:team"]').click();await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','simulation',{timeout:40000});expect((await snapshot(page)).player.seated).toBe(false);
  await page.locator('[data-action="finish"]').click();await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','rating');
- await page.locator('[data-action="home"]').click();await expect.poll(async()=>(await snapshot(page)).world.activeId,{timeout:40000}).toBe('my-room');await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','modes');expect((await snapshot(page)).player.seated).toBe(true);
+ await page.locator('[data-action="home"]').click();await expect.poll(async()=>(await snapshot(page)).world.activeId,{timeout:40000}).toBe('my-room');await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','modes');expect((await snapshot(page)).player.seated).toBe(false);expect((await snapshot(page)).player.position).toEqual([2.23,.02,-2.85]);expect((await snapshot(page)).player.yaw).toBeCloseTo(Math.PI);
  await page.setViewportSize({width:390,height:844});await screenshot(page,info,'seated-home-mobile');
 });

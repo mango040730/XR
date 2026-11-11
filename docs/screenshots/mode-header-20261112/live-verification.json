@@ -1,0 +1,142 @@
+{
+  "url": "https://mango040730.github.io/XR/?v=mode-header-20261112#modes",
+  "browser": "158.0.8127.18",
+  "figmaNode": "115:330",
+  "bounds": {
+    "115:385": {
+      "x": 48,
+      "y": 40,
+      "width": 1104,
+      "height": 53
+    },
+    "115:390": {
+      "x": 500.171875,
+      "y": 48.5,
+      "width": 188.5625,
+      "height": 36
+    },
+    "115:392": {
+      "x": 992,
+      "y": 40,
+      "width": 160,
+      "height": 53
+    },
+    "115:393": {
+      "x": 1012,
+      "y": 54.5,
+      "width": 24,
+      "height": 24
+    },
+    "115:397": {
+      "x": 1052,
+      "y": 54.5,
+      "width": 24,
+      "height": 24
+    },
+    "115:399": {
+      "x": 1092,
+      "y": 46.5,
+      "width": 40,
+      "height": 40
+    },
+    "115:400": {
+      "x": 1100,
+      "y": 54.5,
+      "width": 24,
+      "height": 24
+    }
+  },
+  "assets": [
+    {
+      "path": "/XR/assets/figma-update/72a8ec20-2cf5-4948-b170-e444c5eca732.svg",
+      "slot": "115:387",
+      "naturalWidth": 24,
+      "naturalHeight": 24,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "path": "/XR/assets/figma-update/96bc2873-5173-4b8e-b884-f923ffeb6c1c.svg",
+      "slot": "115:394",
+      "naturalWidth": 18,
+      "naturalHeight": 22,
+      "width": 18,
+      "height": 22.03125
+    },
+    {
+      "path": "/XR/assets/figma-update/0e877032-41f4-4457-8c35-0a3a2c12f981.svg",
+      "slot": "115:397",
+      "naturalWidth": 24,
+      "naturalHeight": 24,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "path": "/XR/assets/figma-update/e61a0dff-bc20-4568-8b9f-0745ff63aa4f.svg",
+      "slot": "115:400",
+      "naturalWidth": 24,
+      "naturalHeight": 24,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "path": "/XR/assets/figma-update/ebabd1c2-d279-4ee6-af1c-e1ae13f7653a.png",
+      "slot": "115:342",
+      "naturalWidth": 2400,
+      "naturalHeight": 1200,
+      "width": 354.65625,
+      "height": 200
+    },
+    {
+      "path": "/XR/assets/figma-update/dea537ed-6b8a-48aa-ae8f-afdf0d607d0f.svg",
+      "slot": "115:348",
+      "naturalWidth": 16,
+      "naturalHeight": 16,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "path": "/XR/assets/figma-update/35f0ac5c-d6b2-43b0-840d-a6559bd75f9c.png",
+      "slot": "115:371",
+      "naturalWidth": 1136,
+      "naturalHeight": 554,
+      "width": 354.65625,
+      "height": 200
+    },
+    {
+      "path": "/XR/assets/figma-update/dea537ed-6b8a-48aa-ae8f-afdf0d607d0f.svg",
+      "slot": "115:377",
+      "naturalWidth": 16,
+      "naturalHeight": 16,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "path": "/XR/assets/figma-update/ebabd1c2-d279-4ee6-af1c-e1ae13f7653a.png",
+      "slot": "115:361",
+      "naturalWidth": 2400,
+      "naturalHeight": 1200,
+      "width": 354.65625,
+      "height": 200
+    },
+    {
+      "path": "/XR/assets/figma-update/dea537ed-6b8a-48aa-ae8f-afdf0d607d0f.svg",
+      "slot": "115:367",
+      "naturalWidth": 16,
+      "naturalHeight": 16,
+      "width": 16,
+      "height": 16
+    }
+  ],
+  "allModeHover": true,
+  "noticeDismisses": true,
+  "hiddenLeftControlInert": true,
+  "calendarNavigates": true,
+  "mobileInsideViewport": true,
+  "globals": {
+    "engine": "undefined",
+    "social": "undefined"
+  },
+  "errors": [],
+  "failed": []
+}

@@ -6,7 +6,7 @@
 
 검사: `npm run check` 통과(린트·Node29개 파일/152개·자산/원본 GLB·타입·프론트/서버 빌드·프로덕션 진단 분리). 기존 Figma 브라우저 회귀3개도 실제 Chromium에서 통과했습니다. 요청한 모드 화면을 별도로 시각 대조하고 로컬5173에서 상단 노드7개 좌표·모든 에셋의 슬롯/유효 치수·세 카드 호버·알림 자동 숨김·모바일 화면 내부 배치·캘린더 이동을 확인했습니다. 페이지/요청 오류0개입니다. [Figma 참조](screenshots/mode-header-20261112/figma-reference.png) · [로컬 UI](screenshots/mode-header-20261112/local-mode-header.png) · [호버](screenshots/mode-header-20261112/local-mode-hover.png) · [에셋 동일성](screenshots/mode-header-20261112/original-assets-reused.json) · [로컬 검증](screenshots/mode-header-20261112/local-verification.json) · [브라우저 회귀](screenshots/mode-header-20261112/e2e-summary.json).
 
-제한·다음 단계: 실제 VR 헤드셋은 미검증입니다. 기존 패널의 세로 모바일 축소 방식과 공개 실시간 서버 미설정 제한은 유지합니다. 다음 단계는 Pages 배포 후 실제 공개 주소에서 최신 상단과 동일 에셋 적용을 확인하는 것입니다.
+제한·다음 단계: 실제 VR 헤드셋은 미검증입니다. 기존 패널의 세로 모바일 축소 방식과 공개 실시간 서버 미설정 제한은 유지합니다. 코드 커밋 `de4ccf274f6123788d7668f6eeab93791f62b978`를 반영한 [Pages 실행 43056094856](https://github.com/mango040730/XR/actions/runs/43056094856)의 Linux check·빌드·게시가 모두 success로 완료됐습니다. 실제 공개 사이트의 모드 선택이 `115:330`으로 바뀐 것을 확인했고, 상단7개 노드 좌표/아이콘 치수·원본 로컬 에셋10개 슬롯·세 카드 호버·안내 자동 숨김·모바일 화면 내부 배치·캘린더 이동이 통과했습니다. 페이지/요청 오류0개이며 프로덕션 진단 전역도 없습니다. [공개 상단](screenshots/mode-header-20261112/live-mode-header.png) · [공개 호버](screenshots/mode-header-20261112/live-mode-hover.png) · [공개 검증](screenshots/mode-header-20261112/live-verification.json) · [배포 기록](screenshots/mode-header-20261112/github-deployment.json). 로컬5173은 계속 실행 중입니다. 다음 단계는 실기기 시인성 확인입니다.
 
 ---
 

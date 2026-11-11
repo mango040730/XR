@@ -1,0 +1,15 @@
+{
+  "url": "https://mango040730.github.io/XR/?v=seated-home#modes",
+  "browser": "158.0.8127.18",
+  "homeShownOnLoad": true,
+  "oldRoomURLCanonical": true,
+  "homePersistsAfterMAndEscape": true,
+  "keyboardChangesSeatedView": true,
+  "contentAndReturnHome": true,
+  "globals": {
+    "engine": "undefined",
+    "social": "undefined"
+  },
+  "errors": [],
+  "failed": []
+}

@@ -43,13 +43,13 @@ test('fresh users see only the four first-fix screens through mode, rating and b
     await onlyOriginalUI(page);
 });
 
-test('old routes and UI flags never restore the discarded UI; the bare room remains walkable', async ({ page }) => {
+test('old routes and UI flags never restore the discarded UI; the mode-selection home remains walkable', async ({ page }) => {
     await page.setViewportSize({ width: 1200, height: 700 });
     for (const url of ['/?ui=1#profile', '/?lab=1', '/?designReview=700']) {
         await page.goto(url.replace('/?', '/?offline=1&')); await route(page, 'modes'); await onlyOriginalUI(page);
     }
-    await click(page, 'home'); await route(page, 'my-room');
-    await expect(page.locator('button:visible,input:visible,a:visible')).toHaveCount(1);
+    await click(page, 'home'); await route(page, 'modes');
+    await expect(page.locator('.fix-mode-card')).toHaveCount(3);
     await page.mouse.click(600, 350); await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
     const before = (await snapshot(page)).player.position; await page.keyboard.down('w');
     try { await expect.poll(async () => Math.hypot(...(await snapshot(page)).player.position.map((n,i)=>n-before[i]))).toBeGreaterThan(.25); }
@@ -76,7 +76,7 @@ test('cancelled loading does not reopen a discarded screen after a late model re
     await page.route('**/bowling/retro_bowling_alley.glb', async route => { requested = true; await hold; await route.continue(); });
     await click(page, 'mode:team'); await route(page, 'loading');
     await expect.poll(() => requested).toBe(true);
-    await click(page, 'cancel-loading'); await route(page, 'my-room');
+    await click(page, 'cancel-loading'); await route(page, 'modes');
     await renderFrames(page);
     const root = (await snapshot(page)).activeRootId;
     const memory = (await snapshot(page)).memory;
@@ -88,8 +88,8 @@ test('cancelled loading does not reopen a discarded screen after a late model re
     expect((await snapshot(page)).memory).toEqual(memory);
     expect((await snapshot(page)).models.map(m=>m.url)).toEqual([expect.stringContaining('myroom-v2-2.7.1.glb')]);
     expect((await snapshot(page)).worldRoots).toEqual(['world:my-room']);
-    await route(page, 'my-room'); expect((await snapshot(page)).activeRootId).toBe(root);
-    await expect(page.locator('button:visible,input:visible,a:visible')).toHaveCount(1);
+    await route(page, 'modes'); expect((await snapshot(page)).activeRootId).toBe(root);
+    await expect(page.locator('.fix-mode-card')).toHaveCount(3);
 });
 
 test('Cardboard keeps the original four-screen panel without extra toolbars or reticle', async ({ page }, info) => {
@@ -123,7 +123,7 @@ test('touch gestures move, cancel and reopen the original menu without any movem
     await expect.poll(async () => { const after = (await snapshot(page)).player.position; return Math.hypot(after[0] - before[0], after[2] - before[2]); }).toBeGreaterThan(.2);
     await send('touchCancel'); const stopped = (await snapshot(page)).player.position;
     await page.waitForTimeout(150); expect((await snapshot(page)).player.position).toEqual(stopped);
-    await click(page, 'home'); await route(page, 'my-room');
+    await click(page, 'home'); await route(page, 'modes');
     await page.touchscreen.tap(420, 150); await page.touchscreen.tap(420, 150); await route(page, 'modes');
     await onlyOriginalUI(page); await screenshot(page, info, 'first-fix-only-mobile'); await context.close();
 });
@@ -138,24 +138,19 @@ test('termination notice dismisses once per rating visit and never restarts on s
     await expect(notice).toBeHidden({ timeout: 4000 });
     await click(page, 'people-rating:4'); await expect(page.locator('.fix-rating-notice')).toBeHidden();
     await screenshot(page, info, 'first-fix-rating-notice-dismissed');
-    await click(page, 'home'); await route(page, 'my-room'); await click(page, 'nav:modes');
+    await click(page, 'home'); await route(page, 'modes'); await click(page, 'nav:modes');
     await click(page, 'mode:team'); await route(page, 'simulation'); await click(page, 'finish');
     await expect(notice).toHaveCSS('opacity', '1');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(notice).toBeHidden({ timeout: 6000 });
 });
 
-test('portrait touch users can advance using a single first-fix pill button', async ({ browser }, info) => {
+test('portrait users start at the mode-selection home and enter content without an extra navigation pill', async ({ browser }, info) => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-    const page = await context.newPage(); await page.goto('/?offline=1#my-room'); await route(page, 'my-room');
-    const next = page.locator('.fix-space-next');
-    await expect(next).toHaveText('모드 선택'); await onlyOriginalUI(page);
-    expect((await next.boundingBox())!.height).toBeGreaterThanOrEqual(42);
-    await next.tap(); await route(page, 'modes'); await page.locator('[data-action="mode:team"]').tap(); await route(page, 'simulation');
-    await expect(next).toHaveText('종료하고 평가하기');
-    const bounds = (await next.boundingBox())!;
-    expect(bounds.x).toBeGreaterThanOrEqual(0); expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
-    expect(bounds.height).toBeCloseTo(42); expect(bounds.y + bounds.height).toBeCloseTo(820);
-    await screenshot(page, info, 'first-fix-minimal-mobile');
-    await next.tap(); await route(page, 'rating'); await context.close();
+    const page = await context.newPage();await page.goto('/?offline=1#my-room');await route(page,'modes');
+    await expect(page.locator('.fix-mode-card')).toHaveCount(3);await expect(page.locator('.fix-space-next')).toHaveCount(0);await onlyOriginalUI(page);
+    await page.locator('[data-action="mode:team"]').tap();await route(page,'simulation');
+    const next=page.locator('.fix-space-next');await expect(next).toHaveText('종료하고 평가하기');
+    const bounds=(await next.boundingBox())!;expect(bounds.x).toBeGreaterThanOrEqual(0);expect(bounds.x+bounds.width).toBeLessThanOrEqual(390);expect(bounds.height).toBeCloseTo(42);
+    await screenshot(page,info,'first-fix-home-mobile');await next.tap();await route(page,'rating');await context.close();
 });

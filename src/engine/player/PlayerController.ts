@@ -9,6 +9,7 @@ export class PlayerController {
   seated = false;
   unrestrictedTracking = false;
   private seatHeightOffset = 0;
+  private movementExit: Vector3 | null = null;
   private pendingSeatHeight = false;
   private settings?: WorldConfig['player'];
   private collision?: MovementCollision;
@@ -32,7 +33,7 @@ export class PlayerController {
   constructor(readonly camera: PerspectiveCamera) { this.rig.name = 'player-rig'; this.rig.add(camera); }
 
   spawn(config: WorldConfig, collision: MovementCollision): void {
-    this.seated = false; this.seatHeightOffset = 0; this.pendingSeatHeight = false; this.unrestrictedTracking = false;
+    this.seated = false; this.movementExit = null; this.seatHeightOffset = 0; this.pendingSeatHeight = false; this.unrestrictedTracking = false;
     this.settings = { ...config.player };
     this.collision = collision;
     this.rig.position.fromArray(config.spawn.position);
@@ -65,7 +66,14 @@ export class PlayerController {
   }
 
   update(input: MovementInput, delta: number, yaw = this.rig.rotation.y, speed = this.settings?.speed ?? 0): void {
-    if (!this.settings || !this.collision || this.seated) return;
+    if (!this.settings || !this.collision || ![input.right,input.forward,delta,yaw,speed].every(Number.isFinite)) return;
+    if (this.seated) {
+      if (!this.movementExit || (!input.right && !input.forward) || delta <= 0 || speed <= 0
+        || !this.collision.canStand(this.movementExit,this.bodyRadius,this.bodyHeight)) return;
+      const pitch=this.pitch;
+      this.place(this.movementExit,yaw);
+      this.pitch=pitch;if(!this.xrFeet)this.camera.rotation.set(pitch,0,0,'YXZ');
+    }
     this.direction.set(input.right, 0, -input.forward);
     if (this.direction.lengthSq() > 1) this.direction.normalize();
     if (![input.right, input.forward, delta, yaw, speed].every(Number.isFinite)) return;
@@ -123,7 +131,7 @@ export class PlayerController {
   }
 
   place(position: Vector3, yaw: number, eyeHeight = this.settings?.eyeHeight ?? 1.65): void {
-    this.seated = false; this.seatHeightOffset = 0; this.pendingSeatHeight = false;
+    this.seated = false; this.movementExit = null; this.seatHeightOffset = 0; this.pendingSeatHeight = false;
     if (this.xrFeet) {
       this.xrFeet.copy(position); this.rig.rotation.y = yaw - this.headYaw; this.alignXRRig();
     } else {
@@ -131,8 +139,9 @@ export class PlayerController {
       this.camera.position.set(0,eyeHeight,0); this.camera.rotation.set(0,0,0);
     }
   }
-  sit(position: Vector3, yaw: number): void {
-    this.place(position,yaw,1.12); this.seated = true;
+  /** Only presentation seats opt into standing on movement. Network seats keep explicit authority. */
+  sit(position: Vector3, yaw: number, movementExit?: Vector3): void {
+    this.place(position,yaw,1.12); this.seated = true;this.movementExit=movementExit?.clone()??null;
     // Already physically seated users keep their native local-floor height.
     this.seatHeightOffset = this.xrFeet && this.head ? Math.min(0,1.12-this.head.y) : 0;
     this.alignXRRig();
@@ -157,5 +166,5 @@ export class PlayerController {
     this.camera.updateMatrixWorld(true);
   }
 
-  clear(): void { this.seated = false; this.seatHeightOffset = 0; this.pendingSeatHeight = false; this.unrestrictedTracking = false; this.settings = undefined; this.collision = undefined; this.xrFeet = this.head = null; }
+  clear(): void { this.seated = false; this.movementExit = null; this.seatHeightOffset = 0; this.pendingSeatHeight = false; this.unrestrictedTracking = false; this.settings = undefined; this.collision = undefined; this.xrFeet = this.head = null; }
 }

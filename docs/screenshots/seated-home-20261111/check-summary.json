@@ -1,0 +1,12 @@
+{
+  "command": "npm run check",
+  "status": "passed",
+  "nodeTestFiles": 28,
+  "nodeTests": 149,
+  "lint": "passed",
+  "typecheck": "passed",
+  "frontendBuild": "passed",
+  "serverBuild": "passed",
+  "productionIsolation": "passed",
+  "actualVRDeviceTested": false
+}

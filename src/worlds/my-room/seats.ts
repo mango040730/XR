@@ -6,3 +6,7 @@ export const myRoomSeats: Seat[] = [
   {id:'conversation-sofa',position:[-2.2,.18,-1.45],yaw:.38,stand:[-2.0,.18,-.35],surfaceHeight:.72},
   {id:'guest-lounge',position:[-2.15,.18,.70],yaw:Math.PI-.35,stand:[-1.0,.18,.8],surfaceHeight:.56},
 ];
+
+// The GLB chair faces local +Z; the first-person camera faces local -Z.
+const ownerChair=myRoomSeats.find(seat=>seat.id==='owner-chair')!;
+export const myRoomHomeSeat={...ownerChair,yaw:ownerChair.yaw-Math.PI};

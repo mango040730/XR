@@ -49,3 +49,17 @@ describe('shared movement', () => {
     expect(instance.rig.position.x).toBeCloseTo(0.3);
   });
 });
+
+describe('presentation seating',()=>{
+ it('starts at seated eye height, stays still until movement, and exits safely while preserving the view',()=>{
+  const instance=player(),seat=instance.feet.clone(),exit=seat.clone().addScalar(1);exit.y=0;
+  instance.sit(seat,.5,exit);instance.look(50,100);const yaw=instance.rig.rotation.y,pitch=instance.camera.rotation.x;
+  instance.update({right:0,forward:0},.05);expect(instance.seated).toBe(true);expect(instance.camera.position.y).toBe(1.12);expect(instance.feet.toArray()).toEqual(seat.toArray());
+  instance.update({right:0,forward:1},.05);expect(instance.seated).toBe(false);expect(instance.camera.position.y).toBe(1.65);expect(instance.feet.distanceTo(exit)).toBeCloseTo(.15);expect(instance.rig.rotation.y).toBe(yaw);expect(instance.camera.rotation.x).toBe(pitch);
+ });
+ it('does not stand out of an authoritative seat on movement or use a blocked presentation exit',()=>{
+  const instance=player(),seat=instance.feet;instance.sit(seat,0);instance.update({right:1,forward:1},.05);expect(instance.seated).toBe(true);expect(instance.feet.toArray()).toEqual(seat.toArray());
+  instance.sit(seat,0,seat.clone().setX(1000));instance.update({right:1,forward:0},.05);expect(instance.seated).toBe(true);
+  instance.place(seat,0);expect(instance.seated).toBe(false);instance.update({right:1,forward:0},.05);expect(instance.feet.x).toBeGreaterThan(seat.x);
+ });
+});

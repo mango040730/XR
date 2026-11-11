@@ -19,8 +19,8 @@ async function unlock(page:Page){await expect.poll(()=>page.evaluate(()=>!!docum
 
 test('first person stays at eye height and never shows the local avatar while walking',async({page})=>{
   await page.goto(`${origin}/#my-room`);await expect.poll(()=>page.evaluate(()=>!!window.__SOCIAL_DEBUG__?.snapshot().local)).toBe(true);
-  expect((await snap(page)).thirdPerson).toBe(false);expect((await snap(page)).camera.local).toEqual([0,1.65,0]);expect((await snap(page)).local!.visible).toBe(false);
-  await walk(page,'w',p=>p[2]>-.9);const result=await snap(page);expect(result.camera.position[1]).toBeCloseTo(1.67);expect(result.camera.local).toEqual([0,1.65,0]);expect(result.local!.visible).toBe(false);
+  expect((await snap(page)).thirdPerson).toBe(false);expect((await snap(page)).camera.local).toEqual([0,1.12,0]);expect((await snap(page)).local!.visible).toBe(false);
+  await walk(page,'w',p=>p[2]<1.0);const result=await snap(page);expect(result.camera.position[1]).toBeCloseTo(1.67);expect(result.camera.local).toEqual([0,1.65,0]);expect(result.local!.visible).toBe(false);
 });
 
 test('two actual browser processes share movement, real GLB actions, exclusive seating, chat and departure',async({page},info)=>{

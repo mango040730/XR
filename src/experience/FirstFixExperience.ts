@@ -1,3 +1,5 @@
+import {Vector3} from 'three';
+import {myRoomHomeSeat} from '../worlds/my-room/seats';
 import { RatingBackdrop } from './RatingBackdrop';
 import { ensureScreenWorld, screenWorld } from './screenWorld';
 import '../ui/service.css';
@@ -40,7 +42,6 @@ export class FirstFixExperience {
     private rendered?: Screen;
     private screenEnteredAt = 0;
     private request = 0;
-    private resumableWorld: string | null = null;
     private disposed = false;
     private review = false;
     private draft: Draft = { mode: 'solo', avatar: 'mint', date: '', time: '', place: 'umai', people: participants.map(p => p.id), month: new Date().getMonth(), year: new Date().getFullYear(), modeRating: 0, peopleRating: 0, ratings: {}, message: '', error: '', progress: '', sensor: '', edit: '' };
@@ -52,7 +53,7 @@ export class FirstFixExperience {
         this.fishing = new FishingHUD(this.shell, this.engine, undefined, { touchLook: false });
         this.router = new ServiceRouter(screen => firstFixRoute(screen, this.store.value.session));
         const canvas = this.engine.rendering.webgl.domElement; canvas.tabIndex = -1;
-        this.gestures = new SpaceGestureInput(canvas, (x, y) => this.engine.player.look(x, y), () => this.toggleModes());
+        this.gestures = new SpaceGestureInput(canvas, (x, y) => this.engine.player.look(x, y), () => this.openHome());
         this.cardboard = new CardboardPresenter(this.engine, this.shell, node => this.perform(node.dataset.action || ''), () => this.syncInput(), false);
         const options = { signal: this.events.signal };
         this.stage.addEventListener('click', event => {
@@ -66,14 +67,18 @@ export class FirstFixExperience {
                 if (this.cardboard.active) { this.cardboard.stop(); this.syncInput(); return; }
                 if (this.router.current === 'loading') void this.home();
                 else if (this.router.current === 'simulation') this.perform('finish');
-                else this.closeUI();
-            } else if (event.code === 'KeyM') this.toggleModes();
+                else this.openHome();
+            } else if (event.code === 'KeyM') this.openHome();
             else if (event.code === 'KeyB' && this.router.current !== 'loading') this.navigate('appointment-date');
             else if (event.code === 'KeyV') void this.toggleVR();
         }, { ...options, capture: true });
         this.shell.addEventListener('focusin', () => this.syncInput(), options);
         this.shell.addEventListener('focusout', event => this.syncInput(event.relatedTarget), options);
-        this.cleanups.push(this.router.changes.subscribe(() => {
+        this.cleanups.push(this.engine.worlds.changes.subscribe(state=>{
+            if(state.status==='ready'&&state.activeId===myRoom.id){
+                this.sitAtHome();
+            }
+        }), this.router.changes.subscribe(() => {
             this.render();
             void ensureScreenWorld(this.engine,this.router.current,this.store.value.session).then(() => {
                 if (!this.disposed) { this.cardboard.recenter();this.syncInput(); }
@@ -99,6 +104,10 @@ export class FirstFixExperience {
             });
     }
 
+    private sitAtHome():void {
+        this.engine.player.sit(new Vector3(...myRoomHomeSeat.position),myRoomHomeSeat.yaw,new Vector3(...myRoomHomeSeat.stand));
+        this.cardboard.recenter();
+    }
     private editing(target: EventTarget | null = document.activeElement): boolean {
         return target instanceof HTMLElement && (target.isContentEditable || !!target.closest('input,select,textarea'));
     }
@@ -124,7 +133,7 @@ export class FirstFixExperience {
         const frame = fixFrames[screen] ? renderFixScreen(screen, this.draft, calendar(this.draft), true)
             : screen === 'simulation' ? renderSpaceNavigation('종료하고 평가하기', 'finish')
             : screen === 'loading' ? renderSpaceNavigation('취소', 'cancel-loading')
-            : renderSpaceNavigation('모드 선택', 'nav:modes');
+            : renderFixScreen('modes',this.draft,calendar(this.draft),true);
         // Star selection rerenders the panel but must not restart the notification.
         const notice = frame.querySelector<HTMLElement>('.fix-rating-notice');
         if (notice) notice.style.animationDelay = `${-(performance.now() - this.screenEnteredAt)}ms`;
@@ -139,14 +148,9 @@ export class FirstFixExperience {
         if (this.router.current === 'simulation' && screen !== 'simulation') this.fishing.cancel();
         this.router.navigate(screen);
     }
-    private closeUI(): void {
-        const session = this.store.value.session;
-        this.navigate(session && !session.ended && modes.find(mode=>mode.id===session.mode)?.world===this.resumableWorld ? 'simulation' : 'my-room');
-    }
-    private toggleModes(): void {
-        if (this.router.current === 'loading') return;
-        if (this.router.current === 'modes') this.closeUI();
-        else { this.draft.message = ''; this.navigate('modes'); }
+    private openHome(): void {
+        if (this.router.current === 'loading' || this.router.current === 'modes') return;
+        this.draft.message='';this.navigate('modes');
     }
     private notice(message: string): void { this.draft.message = message; this.navigate('modes'); }
 
@@ -197,10 +201,15 @@ export class FirstFixExperience {
         await this.engine.enterWorld(world);
         if (request !== this.request || this.disposed) return;
         if (this.engine.worlds.state.status === 'error') { this.notice('공간을 열지 못했어요. '+(this.engine.worlds.state.error??'모드를 다시 선택해 주세요.')); return; }
-        if (screen==='simulation') this.resumableWorld=world;
         this.navigate(screen); this.cardboard.recenter();
     }
-    private async home(): Promise<void> { this.fishing.cancel(); this.store.finish(); await this.enter('my-room', 'my-room'); }
+    private async home(): Promise<void> {
+        this.fishing.cancel();this.store.finish();this.draft.message='';
+        if(this.engine.worlds.active?.config.id===myRoom.id&&this.engine.worlds.state.status!=='loading'){
+            this.sitAtHome();this.navigate('modes');return;
+        }
+        await this.enter(myRoom.id,'modes');
+    }
     private async toggleVR(): Promise<void> {
         if (this.router.current === 'loading') return;
         if (this.engine.xr.state.active) { await this.engine.xr.endSession(); return; }

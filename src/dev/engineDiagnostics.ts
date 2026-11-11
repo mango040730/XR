@@ -43,7 +43,7 @@ export function attachEngineDiagnostics(engine: Engine) {
       world: { ...engine.worlds.state },
       myRoom: active?.root.userData.myRoom ?? null,
       fishing: active?.root.userData.fishing ?? null,
-      player: { position: engine.player.feet.toArray(), rigOrigin: engine.player.rig.position.toArray(), yaw: engine.player.rig.rotation.y, pitch: engine.rendering.camera.rotation.x },
+      player: { seated:engine.player.seated, eyeHeight:engine.rendering.camera.position.y, position: engine.player.feet.toArray(), rigOrigin: engine.player.rig.position.toArray(), yaw: engine.player.rig.rotation.y, pitch: engine.rendering.camera.rotation.x },
       xr: { ...engine.xr.state },
       xrControls: { ...engine.xrControls.state },
       xrSettings: { ...engine.xrControls.settings },

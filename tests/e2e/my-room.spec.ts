@@ -6,7 +6,7 @@ test('new GLB my room surrounds all non-content screens and content worlds still
  await page.goto('/?offline=1');await page.waitForFunction(()=>!!window.__XR_DEBUG__);
  await expect.poll(async()=>(await snapshot(page)).world.activeId,{timeout:40000}).toBe('my-room');
  await expect.poll(async()=>(await snapshot(page)).render.triangles).toBeGreaterThan(1000);
- const start=await snapshot(page);expect(start.myRoom.version).toBe('2.7.1');expect(start.myRoom.meshCount).toBe(746);expect(start.myRoom.missing).toEqual([]);expect(start.models[0].url).toContain('myroom-v2-2.7.1.glb');expect(start.render.fov).toBe(66);expect(start.player.position).toEqual([3.45,.02,-1.2]);
+ const start=await snapshot(page);expect(start.myRoom.version).toBe('2.7.1');expect(start.myRoom.meshCount).toBe(746);expect(start.myRoom.missing).toEqual([]);expect(start.models[0].url).toContain('myroom-v2-2.7.1.glb');expect(start.render.fov).toBe(66);expect(start.player.position).toEqual([1.65,.02,2.05]);expect(start.player.seated).toBe(true);expect(start.player.eyeHeight).toBe(1.12);
  await page.keyboard.press('m');await screenshot(page,info,'my-room-glb-entry');
  await page.locator('canvas').click();await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(false);
  const pose=(await snapshot(page)).player;await page.keyboard.down('w');
@@ -23,14 +23,16 @@ test('new GLB my room surrounds all non-content screens and content worlds still
  await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','appointment-place');expect((await snapshot(page)).world.activeId).toBe('my-room');await screenshot(page,info,'my-room-appointment');
  await click(page,'appointment-create');await click(page,'mode:social');await expect.poll(async()=>(await snapshot(page)).world.activeId,{timeout:40000}).toBe('indoor-fishing');
  await page.keyboard.press('m');await expect.poll(async()=>(await snapshot(page)).world.activeId,{timeout:40000}).toBe('my-room');
- await page.keyboard.press('m');await expect.poll(async()=>(await snapshot(page)).world.activeId,{timeout:40000}).toBe('indoor-fishing');
+ await page.keyboard.press('m');expect((await snapshot(page)).world.activeId).toBe('my-room');await click(page,'mode:social');await expect.poll(async()=>(await snapshot(page)).world.activeId,{timeout:40000}).toBe('indoor-fishing');
 });
 
 test('real keyboard movement steps onto the clipped platform and back to the oak floor',async({page},info)=>{
  test.setTimeout(90000);await page.goto('/?offline=1#my-room');await page.waitForFunction(()=>window.__XR_DEBUG__?.snapshot().world.status==='ready');
  await page.locator('canvas').click();await expect.poll(()=>page.evaluate(()=>!!document.pointerLockElement)).toBe(false);
+ await page.keyboard.down('w');await expect.poll(async()=>(await snapshot(page)).player.seated).toBe(false);await page.keyboard.up('w');
  const face=(yaw:number)=>lookAt(page,yaw);
  const walk=async(key:string,axis:number,predicate:(n:number)=>boolean)=>{await page.keyboard.down(key);try{await expect.poll(async()=>predicate((await snapshot(page)).player.position[axis]),{timeout:15000,intervals:[20]}).toBe(true);}finally{await page.keyboard.up(key);}};
+ await face(0);await walk('w',2,n=>n<-.9);
  await face(Math.PI/2);await walk('w',0,n=>n<.45);
  await face(Math.PI);await walk('w',2,n=>n>-.85);
  await face(Math.PI/2);await walk('w',0,n=>n<.02);

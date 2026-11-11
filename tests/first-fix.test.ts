@@ -8,9 +8,10 @@ describe('only first-fix UI routes', () => {
             expect(firstFixRoute(screen, null)).toBe('modes');
     });
     it('keeps world-only states and the two booking screens available without onboarding', () => {
-        for (const screen of ['my-room', 'loading', 'modes', 'appointment-date', 'appointment-place'] as const)
+        for (const screen of ['loading', 'modes', 'appointment-date', 'appointment-place'] as const)
             expect(firstFixRoute(screen, null)).toBe(screen);
     });
+    it('treats the old bare-room URL as the mode-selection home',()=>{expect(firstFixRoute('my-room',null)).toBe('modes');});
     it('requires a live session for simulation and an ended session for rating', () => {
         expect(firstFixRoute('simulation', null)).toBe('modes');
         expect(firstFixRoute('simulation', { ended: true })).toBe('modes');

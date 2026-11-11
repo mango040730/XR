@@ -75,7 +75,7 @@ test('rating freezes the content view while booking permits movement and text in
     await expect(page.locator('.service-shell')).toHaveAttribute('data-route', 'simulation');
     await click(page, 'finish');
     await expect(page.locator('.service-shell')).toHaveAttribute('data-route', 'rating');
-    await expect.poll(async()=>(await snapshot(page)).world.activeId).toBe('glb-test-room');
+    await expect.poll(async()=>(await snapshot(page)).world.activeId).toBe('bowling');
     const frozen=(await snapshot(page)).player;await page.keyboard.down('w');await page.waitForTimeout(200);await page.keyboard.up('w');expect((await snapshot(page)).player).toEqual(frozen);
     await expect(page.locator('.rating-space-frame')).toBeVisible();
     await click(page, 'home');

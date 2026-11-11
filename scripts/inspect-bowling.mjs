@@ -1,0 +1,25 @@
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {Box3,Vector3,Raycaster} from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import validator from 'gltf-validator';
+import {disposeObject} from '../src/engine/assets/disposeObject.ts';
+const bytes=await readFile(new URL('../public/assets/models/bowling/retro_bowling_alley.glb',import.meta.url));
+if(createHash('sha256').update(bytes).digest('hex')!=='a184d7da0a25a83039a8ca950225a5f55c545c8630467cdbc32aacd7bbc6e603')throw new Error('첨부 원본 GLB와 해시가 다릅니다.');
+const report=await validator.validateBytes(new Uint8Array(bytes));
+if(report.issues.numErrors||report.issues.numWarnings)throw new Error('볼링장 GLB 유효성 검사 실패');
+const length=bytes.readUInt32LE(12),data=JSON.parse(bytes.subarray(20,20+length));
+if(data.meshes.length!==102||data.materials.length!==28||data.images.length!==3)throw new Error('첨부 볼링장 구성과 다릅니다.');
+// Geometry-only inspection in Node; browsers load the unmodified GLB and embedded PNGs via useGLTF.
+const geometry=JSON.parse(JSON.stringify(data));delete geometry.materials;delete geometry.textures;delete geometry.images;
+for(const mesh of geometry.meshes)for(const primitive of mesh.primitives)delete primitive.material;
+const json=Buffer.from(JSON.stringify(geometry)),padded=Buffer.alloc(Math.ceil(json.length/4)*4,32);json.copy(padded);
+const binary=bytes.subarray(20+length),container=Buffer.alloc(20+padded.length+binary.length);
+container.writeUInt32LE(0x46546c67,0);container.writeUInt32LE(2,4);container.writeUInt32LE(container.length,8);container.writeUInt32LE(padded.length,12);container.writeUInt32LE(0x4e4f534a,16);padded.copy(container,20);binary.copy(container,20+padded.length);
+const {scene}=await new GLTFLoader().parseAsync(container.buffer.slice(container.byteOffset,container.byteOffset+container.byteLength),'');
+const bounds=new Box3().setFromObject(scene,true);let triangles=0;scene.traverse(o=>{if(o.isMesh)triangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3;});
+const counts={};scene.traverse(o=>{const role=o.userData.role;if(role)counts[role]=(counts[role]??0)+1;});
+for(const [role,count] of Object.entries({bowling_lane:4,bowling_pin:40,bowling_ball:14,roof_truss:8,pendant_fixture:27}))if(counts[role]!==count)throw new Error(`${role}: ${counts[role]} != ${count}`);
+const floor=new Raycaster(new Vector3(0,1.65,-1),new Vector3(0,-1,0),0,3).intersectObject(scene,true)[0];
+if(!floor||Math.abs(floor.point.y)>.004)throw new Error('볼링장 진입 바닥 높이 불일치');
+console.log(JSON.stringify({asset:'retro_bowling_alley.glb',counts,triangles,bounds:{min:bounds.min.toArray(),max:bounds.max.toArray()},actualFloorY:floor.point.y,errors:0,warnings:0}));disposeObject(scene);

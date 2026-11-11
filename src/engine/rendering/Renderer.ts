@@ -78,7 +78,7 @@ export class Renderer {
         this.ao.updateGtaoMaterial({radius:this.profile.ao.radius,distanceExponent:1.5,thickness:.55,scale:1,samples:8});
         this.ao.updatePdMaterial({lumaPhi:10,depthPhi:3,normalPhi:6,radius:4,rings:2,samples:8});this.composer.addPass(this.ao);
       }
-      if(this.profile.bloom){this.bloom=new UnrealBloomPass(new Vector2(1,1),this.profile.bloom,.32,this.profile.bloomThreshold??1.15);this.composer.addPass(this.bloom);}
+      if(this.profile.bloom){this.bloom=new UnrealBloomPass(new Vector2(1,1),this.profile.bloom,this.profile.bloomRadius??.32,this.profile.bloomThreshold??1.15);this.composer.addPass(this.bloom);}
       this.output=new OutputPass();this.composer.addPass(this.output);
       if(this.profile.fxaa){this.fxaa=new ShaderPass(FXAAShader);this.composer.addPass(this.fxaa);}
     }

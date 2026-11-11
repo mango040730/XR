@@ -26,7 +26,7 @@ for(const device of ['pc','mobile']as const)test(`${device}: full local service 
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));const failures:string[]=[];page.on('requestfailed',r=>failures.push(r.url()));
   await onboard(page);await shot(page,`service-${device}-my-room`);
   await click(page,'nav:modes');await click(page,'mode:team');await route(page,'servers');await expect(page.locator('[data-node-id="1144:495"]')).toContainText('협력');await click(page,'join:fish');await route(page,'simulation');
-  await expect.poll(()=>page.evaluate(()=>window.__XR_DEBUG__?.snapshot().world.activeId)).toBe('glb-test-room');await shot(page,`service-${device}-simulation`);
+  await expect.poll(()=>page.evaluate(()=>window.__XR_DEBUG__?.snapshot().world.activeId)).toBe('bowling');await shot(page,`service-${device}-simulation`);
   await click(page,'nav:pause');await route(page,'pause');await click(page,'nav:simulation');await click(page,'finish');await route(page,'rating');
   await click(page,'mode-rating:4');await click(page,'people-rating:5');await shot(page,`service-${device}-rating`);for(const id of ['chang','ryo','707'])await click(page,'person-rating:'+id);await click(page,'rate');await route(page,'rating-done');await click(page,'home');await route(page,'my-room');
   await click(page,'nav:chat');await page.locator('input[name="chat"]').fill('다음에도 함께해요');await click(page,'chat-send');await expect(page.locator('.ds-list')).toContainText('다음에도 함께해요');await click(page,'home');await route(page,'my-room');

@@ -15,13 +15,13 @@ test('fresh users see only the four first-fix screens through mode, rating and b
     expect(await page.locator('[data-action="login"]').count()).toBe(0);
     await expect.poll(async () => (await snapshot(page)).world.activeId).toBe('my-room');
     await screenshot(page, info, 'first-fix-only-modes');
-    const glb = page.waitForResponse(response => response.url().endsWith('/test-room/scene.glb'));
+    const glb = page.waitForResponse(response => response.url().endsWith('/bowling/retro_bowling_alley.glb'));
     await click(page, 'mode:team'); expect((await glb).status()).toBe(200); await route(page, 'simulation');
     await expect(page.locator('button:visible,input:visible,a:visible')).toHaveCount(1);
     await page.mouse.click(600, 350); await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(false);
     const before = (await snapshot(page)).player.position;
     await page.keyboard.down('w');
-    try { await expect.poll(async () => before[0] - (await snapshot(page)).player.position[0]).toBeGreaterThan(.25); }
+    try { await expect.poll(async () => before[2] - (await snapshot(page)).player.position[2]).toBeGreaterThan(.25); }
     finally { await page.keyboard.up('w'); }
     await expect.poll(() => page.evaluate(() => document.pointerLockElement)).toBe(null);
     await route(page, 'simulation');
@@ -60,9 +60,9 @@ test('old routes and UI flags never restore the discarded UI; the bare room rema
 });
 
 test('failed model loading keeps the previous world and uses the original notification', async ({ page, browserLog }) => {
-    browserLog.expectedFailures.add('/assets/models/test-room/scene.glb');
+    browserLog.expectedFailures.add('/assets/models/bowling/retro_bowling_alley.glb');
     await page.goto('/?offline=1'); await expect.poll(() => page.evaluate(() => window.__XR_DEBUG__?.snapshot().world.status)).toBe('ready');
-    await page.route('**/test-room/scene.glb', route => route.fulfill({ status: 404, body: 'missing' }));
+    await page.route('**/bowling/retro_bowling_alley.glb', route => route.fulfill({ status: 404, body: 'missing' }));
     await click(page, 'mode:team'); await route(page, 'modes');
     await expect(page.locator('.fix-mode-notice')).toContainText('공간을 열지 못했어요');
     expect((await snapshot(page)).world.activeId).toBe('my-room'); await onlyOriginalUI(page);
@@ -73,14 +73,14 @@ test('cancelled loading does not reopen a discarded screen after a late model re
     let requested = false;
     let release!: () => void;
     const hold = new Promise<void>(resolve => { release = resolve; });
-    await page.route('**/test-room/scene.glb', async route => { requested = true; await hold; await route.continue(); });
+    await page.route('**/bowling/retro_bowling_alley.glb', async route => { requested = true; await hold; await route.continue(); });
     await click(page, 'mode:team'); await route(page, 'loading');
     await expect.poll(() => requested).toBe(true);
     await click(page, 'cancel-loading'); await route(page, 'my-room');
     await renderFrames(page);
     const root = (await snapshot(page)).activeRootId;
     const memory = (await snapshot(page)).memory;
-    const response = page.waitForResponse(item => item.url().endsWith('/test-room/scene.glb'));
+    const response = page.waitForResponse(item => item.url().endsWith('/bowling/retro_bowling_alley.glb'));
     release(); const completed = await response; expect(completed.status()).toBe(200); await completed.finished();
     // Diagnostics watch committed roots, so an aborted candidate has no disposal
     // counter. Check rendered allocations and scene ownership after real loading.

@@ -5,7 +5,7 @@ test('production exposes only first-fix UI and loads the real GLB without debug 
  await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','modes');
  await expect(page.locator('#world-select,.service-chrome,.service-touch-controls,.ds-screen')).toHaveCount(0);
  expect(await page.evaluate(()=>window.__XR_DEBUG__)).toBeUndefined();
- const glb=page.waitForResponse(response=>response.url().endsWith('/test-room/scene.glb'));
+ const glb=page.waitForResponse(response=>response.url().endsWith('/bowling/retro_bowling_alley.glb'));
  await page.locator('[data-action="mode:team"]').click();expect((await glb).status()).toBe(200);
  await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','simulation');
  await expect(page.locator('button:visible,a:visible,input:visible')).toHaveCount(1);

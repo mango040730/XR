@@ -12,9 +12,9 @@ test('new GLB my room surrounds all non-content screens and content worlds still
  const pose=(await snapshot(page)).player;await page.keyboard.down('w');
  try{await expect.poll(async()=>Math.hypot((await snapshot(page)).player.position[0]-pose.position[0],(await snapshot(page)).player.position[2]-pose.position[2]),{intervals:[30]}).toBeGreaterThan(.3);}finally{await page.keyboard.up('w');}
  await page.keyboard.press('m');
- await click(page,'mode:team');await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','simulation',{timeout:40000});expect((await snapshot(page)).world.activeId).toBe('glb-test-room');
+ await click(page,'mode:team');await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','simulation',{timeout:40000});expect((await snapshot(page)).world.activeId).toBe('bowling');
  await click(page,'finish');await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','rating');
- await expect.poll(async()=>(await snapshot(page)).world.activeId,{timeout:40000}).toBe('glb-test-room');
+ await expect.poll(async()=>(await snapshot(page)).world.activeId,{timeout:40000}).toBe('bowling');
  await screenshot(page,info,'content-moment-rating');
  const root=(await snapshot(page)).activeRootId;
  await click(page,'mode-rating:4');await click(page,'people-rating:5');await click(page,'rate');

@@ -23,7 +23,7 @@ describe('provided GLB my room and screen ownership',()=>{
    expect(screenWorld(screen,{mode:'social',ended:true})).toBe(screen==='loading'?null:['rating','rating-done'].includes(screen)?'indoor-fishing':'my-room');
   }
   expect(screenWorld('simulation',{mode:'solo',ended:false})).toBe('woodworking');
-  expect(screenWorld('simulation',{mode:'team',ended:false})).toBe('glb-test-room');
+  expect(screenWorld('simulation',{mode:'team',ended:false})).toBe('bowling');
  });
  it('does not replace the preserved my room when a content request fails and the mode screen resumes',async()=>{
   const config={...myRoom,model:undefined,build:undefined,prepare:undefined};

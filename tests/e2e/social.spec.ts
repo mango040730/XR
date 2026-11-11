@@ -60,7 +60,7 @@ test('different rooms stay isolated; switching a world and reconnecting clear th
     expect((await snap(page)).users).toHaveLength(1);expect((await snap(b)).remotes).toHaveLength(0);
     await b.goto(`${origin}/?room=${room}#my-room`);await b.getByLabel('닉네임',{exact:true}).fill('B');await b.locator('[data-action="social-join"]').click();
     await expect.poll(async()=>(await snap(page)).users.length).toBe(2);
-    await b.route('**/test-room/scene.glb',route=>route.fulfill({status:404,body:'missing'}));
+    await b.route('**/bowling/retro_bowling_alley.glb',route=>route.fulfill({status:404,body:'missing'}));
     await b.locator('.service-stage [data-action="nav:modes"]').click();await b.locator('[data-action="mode:team"]').click();
     await expect(b.locator('.fix-mode-notice')).toContainText('공간을 열지 못했어요');expect((await snap(b)).room).toBe('my-room:'+room);
     await b.keyboard.press('m');await walk(b,'w',p=>p[2]>-.9);

@@ -1,7 +1,7 @@
 export const modes = [
     { id: 'solo', name: '혼자 활동해요', description: '다른 사람들과 같은 공간에서 혼자 활동하며 즐겨요.', count: 12, world: 'woodworking' },
     { id: 'social', name: '친목을 다져요', description: '간단한 콘텐츠를 즐기며 사람들과 이야기를 나눠요.', count: 32, world: 'indoor-fishing' },
-    { id: 'team', name: '협력하며 즐겨요', description: '사람들과 힘을 합쳐 재밌는 놀이를 즐겨요.', count: 21, world: 'glb-test-room' },
+    { id: 'team', name: '협력하며 즐겨요', description: '사람들과 힘을 합쳐 재밌는 놀이를 즐겨요.', count: 21, world: 'bowling' },
 ] as const;
 export type ModeId = typeof modes[number]['id'];
 export const participants = [{ id: 'chang', name: '창용' }, { id: 'ryo', name: '료굥' }, { id: '707', name: '707' }];

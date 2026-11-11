@@ -13,7 +13,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "lint": "eslint .",
     "test": "vitest run",
-    "check": "npm run lint && npm test && npm run validate:assets && npm run inspect:avatar && npm run inspect:my-room && npm run inspect:atelier && npm run build && npm run server:build",
+    "check": "npm run lint && npm test && npm run validate:assets && npm run inspect:avatar && npm run inspect:my-room && npm run inspect:atelier && npm run inspect:bowling && npm run build && npm run server:build",
     "generate:assets": "node scripts/generate-test-glb.mjs",
     "validate:assets": "node scripts/validate-assets.mjs",
     "test:e2e:install": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium",
@@ -26,7 +26,8 @@
     "test:e2e:social": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --config=playwright.social.config.ts",
     "server:build": "tsc -p tsconfig.server.json",
     "inspect:my-room": "node scripts/inspect-my-room.mjs",
-    "inspect:atelier": "node scripts/inspect-atelier.mjs"
+    "inspect:atelier": "node scripts/inspect-atelier.mjs",
+    "inspect:bowling": "node scripts/inspect-bowling.mjs"
   },
   "dependencies": {
     "@react-three/drei": "10.7.7",

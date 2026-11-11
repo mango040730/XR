@@ -1,0 +1,17 @@
+{
+  "command": "npm run check",
+  "status": "passed",
+  "nodeTestFiles": 28,
+  "nodeTests": 146,
+  "typecheck": "passed",
+  "lint": "passed",
+  "frontendBuild": "passed",
+  "serverBuild": "passed",
+  "productionIsolation": "passed",
+  "bowlingGLB": {
+    "errors": 0,
+    "warnings": 0,
+    "sha256": "a184d7da0a25a83039a8ca950225a5f55c545c8630467cdbc32aacd7bbc6e603"
+  },
+  "actualVRDeviceTested": false
+}

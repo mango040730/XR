@@ -1,0 +1,12 @@
+{
+  "run": {
+    "id": 43006385798,
+    "head_sha": "8cde1c3d893ca981d2439c5787603af71c30cd14",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/mango040730/XR/actions/runs/43006385798"
+  },
+  "url": "https://mango040730.github.io/XR/",
+  "publicVerification": "live-verification.json",
+  "contentWorldsUnchanged": true
+}

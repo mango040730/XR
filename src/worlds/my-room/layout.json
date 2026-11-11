@@ -1,0 +1,371 @@
+{
+  "asset": "myroom-v2-2.7.1.glb",
+  "version": "2.7.1",
+  "sha256": "69d7e8138a34947213a0f9c0e84a32db1f6433efb5b1830c36aac3a53cff62cc",
+  "meshes": 746,
+  "bounds": {
+    "min": [
+      -4.4,
+      -0.16,
+      -3.78
+    ],
+    "max": [
+      4.4,
+      3.6,
+      3.78
+    ]
+  },
+  "features": [
+    {
+      "name": "Guest wraparound low lounge",
+      "position": [
+        -2.15,
+        0.18,
+        0.7
+      ]
+    },
+    {
+      "name": "Guest small timber stool",
+      "position": [
+        -0.48,
+        0.18,
+        -2.2
+      ]
+    },
+    {
+      "name": "Conversation single lounge sofa",
+      "position": [
+        -2.2,
+        0.18,
+        -1.45
+      ]
+    },
+    {
+      "name": "Signature owner lounge chair",
+      "position": [
+        1.65,
+        0.02,
+        2.05
+      ]
+    }
+  ],
+  "floors": [
+    {
+      "center": [
+        0,
+        0
+      ],
+      "size": [
+        8.4,
+        7.2
+      ],
+      "y": 0.02,
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "center": [
+        -1.75,
+        -0.63
+      ],
+      "size": [
+        3.3,
+        4.5
+      ],
+      "y": 0.18,
+      "polygon": [
+        [
+          -3.06,
+          -2.88
+        ],
+        [
+          -0.44,
+          -2.88
+        ],
+        [
+          -0.1,
+          -2.54
+        ],
+        [
+          -0.1,
+          1.28
+        ],
+        [
+          -0.44,
+          1.62
+        ],
+        [
+          -3.06,
+          1.62
+        ],
+        [
+          -3.4,
+          1.28
+        ],
+        [
+          -3.4,
+          -2.54
+        ]
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    }
+  ],
+  "boxes": [
+    {
+      "name": "Tall open timber partition",
+      "position": [
+        -0.02,
+        1.67,
+        -2.04
+      ],
+      "size": [
+        0.16,
+        3.3,
+        1.64
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Guest wraparound low lounge",
+      "position": [
+        -2.141655,
+        0.550497,
+        0.700911
+      ],
+      "size": [
+        1.430424,
+        0.740993,
+        1.25658
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Guest small timber stool",
+      "position": [
+        -0.48,
+        0.38525,
+        -2.2
+      ],
+      "size": [
+        0.552006,
+        0.4105,
+        0.537092
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Conversation single lounge sofa",
+      "position": [
+        -2.205564,
+        0.699308,
+        -1.45
+      ],
+      "size": [
+        1.464986,
+        1.038617,
+        1.35863
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Personal tea table",
+      "position": [
+        -0.83,
+        0.43,
+        -0.65
+      ],
+      "size": [
+        1.057548,
+        0.5,
+        0.824828
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Slim travel archive",
+      "position": [
+        0.62,
+        0.88625,
+        -3.28
+      ],
+      "size": [
+        0.78,
+        1.7325,
+        0.33
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Signature owner lounge chair",
+      "position": [
+        1.64996,
+        0.770708,
+        2.089744
+      ],
+      "size": [
+        1.875366,
+        1.501416,
+        1.999244
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Signature matching ottoman",
+      "position": [
+        0.90689,
+        0.2775,
+        0.689747
+      ],
+      "size": [
+        1.168552,
+        0.515,
+        1.102423
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Signature warm floor reading lamp",
+      "position": [
+        2.695,
+        1.020784,
+        2.42
+      ],
+      "size": [
+        1.01,
+        2.001567,
+        0.56
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Signature reading side table",
+      "position": [
+        3.03,
+        0.315,
+        1.4
+      ],
+      "size": [
+        0.48,
+        0.59,
+        0.42
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Reading wall bookcase bay 1",
+      "position": [
+        0.1,
+        1.34625,
+        3.38
+      ],
+      "size": [
+        1.39,
+        2.6525,
+        0.37
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Reading wall bookcase bay 2",
+      "position": [
+        1.52,
+        1.34625,
+        3.38
+      ],
+      "size": [
+        1.39,
+        2.6525,
+        0.37
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Reading wall bookcase bay 3",
+      "position": [
+        2.94,
+        1.34625,
+        3.38
+      ],
+      "size": [
+        1.39,
+        2.6525,
+        0.37
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Reading corner low bookcase",
+      "position": [
+        -2.18,
+        0.58125,
+        3.37
+      ],
+      "size": [
+        2.32,
+        1.1225,
+        0.38
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Reading wall floating shelf lower",
+      "position": [
+        -2.18,
+        1.89445,
+        3.38
+      ],
+      "size": [
+        2.14,
+        0.5589,
+        0.29
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Reading wall floating shelf upper",
+      "position": [
+        -2.38,
+        2.519,
+        3.38
+      ],
+      "size": [
+        1.74,
+        0.448,
+        0.29
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    },
+    {
+      "name": "Portal corner floor plant",
+      "position": [
+        3.464303,
+        0.984592,
+        -2.688951
+      ],
+      "size": [
+        1.115351,
+        1.929185,
+        1.04696
+      ],
+      "color": "#C8B38B",
+      "visible": false
+    }
+  ]
+}

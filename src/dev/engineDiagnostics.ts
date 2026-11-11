@@ -1,3 +1,4 @@
+import { materialTextures } from '../engine/assets/materialTextures';
 import { Box3, BufferGeometry, Material, Mesh, MeshStandardMaterial, Texture } from 'three';
 import type { Engine } from '../engine/core/Engine';
 
@@ -25,7 +26,7 @@ export function attachEngineDiagnostics(engine: Engine) {
       watch(object.geometry, 'geometry');
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
         watch(material, 'material');
-        for (const value of Object.values(material)) if (value instanceof Texture) watch(value, 'texture');
+        for (const value of materialTextures(material)) watch(value, 'texture');
       }
     });
   });
@@ -39,6 +40,7 @@ export function attachEngineDiagnostics(engine: Engine) {
     });
     return {
       world: { ...engine.worlds.state },
+      myRoom: active?.root.userData.myRoom ?? null,
       fishing: active?.root.userData.fishing ?? null,
       player: { position: engine.player.feet.toArray(), rigOrigin: engine.player.rig.position.toArray(), yaw: engine.player.rig.rotation.y, pitch: engine.rendering.camera.rotation.x },
       xr: { ...engine.xr.state },

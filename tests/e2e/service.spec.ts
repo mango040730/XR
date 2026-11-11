@@ -41,7 +41,7 @@ test('full room recovers to server selection and incoming invite can be declined
   await onboard(page);await page.evaluate(()=>{const key='xr-spatial-service-demo-v1';const data=JSON.parse(localStorage.getItem(key)!);data.rooms[0].current=data.rooms[0].capacity;localStorage.setItem(key,JSON.stringify(data));});await page.reload();await click(page,'nav:modes');await click(page,'mode:social');await click(page,'join:fish');await route(page,'error');await expect(page.locator('.ds-subtitle')).toContainText('정원');await click(page,'back');await route(page,'servers');await click(page,'nav:invitations');await click(page,'decline:demo-incoming');await expect(page.locator('.ds-list')).toContainText('거절');
 });
 test('Cardboard renders live stereoscopic panels and gaze activates a real login button',async({page})=>{
-  await page.setViewportSize({width:844,height:390});await page.goto('/?legacyServiceReview=1');await click(page,'nav:cardboard-guide');await click(page,'cardboard-start');
+  await page.setViewportSize({width:844,height:390});await page.goto('/?legacyServiceReview=1');await page.waitForFunction(()=>window.__XR_DEBUG__?.snapshot().world.status==='ready');await click(page,'nav:cardboard-guide');await click(page,'cardboard-start');
   await expect(page.locator('.service-shell')).toHaveClass(/immersive/);await expect(page.locator('.sensor-status')).toContainText('기다리고');
   await page.waitForTimeout(350);await shot(page,'service-mobile-cardboard-login');
   // Real pointer dragging rotates the camera. A 45px downward UI offset is a
@@ -50,7 +50,8 @@ test('Cardboard renders live stereoscopic panels and gaze activates a real login
   const frame=await page.locator('.design-frame').boundingBox();const scale=frame!.width/1200;
   const x=(control!.x+control!.width/2-frame!.x)/scale,y=(control!.y+control!.height/2-frame!.y)/scale;
   const yaw=Math.atan2((x-600)*3/1200,2.8),pitch=Math.atan2((300-y)*1.5/600,2.8);
-  await page.mouse.move(400,180);await page.mouse.down();await page.mouse.move(400-yaw/.004,180-pitch/.004,{steps:10});await page.mouse.up();
+  const currentPitch=await page.evaluate(()=>window.__XR_DEBUG__!.snapshot().player.pitch);
+  await page.mouse.move(400,180);await page.mouse.down();await page.mouse.move(400-yaw/.004,180-(pitch-currentPitch)/.004,{steps:10});await page.mouse.up();
   await route(page,'avatar');await shot(page,'service-mobile-cardboard-avatar');
   await page.keyboard.press('Escape');await expect(page.locator('.service-shell')).not.toHaveClass(/immersive/);await expect(page.locator('.service-stage')).toHaveCSS('opacity','1');
 });
@@ -68,6 +69,7 @@ test('Cardboard full journey uses real gaze hits through simulation, conversatio
   test.setTimeout(100_000);await page.setViewportSize({width:1000,height:600});await page.goto('/?fishingUiReview=1&legacyServiceReview=1');await click(page,'nav:cardboard-guide');await click(page,'cardboard-start');await route(page,'login');
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   async function gaze(action:string){
+    await page.waitForFunction(()=>window.__XR_DEBUG__?.snapshot().world.status==='ready');
     await page.keyboard.press('r');
     const node=page.locator(`.design-frame [data-action="${action}"]`).first();await expect(node).toBeAttached();
     const box=(await node.boundingBox())!,frame=(await page.locator('.design-frame').boundingBox())!,scale=frame.width/1200;

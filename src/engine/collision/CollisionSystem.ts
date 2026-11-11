@@ -1,14 +1,22 @@
 import { Box3, Vector3 } from 'three';
 
-export interface FloorArea { minX: number; maxX: number; minZ: number; maxZ: number; y: number }
-export interface CollisionData { floors: FloorArea[]; solids: Box3[] }
+export interface FloorArea { minX: number; maxX: number; minZ: number; maxZ: number; y: number; polygon?: Array<[number, number]> }
+export function insideFloorPolygon(f: FloorArea, p: Vector3): boolean {
+  return !f.polygon || f.polygon.every(([x,z],i) => {
+      const [nx,nz]=f.polygon![(i+1)%f.polygon!.length];
+      const centerX=(f.minX+f.maxX)/2,centerZ=(f.minZ+f.maxZ)/2;
+      const side=(nx-x)*(p.z-z)-(nz-z)*(p.x-x),inside=(nx-x)*(centerZ-z)-(nz-z)*(centerX-x);
+      return side*Math.sign(inside)>=-1e-8;
+  });
+}
+export interface CollisionData { floors: FloorArea[]; solids: Box3[]; maxStepHeight?: number }
 export interface MovementCollision {
   move(position: Vector3, displacement: Vector3, radius: number, height: number): Vector3;
   canStand(position: Vector3, radius: number, height: number): boolean;
   clipCamera?(origin: Vector3, desired: Vector3): Vector3;
 }
 
-/** Phase 1: flat, same-height floors + static AABBs. No slopes, gravity or stairs. */
+/** Flat surfaces and static AABBs, with opt-in small steps between authored floor regions. */
 export class CollisionSystem implements MovementCollision {
   constructor(private readonly data: CollisionData) {}
 
@@ -28,11 +36,13 @@ export class CollisionSystem implements MovementCollision {
     return result;
   }
 
+  floorAt(p: Vector3, radius: number): FloorArea | undefined {
+    return this.data.floors.filter(f => { const inset=f.polygon?0:radius;return p.x-inset>=f.minX && p.x+inset<=f.maxX && p.z-inset>=f.minZ && p.z+inset<=f.maxZ && insideFloorPolygon(f,p);}).sort((a,b)=>b.y-a.y)[0];
+  }
+
   canStand(p: Vector3, radius: number, height: number): boolean {
-    const supported = this.data.floors.some(f => Math.abs(p.y - f.y) < 0.01
-      && p.x - radius >= f.minX && p.x + radius <= f.maxX
-      && p.z - radius >= f.minZ && p.z + radius <= f.maxZ);
-    if (!supported) return false;
+    const floor=this.floorAt(p,radius);
+    if (!floor || Math.abs(p.y-floor.y)>=.01) return false;
     return !this.data.solids.some(b => p.y < b.max.y - 0.001 && p.y + height > b.min.y + 0.001
       && p.x + radius > b.min.x && p.x - radius < b.max.x
       && p.z + radius > b.min.z && p.z - radius < b.max.z);
@@ -47,6 +57,10 @@ export class CollisionSystem implements MovementCollision {
       for (const axis of ['x', 'z'] as const) {
         candidate.copy(result);
         candidate[axis] += displacement[axis] / steps;
+        if (this.data.maxStepHeight) {
+          const floor=this.floorAt(candidate,radius);
+          if (floor && Math.abs(floor.y-result.y)<=this.data.maxStepHeight+1e-8) candidate.y=floor.y;
+        }
         if (this.canStand(candidate, radius, height)) result.copy(candidate);
       }
     }

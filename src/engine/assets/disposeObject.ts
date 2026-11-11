@@ -1,3 +1,4 @@
+import { materialTextures } from './materialTextures.ts';
 import { BufferGeometry, Material, Mesh, Object3D, Skeleton, SkinnedMesh, Texture, Light } from 'three';
 
 /** A world exclusively owns its assets. Do not share resources across world roots. */
@@ -12,7 +13,7 @@ export function disposeObject(root: Object3D): void {
     if (mesh.material) {
       for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
         materials.add(material);
-        for (const value of Object.values(material)) if (value instanceof Texture) textures.add(value);
+        for (const value of materialTextures(material)) textures.add(value);
       }
     }
     if (object instanceof SkinnedMesh) skeletons.add(object.skeleton);

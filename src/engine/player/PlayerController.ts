@@ -37,7 +37,7 @@ export class PlayerController {
     this.collision = collision;
     this.rig.position.fromArray(config.spawn.position);
     this.rig.rotation.set(0, config.spawn.yaw, 0);
-    this.pitch = 0;
+    this.pitch = config.spawn.pitch ?? 0;
     this.xrFeet = this.head = null;
     this.restoreDesktopCamera();
   }

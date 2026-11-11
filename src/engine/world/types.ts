@@ -1,5 +1,5 @@
 import type { RenderProfile } from '../rendering/profile';
-import type { Group, Vector3Tuple } from 'three';
+import type { Group, Vector3Tuple, Scene, Texture, WebGLRenderer } from 'three';
 import type { PlayerController } from '../player/PlayerController';
 import type { InteractionSystem } from '../interaction/InteractionSystem';
 import type { CollisionData } from '../collision/CollisionSystem';
@@ -28,11 +28,11 @@ export interface WorldConfig {
   id: string;
   name: string;
   description: string;
-  spawn: { position: Vector3Tuple; yaw: number };
-  player: { speed: number; eyeHeight: number; radius: number; height: number };
+  spawn: { position: Vector3Tuple; yaw: number; pitch?: number };
+  player: { speed: number; eyeHeight: number; radius: number; height: number; maxStepHeight?: number };
   rendering?: RenderProfile;
   lighting: { key?: { position: Vector3Tuple; target: Vector3Tuple; color: string }; sky: string; ground: string; intensity: number; sun: number; background: string };
-  floors: Array<{ center: [number, number]; size: [number, number]; y: number; color: string; visible?: boolean }>;
+  floors: Array<{ center: [number, number]; size: [number, number]; y: number; color: string; visible?: boolean; polygon?: Array<[number, number]> }>;
   boxes: BoxConfig[];
   model?: ModelConfig;
   interactions?: Array<{ nodeName: string; id: string; label: string; maxDistance?: number }>;
@@ -41,6 +41,7 @@ export interface WorldConfig {
   /** Reserved metadata; audio playback is intentionally not part of phase 1. */
   audio?: { url: string; loop: boolean; volume: number };
   activate?: (context: WorldBehaviorContext) => WorldBehavior;
+  prepare?: (context: { root: Group; scene: Scene; renderer: WebGLRenderer; signal: AbortSignal; onDispose(cleanup: () => void): void }) => void | Promise<void>;
   build?: (context: WorldBuildContext) => void | Promise<void>;
 }
 export interface WorldBuildContext {
@@ -52,6 +53,8 @@ export interface WorldInstance {
   config: WorldConfig;
   root: Group;
   collision: CollisionData;
+  readonly environment?: Texture | null;
+  prepare?(scene: Scene, renderer: WebGLRenderer, signal: AbortSignal): void | Promise<void>;
   dispose(): void;
 }
 export type WorldFactory = (config: WorldConfig, context: WorldBuildContext) => Promise<WorldInstance>;

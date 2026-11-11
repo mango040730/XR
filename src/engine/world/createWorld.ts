@@ -1,3 +1,4 @@
+import type { Texture } from 'three';
 import { Box3, BoxGeometry, DirectionalLight, GridHelper, HemisphereLight, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { CollisionSystem } from '../collision/CollisionSystem';
 import { ModelLoader } from '../assets/ModelLoader';
@@ -9,7 +10,7 @@ export const createWorld: WorldFactory = async (config, { root, signal, progress
   const collision = { floors: config.floors.map(f => ({
     minX: f.center[0] - f.size[0] / 2, maxX: f.center[0] + f.size[0] / 2,
     minZ: f.center[1] - f.size[1] / 2, maxZ: f.center[1] + f.size[1] / 2, y: f.y,
-  })), solids: [] as Box3[] };
+    polygon: f.polygon })), solids: [] as Box3[], maxStepHeight: config.player.maxStepHeight };
   const addBox = (position: [number, number, number], size: [number, number, number], color: string) => {
     const mesh = new Mesh(new BoxGeometry(...size), new MeshStandardMaterial({ color, roughness: 0.82 }));
     mesh.position.fromArray(position);
@@ -60,9 +61,17 @@ export const createWorld: WorldFactory = async (config, { root, signal, progress
     throw new Error(`${config.name}: 시작 위치가 충돌 영역 안에 있거나 바닥 밖입니다.`);
   }
   let disposed = false;
-  return { config, root, collision, dispose: () => {
+  let environment: Texture | null = null;
+  const cleanups: Array<() => void> = [];
+  return { config, root, collision, get environment() { return environment; },
+    prepare: config.prepare ? async (scene, renderer, signal) => {
+      await config.prepare!({ root, scene, renderer, signal, onDispose(cleanup) { if (disposed) cleanup(); else cleanups.push(cleanup); } });
+      environment = scene.environment;
+    } : undefined,
+    dispose: () => {
     if (disposed) return;
     disposed = true;
+    for (const cleanup of cleanups.reverse()) cleanup(); cleanups.length = 0;
     disposeObject(root);
   } };
 };

@@ -1,3 +1,4 @@
+import { insideFloorPolygon } from '../collision/CollisionSystem';
 import { Box3, Ray, Vector3 } from 'three';
 import type { CollisionData, FloorArea, MovementCollision } from '../collision/CollisionSystem';
 
@@ -14,7 +15,7 @@ export class TeleportSystem {
     const reject = (reason: string) => ({ point: target.clone(), valid: false, reason });
     if (![...from.toArray(), ...target.toArray()].every(Number.isFinite)) return reject('유효하지 않은 좌표');
     if (!Number.isFinite(this.config.maxDistance) || this.config.maxDistance <= 0 || from.distanceTo(target) > this.config.maxDistance) return reject('이동 가능 거리 밖입니다');
-    if (Math.abs(from.y - target.y) > 0.01) return reject('현재 단계에서는 같은 높이의 바닥만 지원합니다');
+    if (Math.abs(from.y - target.y) > Math.max(.01,this.data.maxStepHeight??0)) return reject('허용된 바닥 높이 차이를 넘었습니다');
     if (!this.config.areas.some(f => Math.abs(target.y - f.y) < 0.01 && target.x - this.radius >= f.minX
       && target.x + this.radius <= f.maxX && target.z - this.radius >= f.minZ && target.z + this.radius <= f.maxZ)) return reject('텔레포트 허용 영역 밖입니다');
     if (!this.collision.canStand(target, this.radius, height)) return reject('목적지에 벽이나 장애물이 있습니다');
@@ -43,6 +44,7 @@ export class TeleportSystem {
       const t = (floor.y - ray.origin.y) / ray.direction.y;
       if (t <= 0 || t > 30) continue;
       const point = ray.at(t, new Vector3());
+      if (!insideFloorPolygon(floor,point)) continue;
       if (point.x < floor.minX || point.x > floor.maxX || point.z < floor.minZ || point.z > floor.maxZ) continue;
       if (!nearest || point.distanceToSquared(ray.origin) < nearest.distanceToSquared(ray.origin)) nearest = point;
     }

@@ -1,3 +1,4 @@
+import { ensureScreenWorld } from './screenWorld';
 import { FishingHUD } from '../ui/FishingHUD';
 import '../ui/service.css';
 import '../ui/figma/generated.css';
@@ -40,6 +41,7 @@ export class ServiceExperience {
     private previous: Screen = 'my-room';
     private request = 0;
     private review = false;
+    private disposed = false;
     private avatar = new Group();
     private detachDiagnostics?: () => void;
     private draft: Draft = { mode: 'solo', avatar: 'mint', date: '', time: '', place: 'umai', people: ['chang'], month: new Date().getMonth(), year: new Date().getFullYear(), modeRating: 0, peopleRating: 0, ratings: {}, message: '', error: '', progress: '', sensor: '', edit: '' };
@@ -83,7 +85,10 @@ export class ServiceExperience {
             this.syncInput();
         } }, { signal: this.events.signal });
         window.addEventListener('resize', () => this.resize(), { signal: this.events.signal });
-        this.cleanups.push(this.router.changes.subscribe(() => this.render()), this.store.changes.subscribe(() => this.render()), this.engine.worlds.changes.subscribe(state => { this.draft.progress = state.message || state.status; if (this.router.current === 'loading')
+        this.cleanups.push(this.router.changes.subscribe(() => {
+            this.render();
+            void ensureScreenWorld(this.engine,this.router.current,this.store.value.session).then(() => { if (!this.disposed) { this.cardboard.recenter();this.syncInput(); } });
+        }), this.store.changes.subscribe(() => this.render()), this.engine.worlds.changes.subscribe(state => { this.draft.progress = state.message || state.status; if (this.router.current === 'loading')
             this.render(); }), this.engine.interactions.messages.subscribe(message => { this.draft.message = message; if (this.router.current === 'simulation')
             this.render(); }), this.engine.notices.subscribe(message => { this.draft.message = message; this.refreshChrome(); }), this.engine.xr.changes.subscribe(state => { if (state.active) {
             if (this.cardboard.active)
@@ -123,7 +128,6 @@ export class ServiceExperience {
         }
         const data = this.store.value;
         this.router.navigate(!data.signedIn ? 'login' : data.onboarded ? 'my-room' : 'avatar', true);
-        void this.engine.enterWorld('my-room').then(() => { this.cardboard.recenter(); this.syncInput(); });
         if (import.meta.env.DEV && import.meta.env.MODE === 'e2e')
             void import('../dev/engineDiagnostics').then(({ attachEngineDiagnostics }) => { this.detachDiagnostics = attachEngineDiagnostics(this.engine).dispose; });
     }
@@ -455,7 +459,8 @@ export class ServiceExperience {
         this.navigate('simulation');
         this.cardboard.recenter();
     }
-    async dispose(): Promise<void> { this.fishingHUD.dispose(); this.touchControls.dispose(); this.events.abort(); this.cleanups.forEach(fn => fn()); this.detachDiagnostics?.(); this.router.dispose(); this.cardboard.dispose(); this.avatar.removeFromParent(); this.avatar.traverse(n => { if (n instanceof Mesh) {
+    async dispose(): Promise<void> {
+        this.disposed=true; this.fishingHUD.dispose(); this.touchControls.dispose(); this.events.abort(); this.cleanups.forEach(fn => fn()); this.detachDiagnostics?.(); this.router.dispose(); this.cardboard.dispose(); this.avatar.removeFromParent(); this.avatar.traverse(n => { if (n instanceof Mesh) {
         n.geometry.dispose();
         (n.material as MeshStandardMaterial).dispose();
     } }); await this.engine.dispose(); this.shell.remove(); }

@@ -1,3 +1,4 @@
+import { ensureScreenWorld } from './screenWorld';
 import '../ui/service.css';
 import '../ui/figma/fix-generated.css';
 import '../ui/figma-fix.css';
@@ -37,6 +38,7 @@ export class FirstFixExperience {
     private rendered?: Screen;
     private screenEnteredAt = 0;
     private request = 0;
+    private resumableWorld: string | null = null;
     private disposed = false;
     private review = false;
     private draft: Draft = { mode: 'solo', avatar: 'mint', date: '', time: '', place: 'umai', people: participants.map(p => p.id), month: new Date().getMonth(), year: new Date().getFullYear(), modeRating: 0, peopleRating: 0, ratings: {}, message: '', error: '', progress: '', sensor: '', edit: '' };
@@ -69,7 +71,12 @@ export class FirstFixExperience {
         }, { ...options, capture: true });
         this.shell.addEventListener('focusin', () => this.syncInput(), options);
         this.shell.addEventListener('focusout', event => this.syncInput(event.relatedTarget), options);
-        this.cleanups.push(this.router.changes.subscribe(() => this.render()), this.engine.frames.subscribe(({ delta }) => {
+        this.cleanups.push(this.router.changes.subscribe(() => {
+            this.render();
+            void ensureScreenWorld(this.engine,this.router.current,this.store.value.session).then(() => {
+                if (!this.disposed) { this.cardboard.recenter();this.syncInput(); }
+            });
+        }), this.engine.frames.subscribe(({ delta }) => {
             if (this.engine.worlds.state.status !== 'ready' || this.cardboard.active || this.engine.xr.state.active) return;
             const intent = this.gestures.readMovement();
             if (intent.right || intent.forward) this.engine.player.update(intent, delta);
@@ -84,7 +91,6 @@ export class FirstFixExperience {
         }
         const initial = location.hash.slice(1);
         this.router.navigate((!initial || initial === 'loading' || initial === 'simulation' ? 'modes' : initial) as Screen, true);
-        void this.engine.enterWorld('my-room').then(() => { if (!this.disposed) { this.cardboard.recenter(); this.syncInput(); } });
         if (import.meta.env.DEV && import.meta.env.MODE === 'e2e')
             void import('../dev/engineDiagnostics').then(({ attachEngineDiagnostics }) => {
                 if (!this.disposed) this.detachDiagnostics = attachEngineDiagnostics(this.engine).dispose;
@@ -132,8 +138,7 @@ export class FirstFixExperience {
     }
     private closeUI(): void {
         const session = this.store.value.session;
-        const currentWorld = this.engine.worlds.active?.config.id;
-        this.navigate(session && !session.ended && modes.find(mode => mode.id === session.mode)?.world === currentWorld ? 'simulation' : 'my-room');
+        this.navigate(session && !session.ended && modes.find(mode=>mode.id===session.mode)?.world===this.resumableWorld ? 'simulation' : 'my-room');
     }
     private toggleModes(): void {
         if (this.router.current === 'loading') return;
@@ -188,6 +193,7 @@ export class FirstFixExperience {
         await this.engine.enterWorld(world);
         if (request !== this.request || this.disposed) return;
         if (this.engine.worlds.state.status === 'error') { this.notice('공간을 열지 못했어요. 모드를 다시 선택해 주세요.'); return; }
+        if (screen==='simulation') this.resumableWorld=world;
         this.navigate(screen); this.cardboard.recenter();
     }
     private async home(): Promise<void> { this.fishing.cancel(); this.store.finish(); await this.enter('my-room', 'my-room'); }

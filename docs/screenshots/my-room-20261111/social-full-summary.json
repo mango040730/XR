@@ -1,0 +1,11 @@
+{
+  "stats": {
+    "startTime": "2026-11-11T10:40:09.800Z",
+    "duration": 68284.578,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "note": "거리 이동 경로가 실제 새 화분에 막혀 음성 검사 1개를 화분 옆 경로로 재검사"
+}

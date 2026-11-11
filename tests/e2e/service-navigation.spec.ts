@@ -33,13 +33,13 @@ test('home and mode UI allow real pointer lock, walking, looking and wall collis
     // This point is inside the scaled UI frame, in empty space above its controls.
     await page.mouse.click(600, 260);
     await expect.poll(() => page.evaluate(() => document.pointerLockElement?.tagName)).toBe('CANVAS');
-    const start = (await snapshot(page)).player.position[2];
+    await page.mouse.move(600,350);
+    const entryYaw=(await snapshot(page)).player.yaw;
+    await page.mouse.move(600+(entryYaw+Math.PI/2)/.002,350);
     await page.keyboard.down('w');
     try {
-        await expect.poll(async () => (await snapshot(page)).player.position[2]).toBeLessThan(start - .3);
-        await expect.poll(async () => (await snapshot(page)).player.position[2], { timeout: 9000 }).toBeLessThan(-8.45);
-        await page.waitForTimeout(250);
-        expect((await snapshot(page)).player.position[2]).toBeGreaterThanOrEqual(-8.571);
+        await expect.poll(async()=>(await snapshot(page)).player.position[0],{intervals:[30]}).toBeGreaterThan(3.8);
+        await page.waitForTimeout(300);expect((await snapshot(page)).player.position[0]).toBeLessThanOrEqual(3.981);
     } finally { await page.keyboard.up('w'); }
     const yaw = (await snapshot(page)).player.yaw;
     await page.mouse.move(780, 350);
@@ -57,9 +57,9 @@ test('home and mode UI allow real pointer lock, walking, looking and wall collis
     await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(true);
     await page.mouse.move(600, 350);
     const modePose = (await snapshot(page)).player;
-    await page.mouse.move(600 + (modePose.yaw - Math.PI) / .002, 350);
+    await page.mouse.move(600 + (modePose.yaw - Math.PI/2) / .002, 350);
     await page.keyboard.down('w');
-    try { await expect.poll(async () => (await snapshot(page)).player.position[2]).toBeGreaterThan(stopped[2] + .25); }
+    try { await expect.poll(async () => (await snapshot(page)).player.position[0]).toBeLessThan(stopped[0] - .25); }
     finally { await page.keyboard.up('w'); }
     await unlock(page); await screenshot(page, info, 'service-space-walking-modes');
     await click(page, 'mode:team');
@@ -76,7 +76,8 @@ test('rating and booking retain real space movement while modal and text input r
     await expect(page.locator('.service-shell')).toHaveAttribute('data-route', 'simulation');
     await click(page, 'finish');
     await expect(page.locator('.service-shell')).toHaveAttribute('data-route', 'rating');
-    // At the GLB spawn, face its open aisle instead of the nearby wall.
+    // Rating has returned to the new my room; wait for its real GLB before moving.
+    await expect.poll(async()=>(await snapshot(page)).world.activeId).toBe('my-room');
     await page.mouse.click(1190, 10);
     await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(true);
     await page.mouse.move(600, 350);

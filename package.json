@@ -13,7 +13,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "lint": "eslint .",
     "test": "vitest run",
-    "check": "npm run lint && npm test && npm run validate:assets && npm run inspect:avatar && npm run build && npm run server:build",
+    "check": "npm run lint && npm test && npm run validate:assets && npm run inspect:avatar && npm run inspect:my-room && npm run build && npm run server:build",
     "generate:assets": "node scripts/generate-test-glb.mjs",
     "validate:assets": "node scripts/validate-assets.mjs",
     "test:e2e:install": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright install chromium",
@@ -24,9 +24,14 @@
     "generate:social-rooms": "node scripts/export-social-rooms.mjs",
     "inspect:avatar": "node scripts/inspect-avatar.mjs",
     "test:e2e:social": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --config=playwright.social.config.ts",
-    "server:build": "tsc -p tsconfig.server.json"
+    "server:build": "tsc -p tsconfig.server.json",
+    "inspect:my-room": "node scripts/inspect-my-room.mjs"
   },
   "dependencies": {
+    "@react-three/drei": "10.7.7",
+    "@react-three/fiber": "9.4.0",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
     "socket.io": "4.8.4",
     "socket.io-client": "4.8.4",
     "three": "0.187.0"
@@ -35,6 +40,8 @@
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.65.0",
     "@types/node": "26.6.6",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.3",
     "@types/three": "0.187.0",
     "eslint": "10.14.0",
     "gltf-validator": "2.0.0-dev.3.10",

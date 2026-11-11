@@ -1,9 +1,13 @@
+import { materialTextures } from '../assets/materialTextures';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { ACESFilmicToneMapping, Color, Fog, HalfFloatType, Mesh, NoToneMapping, PCFShadowMap, PerspectiveCamera, Scene, SRGBColorSpace, Texture, Vector2, WebGLRenderer, WebGLRenderTarget } from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { renderPixelRatio } from './profile';
+import { fieldOfView, renderPixelRatio } from './profile';
 import type { RenderProfile } from './profile';
 import type { WorldInstance } from '../world/types';
 
@@ -21,6 +25,8 @@ export class Renderer {
   private bloom?:UnrealBloomPass;
   private output?:OutputPass;
   private scenePass?:RenderPass;
+  private ao?:GTAOPass;
+  private fxaa?:ShaderPass;
 
   constructor(host: HTMLElement) {
     this.host = host;
@@ -45,20 +51,27 @@ export class Renderer {
   }
   configure(world:WorldInstance|null):void {
     this.root=world?.root??null;this.profile=world?.config.rendering??{};this.low=false;
-    this.camera.fov=this.profile.fov??70;
+    this.scene.environment=world?.environment??null;this.scene.environmentIntensity=this.profile.environmentIntensity??1;
+    this.camera.fov=fieldOfView(this.profile,this.camera.aspect);
     this.scene.fog=this.profile.fog?new Fog(this.profile.fog.color,this.profile.fog.near,this.profile.fog.far):null;
     this.camera.near=this.profile.near??.05;this.camera.far=this.profile.far??150;
     this.webgl.toneMapping=this.profile.filmic?ACESFilmicToneMapping:NoToneMapping;
     this.webgl.toneMappingExposure=this.profile.exposure??1;
     this.webgl.shadowMap.needsUpdate=true;
-    if(this.profile.bloom&&!this.composer&&!this.softwareGPU){
+    this.disposeEffects();
+    if((this.profile.bloom||this.profile.ao)&&!this.softwareGPU){
       const target=new WebGLRenderTarget(1,1,{type:HalfFloatType,samples:Math.min(2,this.webgl.capabilities.maxSamples)});
       this.composer=new EffectComposer(this.webgl,target);
       this.scenePass=new RenderPass(this.scene,this.camera);this.composer.addPass(this.scenePass);
-      this.bloom=new UnrealBloomPass(new Vector2(1,1),this.profile.bloom,.32,1.15);this.composer.addPass(this.bloom);
+      if(this.profile.ao){
+        this.ao=new GTAOPass(this.scene,this.camera,1,1);this.ao.blendIntensity=this.profile.ao.intensity;
+        this.ao.updateGtaoMaterial({radius:this.profile.ao.radius,distanceExponent:1.5,thickness:.55,scale:1,samples:8});
+        this.ao.updatePdMaterial({lumaPhi:10,depthPhi:3,normalPhi:6,radius:4,rings:2,samples:8});this.composer.addPass(this.ao);
+      }
+      if(this.profile.bloom){this.bloom=new UnrealBloomPass(new Vector2(1,1),this.profile.bloom,.32,1.15);this.composer.addPass(this.bloom);}
       this.output=new OutputPass();this.composer.addPass(this.output);
-    }else if(!this.profile.bloom||this.softwareGPU)this.disposeEffects();
-    if(this.bloom)this.bloom.strength=this.profile.bloom??0;
+      if(this.profile.fxaa){this.fxaa=new ShaderPass(FXAAShader);this.composer.addPass(this.fxaa);}
+    }
     this.resize();
   }
   setQuality(low:boolean):void {
@@ -71,9 +84,11 @@ export class Renderer {
     signal.throwIfAborted();
     const staging=new Scene();staging.add(world.root);
     const fog=world.config.rendering?.fog;staging.fog=fog?new Fog(fog.color,fog.near,fog.far):null;
-    const camera=this.camera.clone();camera.fov=world.config.rendering?.fov??70;camera.near=world.config.rendering?.near??.05;camera.far=world.config.rendering?.far??150;camera.updateProjectionMatrix();camera.position.fromArray(world.config.spawn.position);camera.position.y+=world.config.player.eyeHeight;camera.rotation.set(0,world.config.spawn.yaw,0);camera.updateMatrixWorld(true);
+    const camera=this.camera.clone();camera.fov=fieldOfView(world.config.rendering??{},camera.aspect);camera.near=world.config.rendering?.near??.05;camera.far=world.config.rendering?.far??150;camera.updateProjectionMatrix();camera.position.fromArray(world.config.spawn.position);camera.position.y+=world.config.player.eyeHeight;camera.rotation.set(0,world.config.spawn.yaw,0);camera.updateMatrixWorld(true);
     const previous=this.webgl.toneMapping;
     try {
+      await world.prepare?.(staging,this.webgl,signal);signal.throwIfAborted();
+      staging.environmentIntensity=world.config.rendering?.environmentIntensity??1;
       let compiled:Promise<import('three').Object3D>;
       try {
         this.webgl.toneMapping=world.config.rendering?.filmic?ACESFilmicToneMapping:NoToneMapping;
@@ -82,7 +97,7 @@ export class Renderer {
       }finally{this.webgl.toneMapping=previous;}
       await compiled;signal.throwIfAborted();
       const textures=new Set<Texture>();
-      world.root.traverse(object=>{if(object instanceof Mesh)for(const m of Array.isArray(object.material)?object.material:[object.material])for(const value of Object.values(m))if(value instanceof Texture)textures.add(value);});
+      world.root.traverse(object=>{if(object instanceof Mesh)for(const m of Array.isArray(object.material)?object.material:[object.material])for(const value of materialTextures(m))textures.add(value);});
       for(const texture of textures){signal.throwIfAborted();this.webgl.initTexture(texture);}
     }finally{world.root.removeFromParent();}
   }
@@ -100,15 +115,18 @@ export class Renderer {
   private resize(): void {
     if (this.webgl.xr.isPresenting) return;
     const width = Math.max(1, this.host.clientWidth),height = Math.max(1, this.host.clientHeight);
-    this.webgl.setPixelRatio(renderPixelRatio(window.devicePixelRatio,this.low));
+    this.webgl.setPixelRatio(renderPixelRatio(window.devicePixelRatio,this.low,this.profile.maxPixelRatio));
     this.webgl.setSize(width, height);
     this.composer?.setPixelRatio(this.webgl.getPixelRatio());this.composer?.setSize(width,height);
-    this.camera.aspect = width / height;
+    const ratio=this.webgl.getPixelRatio();
+    this.ao?.setSize(Math.ceil(width*ratio*.5),Math.ceil(height*ratio*.5));
+    this.fxaa?.material.uniforms.resolution.value.set(1/(width*ratio),1/(height*ratio));
+    this.camera.aspect = width / height;this.camera.fov=fieldOfView(this.profile,this.camera.aspect);
     this.camera.updateProjectionMatrix();
   }
   private disposeEffects():void{
-    this.bloom?.dispose();this.output?.dispose();this.scenePass?.dispose();this.composer?.dispose();
-    this.bloom=undefined;this.output=undefined;this.scenePass=undefined;this.composer=undefined;
+    this.ao?.dispose();this.fxaa?.dispose();this.bloom?.dispose();this.output?.dispose();this.scenePass?.dispose();this.composer?.dispose();
+    this.ao=undefined;this.fxaa=undefined;this.bloom=undefined;this.output=undefined;this.scenePass=undefined;this.composer=undefined;
   }
   restoreSize(): void { this.resize(); }
   dispose(): void {

@@ -8,8 +8,8 @@ export interface PeerState {
 export interface Seat { id: string; position: Vec3; yaw: number; stand: Vec3; surfaceHeight: number }
 export interface RoomLayout {
   id: string; name: string; spawn: {position: Vec3; yaw: number};
-  player: {speed: number; radius: number; height: number; eyeHeight: number};
-  floors: Array<{minX:number;maxX:number;minZ:number;maxZ:number;y:number}>;
+  player: {speed: number; radius: number; height: number; eyeHeight: number;maxStepHeight?:number};
+  floors: Array<{minX:number;maxX:number;minZ:number;maxZ:number;y:number;polygon?:Array<[number,number]>}>;
   solids: Array<{min: Vec3; max: Vec3}>; seats: Seat[];
   teleport?:{areas:RoomLayout['floors'];maxDistance:number};
 }

@@ -1,5 +1,25 @@
 # 개발 진행 및 검증 기록
 
+## 마이룸 디자인 2.7.1 및 콘텐츠 외 화면 적용 — 2026-11-11
+
+사용자의 최신 요청에 따라 `마이룸 디자인.zip`에 포함된 완성 `myroom-v2-2.7.1.glb`를 기본 마이룸으로 적용했습니다. 홈·모드 선택·평가·약속과 기타 비콘텐츠 화면은 새 마이룸을 사용하며, 콘텐츠 실행/일시정지/종료 확인은 낚시터·목공방·협력 월드를 사용합니다. 라우터의 화면 정책과 월드 요청을 연결하고 최신 요청 적용·로딩 중 이전 월드 보존·취소/실패 정리를 유지했습니다. 기존 Figma UI와 1인칭·본인 모델 숨김은 유지합니다.
+
+GLB 메시 746개·가구 충돌 그룹 17개·프린트 PNG와 원본 트리플래너 표면 shader·따뜻한 실내등·PMREM 환경·한 번 구운 접촉 그림자·GTAO·정적 배칭을 연결했습니다. 카메라는 기존 엔진을 사용하며 원본 66/72/78도 화면 비율을 반영합니다. 바닥 0.02m와 팔각 플랫폼 0.18m에 맞춘 공통 충돌/작은 단차 및 해당 서버 검증을 연결하고 새 좌석 위치를 내보냅니다. 월드 ID별 엔진 분기와 전역 GPU 캐시는 추가하지 않았습니다. prepare 자원 해제 경계와 shader 텍스처 준비/해제를 추가해 환경 맵과 그림자를 월드 종료 시 정리합니다. [원본 및 통합 범위](../src/worlds/my-room/README.md).
+
+검사 진행: 타입·린트·프론트/서버 빌드·프로덕션 진단 분리·Node 27개 파일/142개 검사 통과. 실제 마이룸 GLB의 Khronos validator는 오류 0/경고 0이며 실제 GLB geometry/extras와 충돌 manifest 동기화 검사도 통과했습니다. 실제 Chromium/Apple M4에서 GLB·표면 재질·화면 전환·WASD·가구 충돌·16cm 단차 오르내리기를 확인했습니다. 전체 브라우저 회귀는 55개 중 52개 통과 후 새 진입 각도와 로딩 대기를 반영한 Cardboard 3개를 포함해 관련 9개를 재실행하여 모두 통과했습니다. 총 55개 시나리오를 최종 확인했으며 실제 단차 왕복·66/78도 데스크톱/모바일 시야각·콘텐츠/평가/약속 배경 분리·프로덕션 진단 분리를 포함합니다. [재검사](screenshots/my-room-20261111/targeted-e2e-summary.json) · [단차 이동](screenshots/my-room-20261111/my-room-platform-step.png) · [모바일](screenshots/my-room-20261111/my-room-mobile.png). 소셜 회귀는 3/4개 통과 후 실제 화분 충돌에 막힌 음성 거리 검사 경로를 화분 옆으로 보정하여 해당 1개도 통과했습니다. 두 독립 브라우저의 실제 GLB 원격 표시·자기 모델 숨김·걷기/인사/착석·좌석 독점·채팅·방 이동·실패 후 복귀·재접속·테스트 마이크 WebRTC 수신/거리 감쇠/음소거/정리를 확인했습니다. 실제 사람 마이크 청음 검사는 아닙니다. [소셜 회귀](screenshots/my-room-20261111/social-full-summary.json) · [음성 재검사](screenshots/my-room-20261111/social-voice-retest.json). [마이룸 화면](screenshots/my-room-20261111/my-room-glb-entry.png) · [원본 화면](screenshots/my-room-20261111/source-welcome.png) · [평가 화면](screenshots/my-room-20261111/my-room-rating.png) · [GLB 검사](screenshots/my-room-20261111/glb-validator.json) · [전체 회귀 기록](screenshots/my-room-20261111/full-e2e-summary.json).
+
+제한·다음 단계: 실제 VR 기기와 휴대폰 센서/성능은 미검증입니다. Pages의 공개 Socket.IO 서버 미설정 제한은 기존과 같습니다. 이전에 제공된 목공방 GLB는 파일 확보/분석 및 미완료 작업 파일을 보존하며, 이번 최신 요청에서 제외한 콘텐츠 공간은 변경하지 않습니다. 최종 브라우저/소셜 회귀 후 GitHub Pages 배포와 공개 주소를 확인합니다.
+
+---
+
+## 수정 목공방 ZIP·GLB 통합 사전 분석 — 2026-11-10
+
+`목공방 수정 디자인.zip`을 안전하게 풀고 world/player/network/store·의존성·진입점과 현재 엔진/아바타/음성 구조를 분석했습니다. ZIP의 새 GlbSpace는 useGLTF/scene.clone(true)를 사용하지만 기본 경로만 지정하며 **실제 목공방 GLB는 ZIP·Downloads·첨부 폴더·현재 프로젝트에서 발견되지 않았습니다**. ZIP의 main도 아직 절차적 Scene에 연결되어 있습니다. 실제 GLB 파일명/노드/bounds/바닥/진입 위치는 미확정이며 사용자에게 실제 파일 경로를 요청했습니다.
+
+현재 앱과 배포는 유지합니다. 재질 보존 요구와 충돌하는 ZIP의 roughness/envMapIntensity 강제 보정, 기존 시스템과 중복되는 React Canvas/PointerLock/Rapier 플레이어·별도 네트워크 프로토콜, clone의 공유 자원 수명 문제를 확인했습니다. [상세 분석과 후속 작업](woodworking-glb-integration-audit.md). 아직 GLB 통합·브라우저·VR 검증을 완료하지 않았으며, 문서만 변경했으므로 앱 검사와 재배포는 실행하지 않았습니다. 다음 단계는 실제 목공방 GLB 확보입니다.
+
+---
+
 ## 목공방 추가 및 모드별 공간 연결 — 2026-11-10
 
 사용자 제공 `목공방 디자인.zip`의 작업대 2개·공구·수납 선반·아치창·숲·조명·목재 재질을 네이티브 Three.js 월드로 옮겼습니다. **혼자 활동해요 → 숲속 목공방**, **친목을 다져요 → 기존 실내 낚시터**로 연결했으며 협력 모드는 기존 GLB 공간을 유지합니다. 새 월드는 config와 registry로 등록하고 엔진의 월드 ID 분기를 추가하지 않았습니다.

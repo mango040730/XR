@@ -21,7 +21,7 @@ export class RoomService {
     this.leave(id);
     room = this.rooms.get(key);
     if (!room) {
-      room={key,layout,collision:new CollisionSystem({floors:layout.floors,solids:layout.solids.map(b=>new Box3(new Vector3(...b.min),new Vector3(...b.max)))}),users:new Map(),messages:[]};
+      room={key,layout,collision:new CollisionSystem({floors:layout.floors,maxStepHeight:layout.player.maxStepHeight,solids:layout.solids.map(b=>new Box3(new Vector3(...b.min),new Vector3(...b.max)))}),users:new Map(),messages:[]};
       this.rooms.set(key,room);
     }
     let position = [...layout.spawn.position] as [number,number,number];
@@ -46,7 +46,7 @@ export class RoomService {
     if(!validPosition(input.position)||typeof input.yaw!=='number'||!Number.isFinite(input.yaw)||state.seatId)return false;
     const dt=Math.max(0,(time-member.at)/1000);member.at=time;member.budget=Math.min(.65,member.budget+dt*room.layout.player.speed*1.3);
     const from=new Vector3(...state.position),to=new Vector3(...input.position),distance=from.distanceTo(to);
-    if(Math.abs(to.y-from.y)>.01||distance>member.budget)return false;
+    if(Math.abs(to.y-from.y)>Math.max(.01,room.layout.player.maxStepHeight??0)||distance>member.budget)return false;
     const result=room.collision.move(from,to.clone().sub(from),room.layout.player.radius,room.layout.player.height);
     if(result.distanceTo(to)>.03)return false;
     member.budget-=distance;state.position=result.toArray();state.yaw=Math.atan2(Math.sin(input.yaw),Math.cos(input.yaw));state.moving=distance>.012;state.updatedAt=time;return true;
@@ -64,7 +64,7 @@ export class RoomService {
     const room=this.roomFor(id),member=room?.users.get(id);if(!room||!member||member.state.seatId||!input||typeof input!=='object')return false;
     const data=input as {position:unknown;yaw:unknown};if(!validPosition(data.position)||typeof data.yaw!=='number'||!Number.isFinite(data.yaw)||this.now()-member.teleportAt<1200)return false;
     const from=new Vector3(...member.state.position),target=new Vector3(...data.position),policy=room.layout.teleport??{areas:room.layout.floors,maxDistance:8},p=room.layout.player;
-    if(from.distanceTo(target)>policy.maxDistance||Math.abs(from.y-target.y)>.01||!policy.areas.some(f=>Math.abs(target.y-f.y)<.01&&target.x-p.radius>=f.minX&&target.x+p.radius<=f.maxX&&target.z-p.radius>=f.minZ&&target.z+p.radius<=f.maxZ))return false;
+    if(from.distanceTo(target)>policy.maxDistance||Math.abs(from.y-target.y)>Math.max(.01,room.layout.player.maxStepHeight??0)||!policy.areas.some(f=>Math.abs(target.y-f.y)<.01&&target.x-p.radius>=f.minX&&target.x+p.radius<=f.maxX&&target.z-p.radius>=f.minZ&&target.z+p.radius<=f.maxZ))return false;
     if(room.collision.move(from,target.clone().sub(from),p.radius,p.height).distanceTo(target)>.001)return false;
     member.state.position=target.toArray();member.state.yaw=Math.atan2(Math.sin(data.yaw),Math.cos(data.yaw));member.state.moving=false;member.state.updatedAt=this.now();member.teleportAt=this.now();member.at=this.now();member.budget=.1;return true;
   }

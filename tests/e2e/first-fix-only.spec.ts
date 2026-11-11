@@ -51,8 +51,8 @@ test('old routes and UI flags never restore the discarded UI; the bare room rema
     await click(page, 'home'); await route(page, 'my-room');
     await expect(page.locator('button:visible,input:visible,a:visible')).toHaveCount(1);
     await page.mouse.click(600, 350); await expect.poll(() => page.evaluate(() => !!document.pointerLockElement)).toBe(true);
-    const before = (await snapshot(page)).player.position[2]; await page.keyboard.down('w');
-    try { await expect.poll(async () => (await snapshot(page)).player.position[2]).toBeLessThan(before - .25); }
+    const before = (await snapshot(page)).player.position; await page.keyboard.down('w');
+    try { await expect.poll(async () => Math.hypot(...(await snapshot(page)).player.position.map((n,i)=>n-before[i]))).toBeGreaterThan(.25); }
     finally { await page.keyboard.up('w'); }
     await page.keyboard.press('Escape'); await expect.poll(() => page.evaluate(() => document.pointerLockElement)).toBe(null);
     await click(page, 'nav:modes'); await route(page, 'modes');
@@ -86,7 +86,7 @@ test('cancelled loading does not reopen a discarded screen after a late model re
     // counter. Check rendered allocations and scene ownership after real loading.
     await renderFrames(page);
     expect((await snapshot(page)).memory).toEqual(memory);
-    expect((await snapshot(page)).models).toEqual([]);
+    expect((await snapshot(page)).models.map(m=>m.url)).toEqual([expect.stringContaining('myroom-v2-2.7.1.glb')]);
     expect((await snapshot(page)).worldRoots).toEqual(['world:my-room']);
     await route(page, 'my-room'); expect((await snapshot(page)).activeRootId).toBe(root);
     await expect(page.locator('button:visible,input:visible,a:visible')).toHaveCount(1);
@@ -97,6 +97,9 @@ test('Cardboard keeps the original four-screen panel without extra toolbars or r
     await page.goto('/?offline=1'); await route(page, 'modes');
     await expect.poll(() => page.evaluate(() => window.__XR_DEBUG__?.snapshot().world.status)).toBe('ready');
     await page.keyboard.press('v'); await expect(page.locator('.first-fix-shell')).toHaveClass(/immersive/);
+    // Look at the panel heading while capturing; a sustained gaze on a mode card correctly enters it.
+    const pitch=(await snapshot(page)).player.pitch;
+    await page.mouse.move(500,300);await page.mouse.down();await page.mouse.move(500,300-(.25-pitch)/.004,{steps:4});await page.mouse.up();
     await page.evaluate(() => document.fonts.ready);
     await page.locator('.fix-frame img').evaluateAll(images => Promise.all(images.map(image => (image as HTMLImageElement).decode())));
     await page.waitForTimeout(250);

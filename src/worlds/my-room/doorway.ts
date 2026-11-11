@@ -2,13 +2,13 @@ import {Box3,Vector3} from 'three';
 import {CollisionSystem} from '../../engine/collision/CollisionSystem';
 import type {WorldConfig} from '../../engine/world/types';
 
-export const doorway={arrival:[2.23,.02,-2.85] as [number,number,number],threshold:[2.23,.02,-3.32] as [number,number,number],inwardYaw:Math.PI,outwardYaw:0};
+export const doorway={approach:[2.23,.02,-1.85] as [number,number,number],arrival:[2.23,.02,-2.85] as [number,number,number],threshold:[2.23,.02,-3.32] as [number,number,number],inwardYaw:Math.PI,outwardYaw:0};
 export function homeCollision(config:WorldConfig):CollisionSystem{
  return new CollisionSystem({floors:config.floors.map(f=>({minX:f.center[0]-f.size[0]/2,maxX:f.center[0]+f.size[0]/2,minZ:f.center[1]-f.size[1]/2,maxZ:f.center[1]+f.size[1]/2,y:f.y,polygon:f.polygon})),solids:config.boxes.filter(b=>b.solid!==false).map(b=>new Box3().setFromCenterAndSize(new Vector3(...b.position),new Vector3(...b.size))),maxStepHeight:config.player.maxStepHeight});
 }
 /** A short collision-checked route through the actual room, including the raised platform. */
 export function doorPath(start:Vector3,config:WorldConfig):Vector3[]{
- const collision=homeCollision(config),radius=config.player.radius,height=config.player.height,target=new Vector3(...doorway.arrival);
+ const collision=homeCollision(config),radius=config.player.radius,height=config.player.height,target=new Vector3(...doorway.approach);
  const reaches=(a:Vector3,b:Vector3)=>collision.move(a,b.clone().sub(a),radius,height).distanceTo(b)<.015;
  if(!collision.canStand(start,radius,height)||!collision.canStand(target,radius,height))throw new Error('방문으로 이동할 수 있는 위치가 아닙니다.');
  if(reaches(start,target))return [start.clone(),target];

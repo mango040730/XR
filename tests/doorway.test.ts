@@ -10,11 +10,14 @@ import {disposeObject} from '../src/engine/assets/disposeObject';
 describe('actual room doorway navigation',()=>{
  it('connects every authored seat exit to the door without crossing furniture or unsupported floors',()=>{
   const collision=homeCollision(myRoom);
-  for(const seat of myRoomSeats){const route=doorPath(new Vector3(...seat.stand),myRoom);expect(route.at(-1)!.toArray()).toEqual(doorway.arrival);
+  for(const seat of myRoomSeats){const route=doorPath(new Vector3(...seat.stand),myRoom);expect(route.at(-1)!.toArray()).toEqual(doorway.approach);
    for(let i=1;i<route.length;i++)expect(collision.move(route[i-1],route[i].clone().sub(route[i-1]),myRoom.player.radius,myRoom.player.height).distanceTo(route[i])).toBeLessThan(.015);
   }
   expect(homeCollision(myRoom).canStand(new Vector3(...doorway.arrival),.22,1.75)).toBe(true);
   expect(homeCollision(myRoom).canStand(new Vector3(...doorway.threshold),.22,1.75)).toBe(true);
+  expect(homeCollision(myRoom).canStand(new Vector3(...doorway.approach),.22,1.75)).toBe(true);
+  // The inward-opening 1.42m leaf must not sweep through the waiting camera/body.
+  expect(Math.hypot(doorway.approach[0]-1.52,doorway.approach[2]+3.385)).toBeGreaterThan(1.42+myRoom.player.radius);
   const inward=new Vector3(0,0,-1).applyAxisAngle(new Vector3(0,1,0),doorway.inwardYaw);expect(inward.z).toBeGreaterThan(.99);
  });
  it('rejects a departure inside solid furniture instead of passing through it',()=>{expect(()=>doorPath(new Vector3(1.65,.02,2.05),myRoom)).toThrow();});

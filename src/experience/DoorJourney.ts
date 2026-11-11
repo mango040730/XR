@@ -42,9 +42,9 @@ export class DoorJourney {
     const a=route[i-1],b=route[i];if(a.distanceToSquared(b)<1e-8)continue;const d=b.clone().sub(a),yaw=Math.atan2(-d.x,-d.z),fromYaw=player.rig.rotation.y;
     await this.animate(Math.max(.25,a.distanceTo(b)/2.7),t=>{player.place(a.clone().lerp(b,ease(t)),angle(fromYaw,yaw,Math.min(1,t*3)),1.65);},signal);
    }
-   const fromYaw=player.rig.rotation.y;await this.animate(.55,t=>{player.place(new Vector3(...doorway.arrival),angle(fromYaw,0,ease(t)),1.65);setPortalOpen(root,ease(t));},signal);
-   await this.animate(.48,t=>{player.place(new Vector3(...doorway.arrival).lerp(new Vector3(...doorway.threshold),ease(t)),0,1.65);this.veil.style.opacity=String(ease(t));},signal);
-  }else{await this.animate(.22,t=>{setPortalOpen(root,t);this.veil.style.opacity=String(t);},signal);}
+   const fromYaw=player.rig.rotation.y;await this.animate(.55,t=>{player.place(new Vector3(...doorway.approach),angle(fromYaw,0,ease(t)),1.65);setPortalOpen(root,ease(t));},signal);
+   await this.animate(.7,t=>{player.place(new Vector3(...doorway.approach).lerp(new Vector3(...doorway.threshold),ease(t)),0,1.65);this.veil.style.opacity=String(ease(t));},signal);
+  }else{await this.animate(.22,t=>{this.veil.style.opacity=String(t);},signal);}
  }
  async cover(message:string):Promise<void>{const signal=this.begin(message);await this.animate(.18,t=>this.veil.style.opacity=String(t),signal);}
  async reveal():Promise<void>{

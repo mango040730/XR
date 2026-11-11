@@ -1,5 +1,13 @@
 # 개발 진행 및 검증 기록
 
+## 볼링장 과도한 밝기와 전등 번짐 완화 — 2026-11-11
+
+첨부 화면에서 바닥·테이블이 희게 날아가는 문제를 볼링장 좌석 시점에서 재현했습니다. 볼링장 전용 preset의 노출(1.12→.95), 좌석 주광(220→90)/면광원(1.55→.85), 레인/환경/패브릭 보조광을 낮췄습니다. 전등 발광을2.5→1.15, bloom 강도를.105→.035로 줄이고 적용 문턱을2.4로 높여 바닥의 번짐을 억제했습니다. 실제 GLB·색상·그림자·이동/충돌·다른 공간은 변경하지 않습니다.
+
+typecheck와 build가 통과했으며 실제 Chromium/Apple M4에서 입장/좌석 화면을 전후 비교했습니다. 하단 바닥 영역(화면 X12~88%, Y72~97%)의 min(RGB)≥242 픽셀 비율이 수정 전30.97%에서 수정 후0%로 줄었고, 평균 표시 픽셀 밝기는229.7→177.9로 바뀌었습니다. 이는 해당 시점/화면 영역의 지표이며 전체 공간의 물리적 조도를 뜻하지 않습니다. 과도한 밝기를 재현하는 새 브라우저 검사와 실제 입장·키보드 이동·종료 순간 평가·재입장 검사2개가 모두 통과했습니다. [수정 전](screenshots/bowling-lighting-20261111/before-seating.png) · [수정 후](screenshots/bowling-lighting-20261111/after-seating.png) · [입장 후](screenshots/bowling-lighting-20261111/after-entry.png) · [이전 측정](screenshots/bowling-lighting-20261111/before-measurement.json) · [변경 후 측정](screenshots/bowling-lighting-20261111/after-measurement.json) · [브라우저 회귀](screenshots/bowling-lighting-20261111/e2e-summary.json). 최종 npm run check도 통과했습니다(린트·타입 검사·Node28개 파일/146개 검사·GLB 검사·프론트/서버 빌드·프로덕션 진단 분리). 배포 검증은 진행 중입니다. 실제 VR 기기는 미검증입니다.
+
+---
+
 ## 협력 모드에 첨부 볼링장 공간 연결 — 2026-11-11
 
 `볼링장 디자인.zip`의 실제 `retro_bowling_alley.glb`를 `public/assets/models/bowling/`에 배치하고 새 `bowling` 월드를 registry에 등록했습니다. `협력하며 즐겨요`를 누르면 기존 GLB 테스트 방 대신 4레인 볼링장으로 진입합니다. 기존 마이룸·목공방·낚시터는 유지합니다. 새 게임·투구·점수·UI·백엔드 기능은 추가하지 않았습니다.

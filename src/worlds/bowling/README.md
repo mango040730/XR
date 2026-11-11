@@ -5,8 +5,12 @@
 - 입력 ZIP: `볼링장 디자인.zip`, SHA-256 `e2e55a9cf861145ae2fb561e189c3d64ad2c35e9bc47d512c142f0de1556cbd2`.
 - 실제 자산: `public/assets/models/bowling/retro_bowling_alley.glb`, 7,622,404바이트, SHA-256 `a184d7da0a25a83039a8ca950225a5f55c545c8630467cdbc32aacd7bbc6e603`.
 - 원본 미터 단위·Y-up·좌표·재질·내장 PNG를 유지합니다. 4개 레인·40개 핀·14개 공·8개 목재 트러스·27개 펜던트, 삼각형 184,020개입니다. 전체 bounds는 약 [-9.24,-.30,-32.24]~[9.24,7.007,.24], 시작 위치 [0,0,-1]이며, 진입부 실제 체커 표면은 Y=.003입니다.
-- ZIP의 `materials.js`, `lighting.js`, `lighting-preset.js`, 천장 인스턴싱을 현재 Three.js 타입과 월드 수명에 맞춰 옮겼습니다. 목재·천·매끈한 공 재질, 환경 맵, 따뜻한 면광원/7개 그림자 광원, ACES 노출1.12와 약한 bloom을 적용합니다. 원본 r180 전용 vendor는 복사하지 않으며, 설치된 r187에서 삭제된 PCFSoftShadowMap 대신 PCFShadowMap을 사용합니다.
+- ZIP의 `materials.js`, `lighting.js`, `lighting-preset.js`, 천장 인스턴싱을 현재 Three.js 타입과 월드 수명에 맞춰 옮겼습니다. 목재·천·매끈한 공 재질, 환경 맵, 따뜻한 면광원/7개 그림자 광원, ACES와 약한 bloom을 적용합니다. 원본 r180 전용 vendor는 복사하지 않으며, 설치된 r187에서 삭제된 PCFSoftShadowMap 대신 PCFShadowMap을 사용합니다.
 - `navigation.json`의 이동 영역 4개와 충돌 박스 83개를 공통 CollisionSystem에 연결합니다. 인접 영역의 안쪽에 연결용 바닥을 두어 캡슐 반경 때문에 바닥 경계에서 막히는 문제를 방지합니다. 레인 내부와 벽·가구는 통과할 수 없습니다. 눈높이는 기존 1인칭 1.65m를 사용합니다.
 - 기존 renderer/카메라/입력/XR/평가 화면을 사용합니다. ZIP의 별도 UI·OrbitControls·PointerLock·VRButton·개발 진단 전역은 가져오지 않습니다. 마우스 잠금 없이 WASD·방향키로 즉시 이동하고 드래그로 둘러봅니다.
 - GLTFLoader는 요청마다 독립 자산을 로드합니다. 실패·취소 시 후보를 정리하고 이전 공간을 유지합니다. 환경 맵·인스턴스·geometry/material/texture/shadow map은 월드 퇴장 때 정리합니다. 새 백엔드·계정·멀티플레이/음성 기능이나 의존성은 추가하지 않습니다. 기존 서버의 방/충돌 카탈로그만 새 월드를 포함하도록 내보냅니다.
 - `npm run inspect:bowling`은 원본 해시·GLTFLoader geometry·개체 수·바닥·Khronos 오류/경고를 확인합니다. 브라우저 검사는 수정하지 않은 GLB/내장 이미지를 실제로 로드합니다. 실제 VR 기기 검증은 별도입니다.
+
+## 조명 보정 v5 — 2026-11-11
+
+과하게 밝던 바닥/테이블을 줄이기 위해 노출은1.12→.95, 좌석 주광은220→90, 좌석 면광원은1.55→.85로 낮췄습니다. 레인 주광/보조광·환경광·패브릭 보조광도 완화하고, 전등 발광은2.5→1.15, bloom은.105→.035/threshold2.4로 조정했습니다. 색상·그림자·모델·다른 공간 설정은 유지합니다. 실제 브라우저에서 입장과 좌석 시점, 이동/평가/재입장을 확인합니다. 하단 바닥 영역의 밝은 픽셀(min RGB≥242) 비율과 화면을 전후 비교하며, 실제 VR 기기는 별도 확인이 필요합니다.

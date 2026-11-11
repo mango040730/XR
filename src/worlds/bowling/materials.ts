@@ -89,7 +89,7 @@ export function tuneBowlingMaterials(model:THREE.Group, renderer:THREE.WebGLRend
         m.metalness = 0;
       } else if (/PinIvory/.test(name)) m.roughness = 0.36;
       else if (/roof deck/.test(name)) m.roughness = 0.87;
-      if (/diffuser/i.test(name)) m.emissiveIntensity = 2.5;
+      if (/diffuser/i.test(name)) m.emissiveIntensity = preset.materials.diffuserEmission;
       for (const key of ['map', 'aoMap', 'roughnessMap', 'bumpMap'] as const)
         if (m[key]) m[key].anisotropy = maxAnisotropy;
       m.needsUpdate = true;

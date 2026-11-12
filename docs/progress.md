@@ -10,7 +10,7 @@ Figma 연결 페이지의 `115:496`(날짜/시간), `115:563`(장소), `115:704`
 
 [Figma 날짜](screenshots/appointment-ui-20261112/figma-date.png) · [Figma 장소](screenshots/appointment-ui-20261112/figma-place.png) · [Figma 완료](screenshots/appointment-ui-20261112/figma-done.png) · [원본 에셋/치수](screenshots/appointment-ui-20261112/assets.json) · [첫 회귀](screenshots/appointment-ui-20261112/initial-e2e-summary.json) · [완료/타이머 재검사](screenshots/appointment-ui-20261112/retest-e2e-summary.json) · [프로덕션 재검사](screenshots/appointment-ui-20261112/production-retest-summary.json) · [소셜 회귀](screenshots/appointment-ui-20261112/social-summary.json).
 
-제한·다음 단계: 실제 VR 헤드셋·휴대폰 센서는 미검증입니다. 기존 세로 모바일 패널 축소와 공개 서버 미설정 제한은 유지됩니다. 다음 단계는 현재 로컬5173과 Pages에서 최신 화면 및 자동/수동 복귀를 최종 확인하는 것입니다.
+제한·다음 단계: 실제 VR 헤드셋·휴대폰 센서는 미검증입니다. 기존 세로 모바일 패널 축소와 공개 서버 미설정 제한은 유지됩니다. 코드 커밋 `043cef13365b1a4fe3314883ebe41a5d20d73e97`를 반영한 [Pages 실행 43139158264](https://github.com/mango040730/XR/actions/runs/43139158264)의 Linux check·빌드·게시가 모두 success로 완료됐습니다. 현재 로컬5173과 실제 공개 사이트에서 날짜·장소·완료3개 최신 프레임의 원본 에셋, 실제 약속 저장, 10초 자동 복귀, 상단 버튼의 즉시 복귀, 수동 퇴장 후 다른 화면에서 이전 타이머 취소를 확인했습니다. 공개 관찰 시점은 약10.3초였으며 폴링 시간을 포함합니다. 페이지/요청 오류0개이고 프로덕션 진단 전역도 없습니다. [공개 날짜](screenshots/appointment-ui-20261112/live-date.png) · [공개 장소](screenshots/appointment-ui-20261112/live-place.png) · [공개 완료](screenshots/appointment-ui-20261112/live-done.png) · [자동 복귀](screenshots/appointment-ui-20261112/live-automatic-home.png) · [공개 검사](screenshots/appointment-ui-20261112/live-verification.json) · [배포 기록](screenshots/appointment-ui-20261112/github-deployment.json). 다음 단계는 실기기에서 새 UI의 시인성과 타이머 복귀를 확인하는 것입니다.
 
 ---
 

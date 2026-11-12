@@ -6,7 +6,7 @@
 
 검사: `npm run typecheck`와 `npm run check` 통과(린트·Node29개 파일/152개·자산/원본 GLB 검사·타입·프론트/서버 빌드·프로덕션 진단 분리). 실제 Chromium 회귀17개가 모두 통과했습니다. 새 사용자·오프라인 상태의 사람 아이콘 진입, 평가 완료 시 별점 저장과 마이룸 문 앞 복귀, 약속 화면이 자동 표시되지 않는 상태, 사람 아이콘 클릭 후 기존 약속 생성, 종료 배경/안내·단차·터치/모바일을 확인했습니다. [브라우저 회귀](screenshots/appointment-entry-20261112/e2e-summary.json).
 
-실제 VR 헤드셋은 미검증입니다. 다음 단계는 같은 흐름의 공개 Pages 반영 및 실제 공개 사이트 확인입니다.
+실제 VR 헤드셋은 미검증입니다. 코드 커밋 `ef845e134099b6729e807b3a5b5dea14957db3cc`를 반영한 [Pages 실행 43131940432](https://github.com/mango040730/XR/actions/runs/43131940432)의 Linux check·빌드·게시가 모두 success로 완료됐습니다. 현재 로컬5173과 실제 공개 사이트에서 평가1 기본·평가2 미리보기·종료 배경 유지·별점 저장·평가 완료 후 마이룸 복귀·24px 사람 아이콘 클릭 후 약속잡기 이동을 확인했습니다. 페이지/요청 오류0개이며 프로덕션 진단 전역도 없습니다. [공개 마이룸 복귀](screenshots/appointment-entry-20261112/live-returned-home.png) · [사람 아이콘으로 연 약속잡기](screenshots/appointment-entry-20261112/live-appointment-from-people.png) · [공개 검사](screenshots/appointment-entry-20261112/live-verification.json) · [배포 기록](screenshots/appointment-entry-20261112/github-deployment.json). 다음 단계는 사용자가 제공할 세부 UI에 맞춘 진입 대상 조정입니다.
 
 ---
 
@@ -20,7 +20,7 @@
 
 검사 진행: `npm run typecheck`, `npm run build`, 최종 `npm run check` 통과(린트·Node29개 파일/152개·자산 검사·타입·프론트/서버 빌드·프로덕션 진단 분리). 최초 관련 브라우저15개 중13개가 통과했고, 새 저장 검사에서 잘못 사용한 저장소 키와 M 복귀 검사에서 빠진 실제 월드 준비 대기를 수정한 후 최종 관련 브라우저21개가 모두 통과했습니다. 원본 별 SVG25개 슬롯의 실제 치수/파일 존재, 두 미리보기의 카드 위치, 기본 평가1의 별점/완료 조건·저장과 종료 배경 유지, 기존 모드 입장·마이룸 복귀·모바일·프로덕션 진단 분리를 확인했습니다. [최종 브라우저 검사](screenshots/figma-rating-20261112/final-e2e-summary.json) · [평가1 구현](screenshots/figma-rating-20261112/rating-reference-115-403.png) · [평가2 구현](screenshots/figma-rating-20261112/rating-reference-115-442.png) · [콘텐츠 평가](screenshots/figma-rating-20261112/rating1-live.png). [평가1 원본](screenshots/figma-rating-20261112/figma-rating1.png) · [평가2 원본](screenshots/figma-rating-20261112/figma-rating2.png) · [초기 검사](screenshots/figma-rating-20261112/initial-e2e-summary.json).
 
-제한·다음 단계: 실제 VR 헤드셋·센서 성능은 미검증입니다. 기존 세로 모바일 패널 축소와 공개 실시간 서버 제한은 유지합니다. 다음 단계는 브라우저 재검사 완료 후 Pages 배포와 실제 공개 평가 화면 확인입니다.
+제한·다음 단계: 실제 VR 헤드셋·센서 성능은 미검증입니다. 기존 세로 모바일 패널 축소와 공개 실시간 서버 제한은 유지합니다. 이 평가 UI는 `cb91aaa`로 Pages에 반영됐으며, 실제 공개 검증은 위의 후속 약속잡기 진입 변경 기록에 함께 포함했습니다.
 
 ---
 

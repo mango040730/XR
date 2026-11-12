@@ -1,0 +1,90 @@
+{
+  "id": 43131940432,
+  "head_sha": "ef845e134099b6729e807b3a5b5dea14957db3cc",
+  "status": "completed",
+  "conclusion": "success",
+  "html_url": "https://github.com/mango040730/XR/actions/runs/43131940432",
+  "created_at": "2026-11-12T01:04:45Z",
+  "updated_at": "2026-11-12T01:05:53Z",
+  "jobs": [
+    {
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check out current source",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set up Node.js",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned dependencies",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate and build current project",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Configure Pages",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload built website",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set up Node.js",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Check out current source",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "deploy",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Publish website",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ]
+}

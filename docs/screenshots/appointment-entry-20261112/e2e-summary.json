@@ -1,0 +1,1054 @@
+{
+  "config": {
+    "argv": [
+      "/usr/local/bin/node",
+      "/Users/gimlyeogyeong/Downloads/공간 실험/node_modules/.bin/playwright",
+      "test",
+      "tests/e2e/figma-rating.spec.ts",
+      "tests/e2e/first-fix-only.spec.ts",
+      "tests/e2e/my-room.spec.ts",
+      "tests/e2e/no-connection-placeholder.spec.ts",
+      "tests/e2e/figma-mode-simulation.spec.ts",
+      "tests/e2e/unlocked-navigation.spec.ts"
+    ],
+    "configFile": "/Users/gimlyeogyeong/Downloads/공간 실험/playwright.config.ts",
+    "rootDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [
+          "production.spec.ts",
+          "social.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "production-chromium",
+        "name": "production-chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "production.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "snapshotDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [
+          "production.spec.ts",
+          "social.spec.ts"
+        ],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 30000,
+        "use": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.8127.18 Safari/537.36",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium",
+          "channel": "chromium",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "launchOptions": {
+            "args": []
+          },
+          "baseURL": "http://127.0.0.1:4173"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      },
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "production-chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "snapshotDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [],
+        "testMatch": "production.spec.ts",
+        "timeout": 30000,
+        "use": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.8127.18 Safari/537.36",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium",
+          "channel": "chromium",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "launchOptions": {
+            "args": []
+          },
+          "baseURL": "http://127.0.0.1:4174"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "production-chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "figma-mode-simulation.spec.ts",
+      "file": "figma-mode-simulation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "updated Figma references preserve every original asset and its rendered geometry",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2531,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:01:05.426Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "updated-reference-115-330",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-e31f4-t-and-its-rendered-geometry-chromium/attachments/updated-reference-115-330-06062dd22a1dfcf5a4151db4f22fc3305babaf10.png"
+                    },
+                    {
+                      "name": "updated-reference-115-855",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-e31f4-t-and-its-rendered-geometry-chromium/attachments/updated-reference-115-855-98a1cb195181a2ced79bd972ab5127bd6ccbe26d.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-e31f4-t-and-its-rendered-geometry-chromium/attachments/browser-diagnostics-52bc95c2e4cba9717ee1475b8d0368b8c6f0890d.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "21556d710db358efd8f4-cd5e2650b0edae45d68e",
+          "file": "figma-mode-simulation.spec.ts",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "simulation frame appears only after successful mode entry and disappears on rating or home",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15845,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:01:08.664Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "updated-live-modes",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/updated-live-modes-404caf98b46006e237e125c0719fa13f1f05d840.png"
+                    },
+                    {
+                      "name": "updated-simulation-solo",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/updated-simulation-solo-c8d9a73757cd216211ce5f730826bea3ccfa20dd.png"
+                    },
+                    {
+                      "name": "updated-simulation-social",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/updated-simulation-social-d4d6752e1fe976f4ce0df576c82de1326f68e214.png"
+                    },
+                    {
+                      "name": "updated-simulation-team",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/updated-simulation-team-35c65969d8e47a99cfe5197c2c13ad39961e3488.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-simu-42f76-isappears-on-rating-or-home-chromium/attachments/browser-diagnostics-5a76df2c6e2b0113cc567aff1ae585a5d01b44a0.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "21556d710db358efd8f4-8bf8e812961027302bd0",
+          "file": "figma-mode-simulation.spec.ts",
+          "line": 37,
+          "column": 1
+        },
+        {
+          "title": "updated mobile frame keeps chat, microphone and return controls inside the viewport",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6068,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:01:24.519Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "updated-simulation-mobile",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-264b2-ontrols-inside-the-viewport-chromium/attachments/updated-simulation-mobile-14cdde62efaff40cb3690ad878ec4a90b09191ac.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-mode-simulation-upda-264b2-ontrols-inside-the-viewport-chromium/attachments/browser-diagnostics-ae67996c9acf3fd99f030249e8d77272c63c45d3.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "21556d710db358efd8f4-98366cd30b1ddbd86976",
+          "file": "figma-mode-simulation.spec.ts",
+          "line": 70,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "figma-rating.spec.ts",
+      "file": "figma-rating.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "both Figma rating layouts retain their original stars, geometry and separate preview identities",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1762,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:01:30.608Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "rating-reference-115-403",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-rating-both-Figma-ra-18027-separate-preview-identities-chromium/attachments/rating-reference-115-403-ca665e238469b72f56f6fb8b914967762d058154.png"
+                    },
+                    {
+                      "name": "rating-reference-115-442",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-rating-both-Figma-ra-18027-separate-preview-identities-chromium/attachments/rating-reference-115-442-65898aa2f86698451aff3d83a74a5d6fdeaac8b5.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-rating-both-Figma-ra-18027-separate-preview-identities-chromium/attachments/browser-diagnostics-174ad7d9aa418e8b6aebc307ff2ea76549e5443c.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8b9ee3f1e425a2fb3926-250d4edccc4d123f5e63",
+          "file": "figma-rating.spec.ts",
+          "line": 5,
+          "column": 1
+        },
+        {
+          "title": "live evaluation defaults to rating1, preserves the captured content, and saves only the two required ratings",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10230,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:01:32.378Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "rating1-live",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-rating-live-evaluati-51074-ly-the-two-required-ratings-chromium/attachments/rating1-live-c0728304345117b6196008f64f4593b423ac4cf0.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-rating-live-evaluati-51074-ly-the-two-required-ratings-chromium/attachments/browser-diagnostics-c1f58aff6ce49a06ad17cd28ad3b4e9933c56f7d.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8b9ee3f1e425a2fb3926-45aa938c5135fae610fe",
+          "file": "figma-rating.spec.ts",
+          "line": 20,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "first-fix-only.spec.ts",
+      "file": "first-fix-only.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "fresh users see only the four first-fix screens through mode, rating and booking",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9408,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:01:42.628Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "first-fix-only-modes",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-fresh-users-c794f-ugh-mode-rating-and-booking-chromium/attachments/first-fix-only-modes-99308bbf5cefc71dde8658c76b330b8d6d4ed8a9.png"
+                    },
+                    {
+                      "name": "first-fix-minimal-simulation",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-fresh-users-c794f-ugh-mode-rating-and-booking-chromium/attachments/first-fix-minimal-simulation-b7ce66cd8bc36cb9f3cd012808e8b65084f47a4a.png"
+                    },
+                    {
+                      "name": "first-fix-only-rating",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-fresh-users-c794f-ugh-mode-rating-and-booking-chromium/attachments/first-fix-only-rating-bfd38ce4a76db386274c1530cf2183730f2d0191.png"
+                    },
+                    {
+                      "name": "first-fix-only-date",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-fresh-users-c794f-ugh-mode-rating-and-booking-chromium/attachments/first-fix-only-date-f386e4196620f20791ea69374c90ff325487a520.png"
+                    },
+                    {
+                      "name": "first-fix-only-place",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-fresh-users-c794f-ugh-mode-rating-and-booking-chromium/attachments/first-fix-only-place-d9867221549971fba60f45e61cbf74a158528255.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-fresh-users-c794f-ugh-mode-rating-and-booking-chromium/attachments/browser-diagnostics-84de523601c24565612e0bb26a1b5f4cfce12b71.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c802f7f9ef746cc232d9-0bfc948be793579d7a7e",
+          "file": "first-fix-only.spec.ts",
+          "line": 12,
+          "column": 1
+        },
+        {
+          "title": "old routes and UI flags never restore the discarded UI; the mode-selection home remains walkable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4769,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:01:52.044Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-old-routes--919b1-ction-home-remains-walkable-chromium/attachments/browser-diagnostics-43d366a65a03d50b51f39c9e9b05b16b6baa1c41.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c802f7f9ef746cc232d9-18315660793c343788c5",
+          "file": "first-fix-only.spec.ts",
+          "line": 46,
+          "column": 1
+        },
+        {
+          "title": "failed model loading keeps the previous world and uses the original notification",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5436,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:01:56.825Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-failed-mode-6ef71-s-the-original-notification-chromium/attachments/browser-diagnostics-6d67070bc9fae266be781de133fc666a2bfd571b.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c802f7f9ef746cc232d9-b9368965f78373347e02",
+          "file": "first-fix-only.spec.ts",
+          "line": 62,
+          "column": 1
+        },
+        {
+          "title": "cancelled loading does not reopen a discarded screen after a late model response",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7324,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:02:02.272Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-cancelled-l-7ea1e-after-a-late-model-response-chromium/attachments/browser-diagnostics-1a9f1a358937572b4a4218669e0a8a81b9fbea12.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c802f7f9ef746cc232d9-f59303c9f492dee02c22",
+          "file": "first-fix-only.spec.ts",
+          "line": 71,
+          "column": 1
+        },
+        {
+          "title": "Cardboard keeps the original four-screen panel without extra toolbars or reticle",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2435,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:02:09.615Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "first-fix-only-cardboard",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-Cardboard-k-5cdea-t-extra-toolbars-or-reticle-chromium/attachments/first-fix-only-cardboard-c3eaa716cc3e81a4736dfed997a745d451ae4ce3.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-Cardboard-k-5cdea-t-extra-toolbars-or-reticle-chromium/attachments/browser-diagnostics-309598e1ed70e9a80e2fedc93ac52715ac20229f.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c802f7f9ef746cc232d9-5530dc2758dda3a7028e",
+          "file": "first-fix-only.spec.ts",
+          "line": 95,
+          "column": 1
+        },
+        {
+          "title": "touch gestures move, cancel and reopen the original menu without any movement widgets",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4228,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:02:12.082Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "first-fix-only-mobile",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-touch-gestu-5c462-ithout-any-movement-widgets-chromium/attachments/first-fix-only-mobile-30a4aaec735fe047bcdf9f8af0828be3fcfc1dc6.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-touch-gestu-5c462-ithout-any-movement-widgets-chromium/attachments/browser-diagnostics-10f0599ea1fe6cfc97782043b01e026866dc55bf.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c802f7f9ef746cc232d9-942a4afc653905950b7b",
+          "file": "first-fix-only.spec.ts",
+          "line": 111,
+          "column": 1
+        },
+        {
+          "title": "termination notice dismisses once per rating visit and never restarts on star selection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 22379,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:02:16.335Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "first-fix-rating-notice-dismissed",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-termination-1066a--restarts-on-star-selection-chromium/attachments/first-fix-rating-notice-dismissed-7b949f82903fb7987c6c592764f9c1f7066c6511.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-termination-1066a--restarts-on-star-selection-chromium/attachments/browser-diagnostics-76d1a0312081b26556e5951e57bd506c9bc96937.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c802f7f9ef746cc232d9-ac088b80b25b9fba4c4f",
+          "file": "first-fix-only.spec.ts",
+          "line": 132,
+          "column": 1
+        },
+        {
+          "title": "portrait users start at the mode-selection home and enter content without an extra navigation pill",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6060,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:02:38.729Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "first-fix-home-mobile",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-portrait-us-afa25-ut-an-extra-navigation-pill-chromium/attachments/first-fix-home-mobile-733afb84ca05c2fb0dfde0b6674247e6a85bd770.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/first-fix-only-portrait-us-afa25-ut-an-extra-navigation-pill-chromium/attachments/browser-diagnostics-9c86d73b01a453b3505d142f2117543b2e46122b.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "c802f7f9ef746cc232d9-edb008e09d05276316b3",
+          "file": "first-fix-only.spec.ts",
+          "line": 148,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "my-room.spec.ts",
+      "file": "my-room.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "new GLB my room surrounds all non-content screens and content worlds still load separately",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 100000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 18960,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:02:44.812Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "my-room-glb-entry",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/my-room-new-GLB-my-room-su-02ddf-orlds-still-load-separately-chromium/attachments/my-room-glb-entry-8872dab781637030063acbd4c4c96d846ccede61.png"
+                    },
+                    {
+                      "name": "content-moment-rating",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/my-room-new-GLB-my-room-su-02ddf-orlds-still-load-separately-chromium/attachments/content-moment-rating-4e47e867b14dd76c7cfda6208c750290e77e04e8.png"
+                    },
+                    {
+                      "name": "my-room-appointment",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/my-room-new-GLB-my-room-su-02ddf-orlds-still-load-separately-chromium/attachments/my-room-appointment-3b726acec2b73e92881cb7e511b32ba51e5984c7.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/my-room-new-GLB-my-room-su-02ddf-orlds-still-load-separately-chromium/attachments/browser-diagnostics-590a71dda82f45fa90368f07daef98b2208fff47.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fc376181229c9e83b044-cc5314439ef245fb8b46",
+          "file": "my-room.spec.ts",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "real keyboard movement steps onto the clipped platform and back to the oak floor",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6856,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:03:03.797Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "my-room-platform-step",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/my-room-real-keyboard-move-71d40-m-and-back-to-the-oak-floor-chromium/attachments/my-room-platform-step-0324737245a4059196f6b2693041910ea272e387.png"
+                    },
+                    {
+                      "name": "my-room-mobile",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/my-room-real-keyboard-move-71d40-m-and-back-to-the-oak-floor-chromium/attachments/my-room-mobile-0a8434a790ceb1d528c39b5b79e4c54e53df1484.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/my-room-real-keyboard-move-71d40-m-and-back-to-the-oak-floor-chromium/attachments/browser-diagnostics-ea9e33fe1d991c0671dc68036cae92f79213e5d5.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fc376181229c9e83b044-8a0e2efae82f1ce8c241",
+          "file": "my-room.spec.ts",
+          "line": 29,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "no-connection-placeholder.spec.ts",
+      "file": "no-connection-placeholder.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "pre-entry connection placeholders never appear on home, content, rating or booking pages",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7512,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:03:10.677Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/no-connection-placeholder--28cd0-ent-rating-or-booking-pages-chromium/attachments/browser-diagnostics-47094d60a0b7a2465e9eefbd0d651059d8d7c960.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0a843b8608b57a594054-a0c871da4c1baf9274dd",
+          "file": "no-connection-placeholder.spec.ts",
+          "line": 2,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "unlocked-navigation.spec.ts",
+      "file": "unlocked-navigation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "moves immediately, looks only on drag, and keeps the cursor free through rating",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10011,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:03:18.208Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "new-atelier-live",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/unlocked-navigation-moves--ff9dd--cursor-free-through-rating-chromium/attachments/new-atelier-live-e8b16bad3d1fbcc33e667a6f38036674e87bb656.png"
+                    },
+                    {
+                      "name": "new-atelier-frozen-rating",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/unlocked-navigation-moves--ff9dd--cursor-free-through-rating-chromium/attachments/new-atelier-frozen-rating-2a6a88819d385539454adb02a7c93ef75b3014ac.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/unlocked-navigation-moves--ff9dd--cursor-free-through-rating-chromium/attachments/browser-diagnostics-0150b623b43ba74269c34a2bcc902ba6c76ce21f.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3e5f75e57288b75c8488-94e43c21aa944ec6ee3c",
+          "file": "unlocked-navigation.spec.ts",
+          "line": 3,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-12T01:00:59.648Z",
+    "duration": 148926.057,
+    "expected": 17,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -200,7 +200,7 @@ export class FirstFixExperience {
             if (name === 'rate') {
                 const people = this.store.value.session?.participants || this.draft.people;
                 this.store.rate(this.draft.modeRating, this.draft.peopleRating, Object.fromEntries(people.map(id => [id, this.draft.peopleRating])));
-                this.draft.people = [...people]; this.navigate('appointment-date'); return;
+                this.draft.people = [...people]; void this.home(); return;
             }
             if (name === 'date') this.draft.date = value;
             else if (name === 'time') this.draft.time = value;

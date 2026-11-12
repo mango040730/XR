@@ -18,7 +18,7 @@ test('new GLB my room surrounds all non-content screens and content worlds still
  await screenshot(page,info,'content-moment-rating');
  const root=(await snapshot(page)).activeRootId;
  await click(page,'mode-rating:4');await click(page,'people-rating:5');await click(page,'rate');
- await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','appointment-date');await expect.poll(async()=>(await snapshot(page)).world.activeId).toBe('my-room');expect((await snapshot(page)).activeRootId).not.toBe(root);
+ await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','modes',{timeout:40000});await page.getByRole('button',{name:'약속잡기',exact:true}).click();await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','appointment-date');await expect.poll(async()=>(await snapshot(page)).world.activeId).toBe('my-room');expect((await snapshot(page)).activeRootId).not.toBe(root);
  await page.locator('.calendar [data-action^="date:"]').nth(15).click();await click(page,'time:17:00');await click(page,'appointment-next');
  await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','appointment-place');expect((await snapshot(page)).world.activeId).toBe('my-room');await screenshot(page,info,'my-room-appointment');
  await click(page,'appointment-create');await click(page,'mode:social');await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','simulation',{timeout:40000});expect((await snapshot(page)).world.activeId).toBe('indoor-fishing');

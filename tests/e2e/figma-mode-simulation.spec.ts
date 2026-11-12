@@ -42,7 +42,7 @@ test('simulation frame appears only after successful mode entry and disappears o
     await expect(page.locator('.fix-frame')).toHaveAttribute('data-node-id', '115:330');
     await expect(page.locator('.simulation-frame')).toHaveCount(0);
     await expect(page.locator('[data-node-id="115:386"]')).toHaveCSS('opacity', '0');
-    await expect(page.locator('[data-action="nav:appointment-date"]')).toHaveAttribute('aria-label', '작당모의');
+    await expect(page.locator('[data-node-id="115:399"]')).toHaveAttribute('aria-label', '작당모의');
     await page.locator('[data-action="mode:solo"]').hover({ position: { x: 100, y: 180 } });
     await expect(page.locator('[data-action="mode:solo"]')).toHaveCSS('height', '400px');
     await expect(page.locator('[data-action="mode:solo"]')).toHaveCSS('backdrop-filter', 'blur(10px)');

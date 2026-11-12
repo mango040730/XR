@@ -1,0 +1,231 @@
+{
+  "url": "http://127.0.0.1:5173/?v=appointment-entry-20261112&offline=1#appointment-date",
+  "previews": [
+    {
+      "id": "115:403",
+      "stars": [
+        {
+          "path": "/assets/figma-update/6c2dc78b-7f3d-4e33-92c7-f6a13e34e3db.svg",
+          "slot": "115:411",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6c2dc78b-7f3d-4e33-92c7-f6a13e34e3db.svg",
+          "slot": "115:413",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6c2dc78b-7f3d-4e33-92c7-f6a13e34e3db.svg",
+          "slot": "115:415",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/7a12a7be-2047-4c23-af3a-577c4202ca28.svg",
+          "slot": "115:417",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/7a12a7be-2047-4c23-af3a-577c4202ca28.svg",
+          "slot": "115:419",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6c2dc78b-7f3d-4e33-92c7-f6a13e34e3db.svg",
+          "slot": "115:426",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6c2dc78b-7f3d-4e33-92c7-f6a13e34e3db.svg",
+          "slot": "115:428",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6c2dc78b-7f3d-4e33-92c7-f6a13e34e3db.svg",
+          "slot": "115:430",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6c2dc78b-7f3d-4e33-92c7-f6a13e34e3db.svg",
+          "slot": "115:432",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/7a12a7be-2047-4c23-af3a-577c4202ca28.svg",
+          "slot": "115:434",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        }
+      ]
+    },
+    {
+      "id": "115:442",
+      "stars": [
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:450",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:452",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:454",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6e374694-3a57-43f8-a9ef-fda5be139f24.svg",
+          "slot": "115:456",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6e374694-3a57-43f8-a9ef-fda5be139f24.svg",
+          "slot": "115:458",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:465",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:467",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:469",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:471",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6e374694-3a57-43f8-a9ef-fda5be139f24.svg",
+          "slot": "115:473",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:480",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:482",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/fbe52a70-3dfa-48f0-a8f6-c7ce548e16ec.svg",
+          "slot": "115:484",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6e374694-3a57-43f8-a9ef-fda5be139f24.svg",
+          "slot": "115:486",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        },
+        {
+          "path": "/assets/figma-update/6e374694-3a57-43f8-a9ef-fda5be139f24.svg",
+          "slot": "115:488",
+          "w": 38,
+          "h": 38,
+          "naturalWidth": 38,
+          "naturalHeight": 38
+        }
+      ]
+    }
+  ],
+  "defaultRating1": true,
+  "completionReturnsHome": true,
+  "peopleIconOpensAppointment": true,
+  "rating2PreviewOnly": true,
+  "retainsContentImage": true,
+  "noticeDoesNotRestart": true,
+  "completedRating": {
+    "modeRating": 5,
+    "peopleRating": 4
+  },
+  "globals": {
+    "engine": "undefined",
+    "social": "undefined"
+  },
+  "errors": [],
+  "failed": []
+}

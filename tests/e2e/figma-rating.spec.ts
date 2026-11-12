@@ -18,7 +18,7 @@ test('both Figma rating layouts retain their original stars, geometry and separa
 });
 
 test('live evaluation defaults to rating1, preserves the captured content, and saves only the two required ratings',async({page},info)=>{
- test.setTimeout(90000);await page.setViewportSize({width:1200,height:600});await page.goto('/?offline=1');await page.locator('[data-action="mode:team"]').click();
+ test.setTimeout(90000);await page.setViewportSize({width:1200,height:600});await page.goto('/?offline=1');await expect(page.getByRole('button',{name:'약속잡기',exact:true})).toBeEnabled();await page.getByRole('button',{name:'약속잡기',exact:true}).click();await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','appointment-date');await page.keyboard.press('m');await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','modes');await page.locator('[data-action="mode:team"]').click();
  await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','simulation',{timeout:40000});const before=await snapshot(page);
  await page.locator('[data-action="finish"]').click();await expect(page.locator('.service-stage>.fix-frame')).toHaveAttribute('data-node-id','115:403');
  expect((await snapshot(page)).activeRootId).toBe(before.activeRootId);expect((await snapshot(page)).worldFrozen).toBe(true);
@@ -27,6 +27,6 @@ test('live evaluation defaults to rating1, preserves the captured content, and s
  await expect(page.locator('[data-action="rate"]')).toBeDisabled();await page.locator('[data-action="mode-rating:3"]').click();await expect(page.locator('[data-action="rate"]')).toBeDisabled();
  await page.locator('[data-action="people-rating:4"]').click();await expect(page.locator('.fix-star[aria-pressed=true]')).toHaveCount(7);await expect(page.locator('[data-action="rate"]')).toBeEnabled();expect(await page.locator('.rating-space-frame').getAttribute('src')).toBe(image);
  await screenshot(page,info,'rating1-live');await expect(page.locator('.fix-rating-notice')).toBeHidden({timeout:6000});await page.locator('[data-action="mode-rating:5"]').click();await expect(page.locator('.fix-rating-notice')).toBeHidden();
- await page.locator('[data-action="rate"]').click();await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','appointment-date');
+ await page.locator('[data-action="rate"]').click();await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','modes',{timeout:40000});expect((await snapshot(page)).world.activeId).toBe('my-room');expect((await snapshot(page)).player.position).toEqual([2.23,.02,-2.85]);await expect(page.locator('.rating-space-frame')).toBeHidden();await expect(page.locator('[data-node-id="49:807"]')).toHaveCount(0);await page.getByRole('button',{name:'약속잡기',exact:true}).click();await expect(page.locator('.first-fix-shell')).toHaveAttribute('data-route','appointment-date');
  const data=await page.evaluate(()=>JSON.parse(localStorage.getItem('xr-spatial-service-demo-v1')!));expect(data.ratings).toHaveLength(1);expect(data.ratings[0].modeRating).toBe(5);expect(data.ratings[0].peopleRating).toBe(4);
 });

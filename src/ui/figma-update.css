@@ -5,7 +5,7 @@
 .updated-frame .fix-mode-card:hover,
 .updated-frame .fix-mode-list:not(:has(>.fix-mode-card:hover))>.fix-mode-card:focus-visible,
 .updated-frame .fix-mode-list:not(:has(>.fix-mode-card:hover,>.fix-mode-card:focus-visible))>.fix-mode-card.gaze-focus{--mode-blur:blur(10px)}
-.updated-frame [data-social-control]{padding:0;background:transparent;border-radius:0}
+.updated-frame [data-social-control],.updated-frame .mode-appointment-trigger{padding:0;background:transparent;border-radius:0}
 .updated-frame [data-social-control="panel"]{position:relative}
 .updated-frame button:disabled{opacity:1}
 .updated-frame [data-node-id="115:386"]{pointer-events:none}

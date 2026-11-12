@@ -29,7 +29,7 @@ test('fresh users see only the four first-fix screens through mode, rating and b
     await click(page, 'finish'); await route(page, 'rating'); await onlyOriginalUI(page);
     await expect(page.locator('[data-action="rate"]')).toBeDisabled();
     await click(page, 'mode-rating:4'); await click(page, 'people-rating:5');
-    await screenshot(page, info, 'first-fix-only-rating'); await click(page, 'rate'); await route(page, 'appointment-date');
+    await screenshot(page, info, 'first-fix-only-rating'); await click(page, 'rate'); await route(page, 'modes'); await page.getByRole('button', { name: '약속잡기', exact: true }).click(); await route(page, 'appointment-date');
     await onlyOriginalUI(page); await expect(page.locator('[data-action="appointment-next"]')).toBeDisabled();
     await page.locator('.calendar [data-action^="date:"]').nth(15).click(); await click(page, 'time:17:00');
     await screenshot(page, info, 'first-fix-only-date'); await click(page, 'appointment-next'); await route(page, 'appointment-place');

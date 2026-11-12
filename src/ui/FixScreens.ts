@@ -152,7 +152,7 @@ export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLEleme
                 const ghost = find(root, '115:386');
                 ghost.setAttribute('aria-hidden', 'true'); ghost.inert = true;
                 socialControl(root, '115:393', 'panel', '알림');
-                socialControl(root, '115:397', 'panel', '참여 정보');
+                action(root, '115:397', 'nav:appointment-date', '약속잡기').classList.add('mode-appointment-trigger');
                 action(root, '115:399', 'nav:appointment-date', '작당모의');
             } else action(root, '51:960', 'home', '마이룸으로');
             const notice = find(root, strict ? '115:390' : '50:1642');

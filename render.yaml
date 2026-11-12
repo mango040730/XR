@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: xr-social-mango040730
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm ci --include=dev && npm run server:build
+    startCommand: node server-dist/server/index.js
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: ALLOWED_ORIGINS
+        value: https://mango040730.github.io
+      - key: RTC_ICE_SERVERS
+        value: "[]"

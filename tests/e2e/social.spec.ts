@@ -95,6 +95,7 @@ test('different rooms stay isolated; switching a world and reconnecting clear th
     const bId=(await snap(b)).id;await expect.poll(async()=>(await snap(page)).users.find(u=>u.id===bId)?.position[2]??-2).toBeGreaterThan(-.9);
     await unlock(b);
     await b.keyboard.press('m');await b.locator('[data-action="mode:social"]').click();
+    await expect(b.locator('.first-fix-shell')).toHaveAttribute('data-route','simulation',{timeout:40000});
     await expect.poll(async()=>(await snap(b)).room).toBe('indoor-fishing:'+room);await expect.poll(async()=>(await snap(page)).users.length).toBe(1);expect((await snap(b)).remotes).toHaveLength(0);
     const id=(await snap(page)).id;await page.context().setOffline(true);await expect.poll(async()=>(await snap(page)).id).toBeNull();await page.context().setOffline(false);
     await expect.poll(async()=>(await snap(page)).id,{timeout:20000}).toBeTruthy();expect((await snap(page)).id).not.toBe(id);expect((await snap(page)).users).toHaveLength(1);

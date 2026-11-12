@@ -1,0 +1,252 @@
+{
+  "stats": {
+    "startTime": "2026-11-12T02:38:08.881Z",
+    "duration": 106531.3,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "suites": [
+    {
+      "title": "social.spec.ts",
+      "file": "social.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "Figma simulation chat and mic reuse the current room connection and typing pauses movement",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 100000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 18551,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T02:38:11.480Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "simulation-connection",
+                      "contentType": "application/json",
+                      "body": "eyJzbmFwc2hvdCI6eyJyb29tIjoiYm93bGluZzpmcmFtZS0xNzk0NDUxMDkyODQwIiwiaWQiOiJlSVprei1qMnRWdEptMTlXQUFBQSIsInN0YXR1cyI6IuyXsOqysOuQqCIsInVzZXJzIjpbeyJpZCI6ImVJWmt6LWoydFZ0Sm0xOVdBQUFBIiwibmlja25hbWUiOiLtlITroIjsnoQgQSIsImF2YXRhciI6ImN1Yi1zY291dC12NiIsInBvc2l0aW9uIjpbMCwwLC0xXSwieWF3IjowLCJtb3ZpbmciOmZhbHNlLCJhbmltYXRpb24iOiJpZGxlIiwic2VhdElkIjpudWxsLCJ1cGRhdGVkQXQiOjE3OTQ0NTExMDQwOTAsIndhdmUiOjAsIndhdmVVbnRpbCI6MCwidm9pY2UiOmZhbHNlfV0sImNhbWVyYSI6eyJwb3NpdGlvbiI6WzAsMS42NSwtMV0sImxvY2FsIjpbMCwxLjY1LDBdfSwibG9jYWwiOnsiYW5pbWF0aW9uIjoiaWRsZSIsInBvc2l0aW9uIjpbMCwwLC0xXSwic2tlbGV0b25zIjoxNiwidmlzaWJsZSI6ZmFsc2V9LCJyZW1vdGVzIjpbXSwidm9pY2UiOnsiZW5hYmxlZCI6ZmFsc2UsIm11dGVkIjpmYWxzZSwicGVlcnMiOjB9LCJ0aGlyZFBlcnNvbiI6ZmFsc2V9LCJlbmdpbmUiOnsid29ybGRGcm96ZW4iOmZhbHNlLCJwcmVzZW50YXRpb25BY3RpdmUiOmZhbHNlLCJkb29yQW5nbGUiOm51bGwsIndvcmxkIjp7InN0YXR1cyI6InJlYWR5IiwiYWN0aXZlSWQiOiJib3dsaW5nIiwicmVxdWVzdGVkSWQiOm51bGwsIm1lc3NhZ2UiOiLqsIDsnYTruZsg67O866eB7J6lIOykgOu5hCDsmYTro4wiLCJlcnJvciI6bnVsbH0sIm15Um9vbSI6bnVsbCwiZmlzaGluZyI6bnVsbCwicGxheWVyIjp7InNlYXRlZCI6ZmFsc2UsImV5ZUhlaWdodCI6MS42NSwicG9zaXRpb24iOlswLDAsLTFdLCJyaWdPcmlnaW4iOlswLDAsLTFdLCJ5YXciOjAsInBpdGNoIjowfSwieHIiOnsic3VwcG9ydGVkIjpmYWxzZSwiYWN0aXZlIjpmYWxzZSwicGVuZGluZyI6ZmFsc2UsInJlYXNvbiI6Iu2YuO2ZmCBWUiDquLDquLDrpbwg7LC+7J2EIOyImCDsl4bsirXri4jri6QuIFBDIDNEIOuqqOuTnOulvCDsgqzsmqntlZjshLjsmpQuIn0sInhyQ29udHJvbHMiOnsiY29udHJvbGxlcnMiOiLsu6jtirjroaTrn6wg7Jew6rKwIOuMgOq4sCIsInRyYWNraW5nIjpmYWxzZSwiYmxvY2tlZCI6ZmFsc2UsIm1lc3NhZ2UiOiIifSwieHJTZXR0aW5ncyI6eyJtb3ZlbWVudCI6InRlbGVwb3J0IiwidHVybiI6InNuYXAiLCJkZWFkem9uZSI6MC4yLCJtb3ZlU3BlZWQiOjEuNSwic25hcEFuZ2xlIjowLjUyMzU5ODc3NTU5ODI5ODgsInNtb290aFR1cm5TcGVlZCI6MS41NzA3OTYzMjY3OTQ4OTY2fSwiaGlnaGxpZ2h0cyI6MCwid29ybGRSb290cyI6WyJ3b3JsZDpib3dsaW5nIl0sInJlbmRlciI6eyJmb3YiOjY1LCJmb2ciOm51bGwsImNhbGxzIjoxOTYsInRyaWFuZ2xlcyI6MTgxOTU4fSwibWVtb3J5Ijp7Imdlb21ldHJpZXMiOjEwNSwidGV4dHVyZXMiOjM5fSwiZGlzcG9zZWQiOnsiZ2VvbWV0cnkiOjM3LCJtYXRlcmlhbCI6MjUsInRleHR1cmUiOjd9LCJhY3RpdmVSb290SWQiOiI4ZWVjZDM4Ni1jYTY3LTRmNDgtYTE0NC03MWZjMTk4ZTAzZDkiLCJtb2RlbHMiOlt7ImlkIjoiNWE3MDRiMGMtYTlhMS00MjgxLWE0MGItZDM0NTBhNDA5YjEzIiwidXJsIjoiL2Fzc2V0cy9tb2RlbHMvYm93bGluZy9yZXRyb19ib3dsaW5nX2FsbGV5LmdsYiIsIm1lc2hlcyI6MTk1LCJwb3NpdGlvbiI6WzAsMCwwXSwicm90YXRpb24iOlswLDAsMF0sInNjYWxlIjpbMSwxLDFdLCJtaW4iOlstOS4yMzk5OTk4ODI4NzY4NzMsLTAuMjk5OTk5OTk3MDE5NzY3NzYsLTMyLjIzOTk5ODkyOTIwMjU2XSwibWF4IjpbOS4yMzk5OTk4ODI4NzY4NzMsOC44MTY4NDgzMDE1NDg2NjcsMC4yNDAwMDAwMDk1MzY3NDMxNl19XSwiaW50ZXJhY3RhYmxlcyI6W119LCJlcnJvciI6IiJ9"
+                    },
+                    {
+                      "name": "simulation-connection",
+                      "contentType": "application/json",
+                      "body": "eyJzbmFwc2hvdCI6eyJyb29tIjoiYm93bGluZzpmcmFtZS0xNzk0NDUxMDkyODQwIiwiaWQiOiI1Rm1xV3lCYU50MEc4eWRvQUFBQiIsInN0YXR1cyI6IuyXsOqysOuQqCIsInVzZXJzIjpbeyJpZCI6ImVJWmt6LWoydFZ0Sm0xOVdBQUFBIiwibmlja25hbWUiOiLtlITroIjsnoQgQSIsImF2YXRhciI6ImN1Yi1zY291dC12NiIsInBvc2l0aW9uIjpbMCwwLC0xXSwieWF3IjowLCJtb3ZpbmciOmZhbHNlLCJhbmltYXRpb24iOiJpZGxlIiwic2VhdElkIjpudWxsLCJ1cGRhdGVkQXQiOjE3OTQ0NTExMDc3MDIsIndhdmUiOjAsIndhdmVVbnRpbCI6MCwidm9pY2UiOmZhbHNlfSx7ImlkIjoiNUZtcVd5QmFOdDBHOHlkb0FBQUIiLCJuaWNrbmFtZSI6Iu2UhOugiOyehCBCIiwiYXZhdGFyIjoiY3ViLXNjb3V0LXY2IiwicG9zaXRpb24iOlswLjcsMCwtMV0sInlhdyI6MCwibW92aW5nIjpmYWxzZSwiYW5pbWF0aW9uIjoiaWRsZSIsInNlYXRJZCI6bnVsbCwidXBkYXRlZEF0IjoxNzk0NDUxMTA3NjY4LCJ3YXZlIjowLCJ3YXZlVW50aWwiOjAsInZvaWNlIjpmYWxzZX1dLCJjYW1lcmEiOnsicG9zaXRpb24iOlswLjcsMS42NSwtMV0sImxvY2FsIjpbMCwxLjY1LDBdfSwibG9jYWwiOnsiYW5pbWF0aW9uIjoiaWRsZSIsInBvc2l0aW9uIjpbMC43LDAsLTFdLCJza2VsZXRvbnMiOjE2LCJ2aXNpYmxlIjpmYWxzZX0sInJlbW90ZXMiOlt7ImlkIjoiZUlaa3otajJ0VnRKbTE5V0FBQUEiLCJwb3NpdGlvbiI6WzAsMCwtMV0sImFuaW1hdGlvbiI6ImlkbGUiLCJza2VsZXRvbnMiOjE2LCJ2aXNpYmxlIjp0cnVlfV0sInZvaWNlIjp7ImVuYWJsZWQiOmZhbHNlLCJtdXRlZCI6ZmFsc2UsInBlZXJzIjowfSwidGhpcmRQZXJzb24iOmZhbHNlfSwiZW5naW5lIjp7IndvcmxkRnJvemVuIjpmYWxzZSwicHJlc2VudGF0aW9uQWN0aXZlIjpmYWxzZSwiZG9vckFuZ2xlIjpudWxsLCJ3b3JsZCI6eyJzdGF0dXMiOiJyZWFkeSIsImFjdGl2ZUlkIjoiYm93bGluZyIsInJlcXVlc3RlZElkIjpudWxsLCJtZXNzYWdlIjoi6rCA7J2E67mbIOuzvOungeyepSDspIDruYQg7JmE66OMIiwiZXJyb3IiOm51bGx9LCJteVJvb20iOm51bGwsImZpc2hpbmciOm51bGwsInBsYXllciI6eyJzZWF0ZWQiOmZhbHNlLCJleWVIZWlnaHQiOjEuNjUsInBvc2l0aW9uIjpbMC43LDAsLTFdLCJyaWdPcmlnaW4iOlswLjcsMCwtMV0sInlhdyI6MCwicGl0Y2giOjB9LCJ4ciI6eyJzdXBwb3J0ZWQiOmZhbHNlLCJhY3RpdmUiOmZhbHNlLCJwZW5kaW5nIjpmYWxzZSwicmVhc29uIjoi7Zi47ZmYIFZSIOq4sOq4sOulvCDssL7snYQg7IiYIOyXhuyKteuLiOuLpC4gUEMgM0Qg66qo65Oc66W8IOyCrOyaqe2VmOyEuOyalC4ifSwieHJDb250cm9scyI6eyJjb250cm9sbGVycyI6Iuy7qO2KuOuhpOufrCDsl7DqsrAg64yA6riwIiwidHJhY2tpbmciOmZhbHNlLCJibG9ja2VkIjpmYWxzZSwibWVzc2FnZSI6IiJ9LCJ4clNldHRpbmdzIjp7Im1vdmVtZW50IjoidGVsZXBvcnQiLCJ0dXJuIjoic25hcCIsImRlYWR6b25lIjowLjIsIm1vdmVTcGVlZCI6MS41LCJzbmFwQW5nbGUiOjAuNTIzNTk4Nzc1NTk4Mjk4OCwic21vb3RoVHVyblNwZWVkIjoxLjU3MDc5NjMyNjc5NDg5NjZ9LCJoaWdobGlnaHRzIjowLCJ3b3JsZFJvb3RzIjpbIndvcmxkOmJvd2xpbmciXSwicmVuZGVyIjp7ImZvdiI6NjUsImZvZyI6bnVsbCwiY2FsbHMiOjIwNCwidHJpYW5nbGVzIjoxODQ5Njh9LCJtZW1vcnkiOnsiZ2VvbWV0cmllcyI6MTA2LCJ0ZXh0dXJlcyI6NDF9LCJkaXNwb3NlZCI6eyJnZW9tZXRyeSI6MzcsIm1hdGVyaWFsIjoyNSwidGV4dHVyZSI6N30sImFjdGl2ZVJvb3RJZCI6IjQ0MGVlYWZjLWNlMjItNDdiYS05YjhkLWVjMTE5NGVlMDdjMCIsIm1vZGVscyI6W3siaWQiOiJkMjU2MWE0MS1mNWZmLTQwYWUtYmNlMy01N2E4YjczODExZWYiLCJ1cmwiOiIvYXNzZXRzL21vZGVscy9ib3dsaW5nL3JldHJvX2Jvd2xpbmdfYWxsZXkuZ2xiIiwibWVzaGVzIjoxOTUsInBvc2l0aW9uIjpbMCwwLDBdLCJyb3RhdGlvbiI6WzAsMCwwXSwic2NhbGUiOlsxLDEsMV0sIm1pbiI6Wy05LjIzOTk5OTg4Mjg3Njg3MywtMC4yOTk5OTk5OTcwMTk3Njc3NiwtMzIuMjM5OTk4OTI5MjAyNTZdLCJtYXgiOls5LjIzOTk5OTg4Mjg3Njg3Myw4LjgxNjg0ODMwMTU0ODY2NywwLjI0MDAwMDAwOTUzNjc0MzE2XX1dLCJpbnRlcmFjdGFibGVzIjpbXX0sImVycm9yIjoiIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3bd26b923e159664f17e-27c811a892300c590208",
+          "file": "social.spec.ts",
+          "line": 20,
+          "column": 1
+        },
+        {
+          "title": "first person stays at eye height and never shows the local avatar while walking",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 100000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2564,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T02:38:30.447Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3bd26b923e159664f17e-4a8ac054e410d68b5ca2",
+          "file": "social.spec.ts",
+          "line": 47,
+          "column": 1
+        },
+        {
+          "title": "two actual browser processes share movement, real GLB actions, exclusive seating, chat and departure",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 100000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14204,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T02:38:33.025Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "two-users",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/social-playwright/social-two-actual-browser--b959d--seating-chat-and-departure/attachments/two-users-9b260e9f0bf985a597b250c022d44d07247867b4.png"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3bd26b923e159664f17e-44475a5637f5d44c6dca",
+          "file": "social.spec.ts",
+          "line": 53,
+          "column": 1
+        },
+        {
+          "title": "different rooms stay isolated; switching a world and reconnecting clear the prior membership",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 100000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 39894,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\u001b[7mindoor-fishing\u001b[27m:isolation-1794451127533\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mmy-room\u001b[27m:isolation-1794451127533\"\u001b[39m\n\nCall Log:\n- Timeout 12000ms exceeded while waiting on the predicate",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\u001b[7mindoor-fishing\u001b[27m:isolation-1794451127533\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mmy-room\u001b[27m:isolation-1794451127533\"\u001b[39m\n\nCall Log:\n- Timeout 12000ms exceeded while waiting on the predicate\n    at /Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/social.spec.ts:98:54",
+                    "location": {
+                      "file": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/social.spec.ts",
+                      "column": 54,
+                      "line": 98
+                    },
+                    "snippet": " \u001b[90m  96 |\u001b[39m     \u001b[36mawait\u001b[39m unlock(b)\u001b[33m;\u001b[39m\n \u001b[90m  97 |\u001b[39m     \u001b[36mawait\u001b[39m b\u001b[33m.\u001b[39mkeyboard\u001b[33m.\u001b[39mpress(\u001b[32m'm'\u001b[39m)\u001b[33m;\u001b[39m\u001b[36mawait\u001b[39m b\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-action=\"mode:social\"]'\u001b[39m)\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  98 |\u001b[39m     \u001b[36mawait\u001b[39m expect\u001b[33m.\u001b[39mpoll(\u001b[36masync\u001b[39m()\u001b[33m=>\u001b[39m(\u001b[36mawait\u001b[39m snap(b))\u001b[33m.\u001b[39mroom)\u001b[33m.\u001b[39mtoBe(\u001b[32m'indoor-fishing:'\u001b[39m\u001b[33m+\u001b[39mroom)\u001b[33m;\u001b[39m\u001b[36mawait\u001b[39m expect\u001b[33m.\u001b[39mpoll(\u001b[36masync\u001b[39m()\u001b[33m=>\u001b[39m(\u001b[36mawait\u001b[39m snap(page))\u001b[33m.\u001b[39musers\u001b[33m.\u001b[39mlength)\u001b[33m.\u001b[39mtoBe(\u001b[35m1\u001b[39m)\u001b[33m;\u001b[39mexpect((\u001b[36mawait\u001b[39m snap(b))\u001b[33m.\u001b[39mremotes)\u001b[33m.\u001b[39mtoHaveLength(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m  99 |\u001b[39m     \u001b[36mconst\u001b[39m id\u001b[33m=\u001b[39m(\u001b[36mawait\u001b[39m snap(page))\u001b[33m.\u001b[39mid\u001b[33m;\u001b[39m\u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39msetOffline(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\u001b[36mawait\u001b[39m expect\u001b[33m.\u001b[39mpoll(\u001b[36masync\u001b[39m()\u001b[33m=>\u001b[39m(\u001b[36mawait\u001b[39m snap(page))\u001b[33m.\u001b[39mid)\u001b[33m.\u001b[39mtoBeNull()\u001b[33m;\u001b[39m\u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mcontext()\u001b[33m.\u001b[39msetOffline(\u001b[36mfalse\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 100 |\u001b[39m     \u001b[36mawait\u001b[39m expect\u001b[33m.\u001b[39mpoll(\u001b[36masync\u001b[39m()\u001b[33m=>\u001b[39m(\u001b[36mawait\u001b[39m snap(page))\u001b[33m.\u001b[39mid\u001b[33m,\u001b[39m{timeout\u001b[33m:\u001b[39m\u001b[35m20000\u001b[39m})\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39mexpect((\u001b[36mawait\u001b[39m snap(page))\u001b[33m.\u001b[39mid)\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBe(id)\u001b[33m;\u001b[39mexpect((\u001b[36mawait\u001b[39m snap(page))\u001b[33m.\u001b[39musers)\u001b[33m.\u001b[39mtoHaveLength(\u001b[35m1\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 101 |\u001b[39m   }\u001b[36mfinally\u001b[39m{\u001b[36mawait\u001b[39m context\u001b[33m.\u001b[39mclose()\u001b[33m;\u001b[39m}"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/social.spec.ts",
+                        "column": 54,
+                        "line": 98
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\u001b[7mindoor-fishing\u001b[27m:isolation-1794451127533\"\u001b[39m\nReceived: \u001b[31m\"\u001b[7mmy-room\u001b[27m:isolation-1794451127533\"\u001b[39m\n\nCall Log:\n- Timeout 12000ms exceeded while waiting on the predicate\n\n   96 |     await unlock(b);\n   97 |     await b.keyboard.press('m');await b.locator('[data-action=\"mode:social\"]').click();\n>  98 |     await expect.poll(async()=>(await snap(b)).room).toBe('indoor-fishing:'+room);await expect.poll(async()=>(await snap(page)).users.length).toBe(1);expect((await snap(b)).remotes).toHaveLength(0);\n      |                                                      ^\n   99 |     const id=(await snap(page)).id;await page.context().setOffline(true);await expect.poll(async()=>(await snap(page)).id).toBeNull();await page.context().setOffline(false);\n  100 |     await expect.poll(async()=>(await snap(page)).id,{timeout:20000}).toBeTruthy();expect((await snap(page)).id).not.toBe(id);expect((await snap(page)).users).toHaveLength(1);\n  101 |   }finally{await context.close();}\n    at /Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/social.spec.ts:98:54"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T02:38:47.245Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/social-playwright/social-different-rooms-sta-009bd--clear-the-prior-membership/test-failed-1.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/social-playwright/social-different-rooms-sta-009bd--clear-the-prior-membership/test-failed-2.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/social-playwright/social-different-rooms-sta-009bd--clear-the-prior-membership/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/social-playwright/social-different-rooms-sta-009bd--clear-the-prior-membership/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/social.spec.ts",
+                    "column": 54,
+                    "line": 98
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "3bd26b923e159664f17e-d3eaf3cab6266e7bbd4c",
+          "file": "social.spec.ts",
+          "line": 84,
+          "column": 1
+        },
+        {
+          "title": "explicit microphone opt-in negotiates real WebRTC audio, spatial range, mute and cleanup",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 100000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 25494,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T02:39:29.257Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3bd26b923e159664f17e-ff354d57b3e0bbfe2191",
+          "file": "social.spec.ts",
+          "line": 104,
+          "column": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,29 @@
+## 공개 실시간 서버 배포 준비·실제 연결 사전 검사 — 2026-11-12
+
+‘해결해줘’ 요청에 따라 기존 Node/Socket.IO 서버를 공개 HTTPS 호스트로 배포하는 구성을 준비했습니다. 로컬 환경에는 Render/Railway/Fly/클라우드 CLI·서버 호스팅 자격 증명이 없고, 연결된 배포 도구도 없음을 확인했습니다. 서비스 연결 검색으로 Render 연동이 가능함을 확인하고 계정 연결을 요청했습니다. Render 계정 인증은 아직 확인되지 않았습니다. GitHub 인증은 기존 저장소 게시용으로만 사용하며 다른 서비스 인증으로 임의 전용하지 않습니다.
+
+`render.yaml`은 Node22·Free 단일 인스턴스·싱가포르·HOST0.0.0.0·기존 /health·Pages Origin 허용을 지정합니다. 프론트는 GitHub Pages에 두고 서버만 빌드/실행합니다. 기존 백엔드와 아바타·이동·충돌·UI를 재사용하며 새 계정 시스템/DB/음성 인프라는 추가하지 않았습니다. 무료 서버의15분 유휴 중지/약1분 재시작 지연은 공식 문서에서 확인했고 유료 플랜은 선택하지 않았습니다. 초기 로컬 기본 입장 정책과 명시적 마이크 동의는 유지됩니다.
+
+`npm run verify:social -- https://실제-서버-주소` 검사는 health 응답뿐 아니라 실제 Pages Origin을 가진 WebSocket 두 개로 my-room의 임시 검사 방에 참여한 뒤 서로의 사용자 목록 공유를 확인합니다. 종료/실패 시 연결을 닫아 검사 방이 남지 않습니다. 공개 HTTP·인증정보 포함 URL·저장소 경로를 거부합니다. GitHub Pages workflow도 서버 변수가 있을 때 이 검사를 통과한 뒤 빌드하도록 했습니다. 주소가 없으면 기존 둘러보기 빌드는 유지하며 서버 주소를 추측하지 않습니다. CLI는 Render 유휴 시작을 고려해90초 연결 제한을 사용합니다.
+
+검사: 명시적 typecheck·build가 통과했고 최종 `npm run check`도 통과했습니다(린트·Node31개 파일/159개·원본 GLB/자산 검사·typecheck·프론트/서버 빌드·프로덕션 진단 분리). 새3개 검사는 실제 WebSocket 두 사용자/Origin 허용·방 정리, 잘못된 Origin 거부, 잘못된 주소 거부를 확인합니다. 최초 제한 환경 실행은 로컬 포트 바인딩 EPERM으로 실패하여 네트워크 실행 권한으로 다시 실행했고 통과했습니다. 실제 Chromium 회귀는 `npm run test:e2e -- --config=playwright.social.config.ts`5개가 모두 통과했습니다. 상대 아바타/이동·좌석·채팅·방 격리·로딩 실패 복구·공간 이동·재접속 및 테스트 마이크 WebRTC 수신을 확인했으며 실제 사람의 청음/인터넷 TURN/VR 실기기 검증은 아닙니다. [코드 검사](screenshots/social-hosting-20261112/check.log) · [브라우저5개](screenshots/social-hosting-20261112/social-summary.json) · [실제 상대 아바타](screenshots/social-hosting-20261112/two-users.png).
+
+남은 필수 단계: Render 연결→기존 서버 서비스 생성/배포→실제 HTTPS 주소 검증→GitHub Actions 변수 SOCIAL_SERVER_URL 저장→Pages 재배포→공개 두 브라우저로 아바타 시각 확인. 아직 서버가 생성/배포되지 않았으므로 공개 사이트의 문제는 해소되지 않았습니다. 배포 구성을 저장소에 반영하더라도 실제 서비스가 없다는 제한을 구분해서 보고합니다.
+
+---
+
+## 공개 사이트에서 상대 아바타가 보이지 않는 원인 점검 — 2026-11-12
+
+사용자가 함께 접속한 주소는 GitHub Pages 공개 사이트로 확인했습니다. 현재 저장소 Actions 변수 목록이 비어 있으며 `SOCIAL_SERVER_URL`이 설정되지 않았습니다. 배포 workflow는 이를 `VITE_SOCIAL_SERVER_URL`로 전달하므로, 공개 빌드에서는 `SocialClient.available=false`가 되어 네트워크 참여를 시작하지 않습니다. 실제 독립 Chromium 두 개로 같은 공개 `room=public` 주소를 열어 두 화면 모두 미접속·참여 버튼 비활성·패널 숨김 상태이며 Socket.IO 요청/WebSocket 연결이 각각0개임을 확인했습니다. WebGL 공간은 정상 표시되고 페이지 오류는0개입니다. 같은 페이지를 열어도 서로의 위치가 공유되지 않는 직접 원인입니다. 사람 아이콘은 약속잡기용이고, 서버가 있는 환경의 참여는 알림(종) 아이콘→닉네임→입장으로 진행합니다.
+
+현재 서버 코드와 아바타 렌더링도 별도로 확인했습니다. 실제 로컬 Socket.IO 서버와 두 독립 브라우저에서 상대 GLB 아바타 표시·이동·인사·좌석 점유·채팅·퇴장을 확인했으며 본인 아바타 숨김도 유지됩니다. 첫 브라우저 실행5개 중4개가 통과했고, 방 전환 검사1개는 콘텐츠 공간/문 이동이 끝나기 전에12초 네트워크 조건을 검사해 시간 제한에 도달했습니다. 실패 화면에는 실제 낚시터가 로딩/전환 중인 상태였습니다. 해당 검사에 기존 시뮬레이션 검사와 같은 실제 `simulation` 경로 준비 조건을 추가했으며, 방 격리·로딩 실패 복구·다른 월드 이동·재접속 검사1개를 재실행해 통과했습니다. 앱 동작과 연결 정책은 변경하지 않았습니다. 음성 회귀도 테스트용 마이크의 실제 WebRTC 수신으로 통과했으며 외부 인터넷 음성/실제 사람 청음/실기기 VR 검증은 아닙니다.
+
+`npm run check`가 통과했습니다(린트·Node30개 파일/156개·자산/GLB 검사·typecheck·프론트/서버 빌드·프로덕션 진단 분리). 브라우저 회귀는 `npm run test:e2e -- --config=playwright.social.config.ts`로 실행했습니다. [공개 두 브라우저 기록](screenshots/social-diagnosis-20261112/public-verification.json) · [서버 변수 확인](screenshots/social-diagnosis-20261112/repository-variables.json) · [로컬 상대 아바타 실제 표시](screenshots/social-diagnosis-20261112/local-two-users.png) · [첫 회귀 기록](screenshots/social-diagnosis-20261112/initial-social-summary.json) · [방 전환 재검사](screenshots/social-diagnosis-20261112/retest-social-summary.json) · [최종 check](screenshots/social-diagnosis-20261112/check.log).
+
+다음 단계: 기존 Node 서버를 공개 HTTPS 호스트에서 실행하고 `ALLOWED_ORIGINS=https://mango040730.github.io`를 설정한 뒤, 저장소 Actions 변수 `SOCIAL_SERVER_URL`에 해당 서버 주소를 넣고 Pages를 다시 빌드해야 합니다. 이후 공개 두 기기의 같은 월드/room에서 실제 참여를 검증해야 합니다. 이번 요청은 원인 점검이므로 새 호스팅 계정/서비스를 만들거나 임의의 서버 주소를 넣지 않았으며 공개 사이트의 연결 문제는 아직 해소되지 않았습니다. 앱 코드 변경/재배포는 하지 않았고 검증 코드와 문서만 보완했습니다.
+
+---
+
 ## 최신 약속잡기 3개 화면·10초 자동 마이룸 복귀 — 2026-11-12
 
 Figma 연결 페이지의 `115:496`(날짜/시간), `115:563`(장소), `115:704`(완료)를 최신 고정밀 코드/원본 렌더로 확인해 네이티브 DOM 컴포넌트와 scoped CSS로 교체했습니다. 원본 이미지/SVG19개 슬롯을 로컬에 저장하고 카드·헤더·검색·이미지 크롭·블러·서체를 유지했습니다. 참조 프레임은 원본 달력 이미지까지 보존하며, 실제 날짜 화면은 같은330×329px 영역의 기존 선택 가능한 달력을 사용합니다. Figma 렌더 이미지는 검증용으로만 사용합니다.

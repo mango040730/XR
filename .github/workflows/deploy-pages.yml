@@ -31,6 +31,9 @@ jobs:
           cache: npm
       - name: Install pinned dependencies
         run: npm ci
+      - name: Verify configured real-time server
+        if: env.VITE_SOCIAL_SERVER_URL != ''
+        run: npm run verify:social -- "$VITE_SOCIAL_SERVER_URL"
       - name: Validate and build current project
         run: npm run check
       - name: Configure Pages

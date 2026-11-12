@@ -25,6 +25,7 @@
     "inspect:avatar": "node scripts/inspect-avatar.mjs",
     "test:e2e:social": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test --config=playwright.social.config.ts",
     "server:build": "tsc -p tsconfig.server.json",
+    "verify:social": "node scripts/verify-social-server.ts",
     "inspect:my-room": "node scripts/inspect-my-room.mjs",
     "inspect:atelier": "node scripts/inspect-atelier.mjs",
     "inspect:bowling": "node scripts/inspect-bowling.mjs"

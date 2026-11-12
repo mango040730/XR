@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-11-12T02:37:58.715Z",
+  "repositoryVariableNames": [],
+  "socialServerUrlConfigured": false,
+  "results": [
+    {
+      "browser": 1,
+      "url": "https://mango040730.github.io/XR/?room=public&verify=social-20261112#modes",
+      "panelControls": [
+        {
+          "disabled": true,
+          "label": "알림"
+        }
+      ],
+      "connected": "false",
+      "panelHidden": true,
+      "engineDiagnostics": "undefined",
+      "socialDiagnostics": "undefined",
+      "scripts": [
+        "https://mango040730.github.io/XR/assets/index-CtKRldug.js"
+      ],
+      "sockets": [],
+      "socketRequests": [],
+      "errors": []
+    },
+    {
+      "browser": 2,
+      "url": "https://mango040730.github.io/XR/?room=public&verify=social-20261112#modes",
+      "panelControls": [
+        {
+          "disabled": true,
+          "label": "알림"
+        }
+      ],
+      "connected": "false",
+      "panelHidden": true,
+      "engineDiagnostics": "undefined",
+      "socialDiagnostics": "undefined",
+      "scripts": [
+        "https://mango040730.github.io/XR/assets/index-CtKRldug.js"
+      ],
+      "sockets": [],
+      "socketRequests": [],
+      "errors": []
+    }
+  ]
+}

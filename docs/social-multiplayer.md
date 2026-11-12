@@ -1,5 +1,25 @@
 # 실시간 소셜 VR 구현 및 실행
 
+## 공개 사이트 연결 상태 — 2026-11-12 확인
+
+공개 서버 배포용 `render.yaml`을 추가했습니다. Node 22·싱가포르 리전·Free 단일 인스턴스에서 기존 Socket.IO 서버만 실행합니다. 빌드는 `npm ci --include=dev && npm run server:build`, 시작은 `node server-dist/server/index.js`, 상태 확인은 `/health`입니다. `HOST=0.0.0.0`과 Pages Origin을 명시하며 프론트 자산은 계속 GitHub Pages에서 제공합니다. 서버 이름은 실제 배포 시 충돌에 따라 바뀔 수 있으므로 `onrender.com` 주소를 추측해서 프론트에 넣지 않습니다.
+
+Render 계정을 연결하면 이 저장소의 Blueprint를 배포할 수 있습니다. 연결 대신 대시보드에서 진행하는 경우 [이 저장소 서버 생성](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Fmango040730%2FXR)에서 설정을 검토할 수 있습니다. 실제 서비스 생성과 배포 성공 전에는 서버가 실행 중이라고 간주하지 않습니다. Free 서버는15분 유휴 후 중지되고 다시 연결할 때 약1분의 시작 시간이 생길 수 있습니다. 유료 업그레이드는 하지 않습니다. [Render 공식 Free 제한](https://render.com/docs/free).
+
+실제 HTTPS 주소가 확정되면 다음 명령으로 Pages Origin의 WebSocket 허용·두 실제 사용자 참여/목록 공유·검사 사용자 정리를 확인합니다.
+
+```sh
+npm run verify:social -- https://실제-서버-주소
+```
+
+이 검사가 통과한 주소를 저장소 Actions 변수 `SOCIAL_SERVER_URL`에 저장하고 Pages workflow를 실행합니다. workflow도 해당 변수가 설정된 경우 실제 연결 검사를 수행한 뒤 빌드합니다. Render의 유휴 시작을 고려해 CLI 연결 검사는90초 제한을 사용합니다. `/health`만 응답하는 잘못된 서버나 Origin을 허용하지 않는 서버는 검사를 통과하지 못합니다. 실제 프론트 두 브라우저에서 같은 월드/room으로 참여하고 아바타가 보이는지 최종 확인해야 합니다. 계정 연결/서비스 생성 전에는 이 단계가 완료된 것이 아닙니다.
+
+현재 `https://mango040730.github.io/XR/`에는 공개 Socket.IO 서버가 연결되어 있지 않습니다. GitHub 저장소 Actions 변수 목록이 비어 있어 배포 workflow의 `vars.SOCIAL_SERVER_URL`도 설정되지 않았습니다. Pages 빌드에서 `VITE_STATIC_HOST=github-pages`이고 서버 주소가 없으면 `SocialClient.available`이 false가 되어 참여 패널을 숨기고 네트워크 연결을 시작하지 않습니다. 실제 독립 Chromium 두 개에서 같은 `room=public` 주소를 열었을 때 모두 미접속 상태이며 Socket.IO 요청과 WebSocket 연결이 0개임을 확인했습니다. 따라서 같은 공개 주소를 동시에 열어도 서로의 아바타는 나타나지 않습니다. 이는 현재 공개 배포 구성의 제한입니다.
+
+공개 멀티플레이를 사용하려면 기존 `server/index.ts`를 실행하는 외부 Node 호스트와 HTTPS 주소를 준비하고, 서버의 `ALLOWED_ORIGINS`에 `https://mango040730.github.io`를 넣어야 합니다. 이 주소에는 `/XR/` 경로를 넣지 않습니다. 저장소 Actions 변수 `SOCIAL_SERVER_URL`을 해당 서버의 HTTPS 주소로 설정한 뒤 Pages를 다시 빌드해야 합니다. 저장소 URL은 실행 중인 Socket.IO 서버 주소로 사용할 수 없습니다. 이번 점검에서는 새 호스팅 서비스나 계정을 생성하지 않았습니다.
+
+서버가 연결된 환경에서도 페이지를 여는 것만으로 방에 자동 등록되지 않습니다. 현재 Figma UI에서는 **상단 알림(종) 아이콘 → 닉네임 입력 → 입장**으로 참여합니다. 사람 아이콘은 약속잡기용입니다. 두 사용자의 월드와 `room` 값이 모두 같아야 상대 아바타가 표시되며, 첫 사람의 1인칭 화면에 자기 아바타가 보이지 않는 것은 의도한 동작입니다. 로컬 두 브라우저 검증과 공개 서버 검증은 구분합니다. [공개 브라우저 검사](screenshots/social-diagnosis-20261112/public-verification.json).
+
 ## 기존 구조와 변경 범위
 
 기존 기술은 Three.js 0.187.0, TypeScript 6.0.3, Vite 8.3.6과 DOM/TSX 컴포넌트입니다. 렌더링은 Engine의 단일 animation loop와 Renderer/Scene을 유지합니다. PlayerController의 공통 이동, MovementCollision의 AABB 충돌, WorldManager의 최신 요청 우선 전환/실패 시 이전 월드 보존을 재사용했습니다. GLB 공간은 기존 GLTFLoader/ModelLoader로 읽습니다. 이전에는 서버가 없고 ServiceStore/LocalDemoRepository에 브라우저 로컬 데모 데이터만 있었습니다.

@@ -1,4 +1,6 @@
 import {DoorJourney} from './DoorJourney';
+import {CompletionReturnTimer} from './CompletionReturnTimer';
+import type {Appointment} from '../state/types';
 import {doorway} from '../worlds/my-room/doorway';
 import {Vector3} from 'three';
 import {myRoomHomeSeat} from '../worlds/my-room/seats';
@@ -27,7 +29,7 @@ import { CardboardPresenter } from './CardboardPresenter';
 import { firstFixRoute } from './firstFixNavigation';
 import { modes, participants, places } from '../data/demo';
 
-/** The live service mounts only the four first-fix screens. */
+/** Compose the Figma service screens around the active world. */
 export class FirstFixExperience {
     readonly store = new ServiceStore(new LocalDemoRepository(localStorage));
     readonly engine: Engine;
@@ -50,6 +52,8 @@ export class FirstFixExperience {
     private request = 0;
     private disposed = false;
     private review = false;
+    private completedAppointment?:Appointment;
+    private completionReturn=new CompletionReturnTimer(()=>{void this.home();});
     private draft: Draft = { mode: 'solo', avatar: 'mint', date: '', time: '', place: 'umai', people: participants.map(p => p.id), month: new Date().getMonth(), year: new Date().getFullYear(), modeRating: 0, peopleRating: 0, ratings: {}, message: '', error: '', progress: '', sensor: '', edit: '' };
 
     constructor(host: HTMLElement) {
@@ -57,7 +61,7 @@ export class FirstFixExperience {
         this.engine = new Engine(this.viewport, this.vrHost, [myRoom, ...worlds]);
         this.ratingBackdrop=new RatingBackdrop(this.engine,this.viewport);
         this.fishing = new FishingHUD(this.shell, this.engine, undefined, { touchLook: false });
-        this.router = new ServiceRouter(screen => firstFixRoute(screen, this.store.value.session));
+        this.router = new ServiceRouter(screen => firstFixRoute(screen, this.store.value.session,!!this.completedAppointment));
         const canvas = this.engine.rendering.webgl.domElement; canvas.tabIndex = -1;
         this.gestures = new SpaceGestureInput(canvas, (x, y) => this.engine.player.look(x, y), () => this.openHome());
         this.cardboard = new CardboardPresenter(this.engine, this.shell, node => this.perform(node.dataset.action || ''), () => this.syncInput(), false);
@@ -88,6 +92,7 @@ export class FirstFixExperience {
         }), this.router.changes.subscribe(() => {
             if(this.engine.presentationActive&&this.router.current!=='loading'){++this.request;this.journey.cancel();}
             this.render();
+            this.completionReturn.setScreen(this.router.current);
             void ensureScreenWorld(this.engine,this.router.current,this.store.value.session).then(() => {
                 if (!this.disposed) { this.cardboard.recenter();this.syncInput(); }
             });
@@ -148,7 +153,8 @@ export class FirstFixExperience {
             this.engine.setDesktopEnabled(false); this.gestures.setEnabled(false);
             this.rendered = screen; this.screenEnteredAt = performance.now();
         }
-        const frame = fixFrames[screen] ? renderFixScreen(screen, this.draft, calendar(this.draft), true)
+        const hasFrame=!!fixFrames[screen]||screen==='appointment-done';
+        const frame = hasFrame ? renderFixScreen(screen, this.draft, calendar(this.draft), true,this.completedAppointment)
             : screen === 'simulation' ? renderSimulationScreen()
             : screen === 'loading' ? renderSpaceNavigation('취소', 'cancel-loading')
             : renderFixScreen('modes',this.draft,calendar(this.draft),true);
@@ -156,7 +162,7 @@ export class FirstFixExperience {
         const notice = frame.querySelector<HTMLElement>('.fix-rating-notice');
         if (notice) notice.style.animationDelay = `${-(performance.now() - this.screenEnteredAt)}ms`;
         frame.dataset.screen = screen;
-        if (fixFrames[screen]) frame.classList.add('explorable-frame');
+        if (hasFrame) frame.classList.add('explorable-frame');
         this.stage.replaceChildren(frame); this.shell.dataset.route = screen;
         this.cardboard.setPanel(frame);
         this.stage.classList.toggle('space-navigation-stage', screen === 'loading');
@@ -208,11 +214,12 @@ export class FirstFixExperience {
                 const date = new Date(this.draft.year, this.draft.month + Number(value), 1);
                 this.draft.year = date.getFullYear(); this.draft.month = date.getMonth();
             } else if (name === 'appointment-next' || name === 'appointment-search') { this.navigate('appointment-place'); return; }
-            else if (name === 'appointment-simple') return;
+            else if (name === 'appointment-simple') {this.navigate('appointment-date');return;}
             else if (name === 'place-next' || name === 'place-search') this.draft.place = places[(places.findIndex(place => place.id === this.draft.place) + 1) % places.length].id;
             else if (name === 'appointment-create') {
                 this.store.appointment({ date: this.draft.date, time: this.draft.time, place: this.draft.place, participants: this.draft.people });
-                this.notice('약속이 저장되었습니다.'); return;
+                this.completedAppointment=this.store.value.appointments.at(-1);
+                this.navigate('appointment-done'); return;
             }
             this.render();
         } catch { this.notice('선택 내용을 확인하고 다시 진행해 주세요.'); }
@@ -252,7 +259,7 @@ export class FirstFixExperience {
         this.syncInput();
     }
     async dispose(): Promise<void> {
-        this.disposed = true; ++this.request; this.events.abort(); this.cleanups.forEach(cleanup => cleanup());
+        this.disposed = true; ++this.request; this.completionReturn.dispose();this.events.abort(); this.cleanups.forEach(cleanup => cleanup());
         this.journey.dispose();this.ratingBackdrop.dispose();this.detachDiagnostics?.(); this.router.dispose(); this.gestures.dispose(); this.fishing.dispose(); this.cardboard.dispose();
         await this.engine.dispose(); this.shell.remove();
     }

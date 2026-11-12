@@ -20,6 +20,6 @@
 .updated-frame .simulation-chat-form input::placeholder{color:rgba(255,255,255,.32);opacity:1}
 .updated-frame .simulation-chat-form button{flex-shrink:0;padding:0}
 .updated-frame .simulation-chat-form button:hover{background:transparent}
-.first-fix-shell .social-ui:is([data-screen=modes],[data-screen=simulation]) .social-panel{top:100px;left:auto;right:48px;max-width:min(420px,calc(100vw - 48px))}
-.first-fix-shell .social-ui:is([data-screen=modes],[data-screen=simulation])[data-panel-open=false] .social-panel{display:none}
+.first-fix-shell .social-ui:is([data-screen=modes],[data-screen=simulation],[data-screen=appointment-date],[data-screen=appointment-place],[data-screen=appointment-done]) .social-panel{top:100px;left:auto;right:48px;max-width:min(420px,calc(100vw - 48px))}
+.first-fix-shell .social-ui:is([data-screen=modes],[data-screen=simulation],[data-screen=appointment-date],[data-screen=appointment-place],[data-screen=appointment-done])[data-panel-open=false] .social-panel{display:none}
 .first-fix-shell .social-ui[data-screen=simulation] :is(.social-chat,.social-chat-toggle){display:none}

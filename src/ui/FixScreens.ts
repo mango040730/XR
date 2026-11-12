@@ -6,6 +6,10 @@ import UpdatedModeFrame from './figma/Update115_330';
 import SimulationFrame from './figma/Update115_855';
 import RatingOneFrame from './figma/Update115_403';
 import RatingTwoFrame from './figma/Update115_442';
+import AppointmentDateFrame from './figma/Update115_496';
+import AppointmentPlaceFrame from './figma/Update115_563';
+import AppointmentDoneFrame from './figma/Update115_704';
+import type {Appointment} from '../state/types';
 import { bind, button, element } from '../components/designSystem';
 import { modes, participants, places } from '../data/demo';
 import type { Draft } from './ServiceScreens';
@@ -16,7 +20,16 @@ export const fixFrames: Partial<Record<Screen, () => HTMLElement>> = {
     'appointment-date': DateFrame, 'appointment-place': PlaceFrame,
 };
 // rating2 is prepared for future pages; live rating always uses rating1.
-export const updatedFrames = { modes: UpdatedModeFrame, simulation: SimulationFrame, rating1: RatingOneFrame, rating2: RatingTwoFrame };
+export const updatedFrames = { modes: UpdatedModeFrame, simulation: SimulationFrame, rating1: RatingOneFrame, rating2: RatingTwoFrame,
+    'appointment-date':AppointmentDateFrame,'appointment-place':AppointmentPlaceFrame,'appointment-done':AppointmentDoneFrame };
+const liveFrames:Partial<Record<Screen,keyof typeof updatedFrames>>={modes:'modes',rating:'rating1','appointment-date':'appointment-date','appointment-place':'appointment-place','appointment-done':'appointment-done'};
+
+function appointmentHeader(root:HTMLElement,home:string,bell:string,people:string,calendar:string):void{
+    action(root,home,'home','마이룸으로 나가기');
+    socialControl(root,bell,'panel','알림');
+    action(root,people,'nav:appointment-date','약속잡기').classList.add('mode-appointment-trigger');
+    action(root,calendar,'nav:appointment-date','작당모의');
+}
 
 export function renderUpdatedReview(which: keyof typeof updatedFrames): HTMLElement {
     const root = updatedFrames[which]();
@@ -132,9 +145,9 @@ function modeCards(root: HTMLElement, strict: boolean): void {
     root.append(list);
 }
 
-export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLElement, strict = false): HTMLElement {
-    const root = strict && (which === 'modes' || which === 'rating')
-        ? renderUpdatedReview(which === 'rating' ? 'rating1' : 'modes') : renderFixReview(which);
+export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLElement, strict = false,completed?:Appointment): HTMLElement {
+    const updated=strict?liveFrames[which]:undefined;
+    const root = updated ? renderUpdatedReview(updated) : renderFixReview(which);
     root.classList.add('live-world-frame');
     // The running world's WebGL canvas is the backdrop for the live service.
     // Keep reference exports intact and retain card thumbnails / map content.
@@ -206,6 +219,20 @@ export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLEleme
             break;
         }
         case 'appointment-date':
+            if(strict){
+                root.classList.add('appointment-frame');
+                appointmentHeader(root,'115:548','115:553','115:557','115:559');
+                action(root,'115:504','appointment-simple','약속만 잡을래요');
+                action(root,'115:506','appointment-search','방탈출 검색하기');
+                const next=action(root,'115:545','appointment-next','다음 · 장소 선택') as HTMLButtonElement;
+                next.disabled=!draft.date||!draft.time;
+                find(root,'115:510').replaceChildren(calendar);
+                for(let i=0;i<14;i++){
+                    const time=String(i+9).padStart(2,'0')+':00';
+                    selected(action(root,'115:'+(517+i*2),'time:'+time,time+' 선택'),draft.time===time);
+                }
+                break;
+            }
             action(root, '49:1169', 'home', '마이룸으로');
             action(root, '49:814', 'appointment-simple', '약속만 잡을래요');
             action(root, '49:816', 'appointment-search', '방탈출 검색하기');
@@ -218,6 +245,20 @@ export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLEleme
             }
             break;
         case 'appointment-place': {
+            if(strict){
+                root.classList.add('appointment-frame');
+                appointmentHeader(root,'115:599','115:604','115:608','115:610');
+                action(root,'115:571','appointment-simple','약속만 잡을래요');
+                action(root,'115:573','place-search','방탈출 검색하기');
+                const label=places.find(place=>place.id===draft.place)!.name;
+                const search=action(root,'115:581','place-search','장소 선택: '+label);
+                search.title='클릭하면 다음 장소를 선택합니다.';
+                if(draft.place!=='umai')find(root,'115:584').textContent=label;
+                action(root,'115:594','nav:appointment-date','이전 · 날짜 선택');
+                const complete=action(root,'115:596','appointment-create','약속 생성') as HTMLButtonElement;
+                complete.disabled=!draft.date||!draft.time;
+                break;
+            }
             action(root, '49:1123', 'home', '마이룸으로');
             action(root, '49:1078', 'appointment-simple', '약속만 잡을래요');
             action(root, '49:1080', 'place-search', '방탈출 검색하기');
@@ -241,6 +282,20 @@ export function renderFixScreen(which: Screen, draft: Draft, calendar: HTMLEleme
             });
             // The Figma map is a static reference; local demo choices remain operable.
             find(root, '49:1134').insertBefore(choices, find(root, '50:1706'));
+            break;
+        }
+        case 'appointment-done': {
+            root.classList.add('appointment-frame');
+            appointmentHeader(root,'115:715','115:720','115:724','115:726');
+            find(root,'115:715').title='10초 후 마이룸으로 자동 이동합니다.';
+            if(completed){
+                const names=completed.participants.map(id=>participants.find(p=>p.id===id)?.name).filter(Boolean);
+                const who=names.length===1?`[${names[0]}]과`:`[${names[0]??'함께한 사람들'}] 외 ${Math.max(0,names.length-1)}명과`;
+                find(root,'115:708').textContent=who+' 작당모의 완료!';
+                find(root,'115:712').querySelector('p')!.textContent=places.find(p=>p.id===completed.place)?.name??completed.place;
+                const date=new Date(completed.date+'T12:00:00');
+                find(root,'115:713').querySelector('p')!.textContent=completed.date.replaceAll('-','.')+`.(${'일월화수목금토'[date.getDay()]}) ${Number(completed.time.slice(0,2))>=12?'오후':'오전'} ${completed.time}`;
+            }
             break;
         }
     }

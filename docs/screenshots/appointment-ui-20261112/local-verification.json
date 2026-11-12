@@ -1,0 +1,187 @@
+{
+  "url": "http://127.0.0.1:5173/?v=appointment-ui-20261112&offline=1#appointment-date",
+  "previews": [
+    {
+      "id": "115:496",
+      "assets": [
+        {
+          "path": "/assets/figma-update/1ca1fafa-415f-4a18-b098-dd50047308bf.png",
+          "slot": "115:501",
+          "w": 348.09375,
+          "h": 195.78125,
+          "naturalWidth": 1920,
+          "naturalHeight": 1080
+        },
+        {
+          "path": "/assets/figma-update/68997e4e-0439-4547-927f-e74d4a1311f1.png",
+          "slot": "115:511",
+          "w": 330,
+          "h": 391,
+          "naturalWidth": 1250,
+          "naturalHeight": 1254
+        },
+        {
+          "path": "/assets/figma-update/4ae642c3-8f36-4bbb-a079-b1353fd85c51.svg",
+          "slot": "115:549",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        },
+        {
+          "path": "/assets/figma-update/12a785eb-d9e5-4c95-b5c2-58e2a28e6b87.svg",
+          "slot": "115:554",
+          "w": 18,
+          "h": 22.03125,
+          "naturalWidth": 18,
+          "naturalHeight": 22
+        },
+        {
+          "path": "/assets/figma-update/aeac8526-e788-476e-bd77-b03b58747a42.svg",
+          "slot": "115:557",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        },
+        {
+          "path": "/assets/figma-update/afd58643-1cf1-4a96-b932-2a57f366b072.svg",
+          "slot": "115:560",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        }
+      ]
+    },
+    {
+      "id": "115:563",
+      "assets": [
+        {
+          "path": "/assets/figma-update/6338dba8-afe0-4590-b4f8-035be3e6b5da.png",
+          "slot": "115:568",
+          "w": 348.09375,
+          "h": 195.78125,
+          "naturalWidth": 1920,
+          "naturalHeight": 1080
+        },
+        {
+          "path": "/assets/figma-update/5d875e4b-a4a9-4e67-9f15-6fbc639e0e8e.png",
+          "slot": "115:579",
+          "w": 318,
+          "h": 377,
+          "naturalWidth": 1250,
+          "naturalHeight": 1254
+        },
+        {
+          "path": "/assets/figma-update/907c26eb-01e0-46b6-8a11-e376276c1863.png",
+          "slot": "115:580",
+          "w": 1247,
+          "h": 799,
+          "naturalWidth": 1024,
+          "naturalHeight": 657
+        },
+        {
+          "path": "/assets/figma-update/43f3f5f1-bb14-4777-bba6-cd2363a14a76.svg",
+          "slot": "115:582",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        },
+        {
+          "path": "/assets/figma-update/64990ddb-57e9-4957-b52a-953a2ee915ef.svg",
+          "slot": "115:600",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        },
+        {
+          "path": "/assets/figma-update/8b8124a4-9c7a-4f0c-a3a8-23e964ffa487.svg",
+          "slot": "115:605",
+          "w": 18,
+          "h": 22.03125,
+          "naturalWidth": 18,
+          "naturalHeight": 22
+        },
+        {
+          "path": "/assets/figma-update/c9896b44-264b-4d29-b199-d43b77ea326c.svg",
+          "slot": "115:608",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        },
+        {
+          "path": "/assets/figma-update/0c1c6d60-6c94-4055-9580-f392a889828d.svg",
+          "slot": "115:611",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        }
+      ]
+    },
+    {
+      "id": "115:704",
+      "assets": [
+        {
+          "path": "/assets/figma-update/84a7bdd1-48aa-471f-ba61-cfe5588e9ccc.png",
+          "slot": "115:710",
+          "w": 394,
+          "h": 316,
+          "naturalWidth": 788,
+          "naturalHeight": 632
+        },
+        {
+          "path": "/assets/figma-update/2e6b5e64-634b-4f22-871b-33c806774e27.svg",
+          "slot": "115:716",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        },
+        {
+          "path": "/assets/figma-update/f41e83f6-e98e-40fb-b7aa-23fd839a6ad8.svg",
+          "slot": "115:721",
+          "w": 18,
+          "h": 22.03125,
+          "naturalWidth": 18,
+          "naturalHeight": 22
+        },
+        {
+          "path": "/assets/figma-update/1a4ada1d-86e2-43cc-a6e4-84a536efbe8e.svg",
+          "slot": "115:724",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        },
+        {
+          "path": "/assets/figma-update/657240f1-9489-4629-8e13-4b4395d078ac.svg",
+          "slot": "115:727",
+          "w": 24,
+          "h": 24,
+          "naturalWidth": 24,
+          "naturalHeight": 24
+        }
+      ]
+    }
+  ],
+  "selected": {
+    "date": "2026-11-16",
+    "time": "17:00",
+    "place": "park"
+  },
+  "automaticHomeElapsedMs": 10308,
+  "manualHomeWorks": true,
+  "oldDeadlineCancelled": true,
+  "savedCount": 2,
+  "globals": {
+    "engine": "undefined",
+    "social": "undefined"
+  },
+  "errors": [],
+  "failed": []
+}

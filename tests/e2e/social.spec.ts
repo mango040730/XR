@@ -7,7 +7,7 @@ const snap=(page:Page)=>page.evaluate(()=>window.__SOCIAL_DEBUG__!.snapshot());
 async function enter(page:Page,room:string,name:string){
   await page.goto(`${origin}/?room=${room}#my-room`);
   await expect.poll(()=>page.evaluate(()=>!!window.__SOCIAL_DEBUG__?.snapshot().local)).toBe(true);
-  await page.locator('[data-node-id="115:397"]').click();await page.getByLabel('닉네임',{exact:true}).fill(name);await page.locator('[data-action="social-join"]').click();
+  await page.locator('[data-node-id="115:393"]').click();await page.getByLabel('닉네임',{exact:true}).fill(name);await page.locator('[data-action="social-join"]').click();
   await expect.poll(async()=>(await snap(page)).id).toBeTruthy();
 }
 async function walk(page:Page,key:string,predicate:(position:number[])=>boolean){
@@ -86,7 +86,7 @@ test('different rooms stay isolated; switching a world and reconnecting clear th
   try{
     const room='isolation-'+Date.now();await enter(page,room,'A');await enter(b,room+'-other','B');
     expect((await snap(page)).users).toHaveLength(1);expect((await snap(b)).remotes).toHaveLength(0);
-    await b.goto(`${origin}/?room=${room}#my-room`);await b.locator('[data-node-id="115:397"]').click();await b.getByLabel('닉네임',{exact:true}).fill('B');await b.locator('[data-action="social-join"]').click();
+    await b.goto(`${origin}/?room=${room}#my-room`);await b.locator('[data-node-id="115:393"]').click();await b.getByLabel('닉네임',{exact:true}).fill('B');await b.locator('[data-action="social-join"]').click();
     await expect.poll(async()=>(await snap(page)).users.length).toBe(2);
     await b.route('**/bowling/retro_bowling_alley.glb',route=>route.fulfill({status:404,body:'missing'}));
     await b.keyboard.press('m');await b.locator('[data-action="mode:team"]').click();

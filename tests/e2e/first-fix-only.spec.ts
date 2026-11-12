@@ -34,9 +34,8 @@ test('fresh users see only the four first-fix screens through mode, rating and b
     await page.locator('.calendar [data-action^="date:"]').nth(15).click(); await click(page, 'time:17:00');
     await screenshot(page, info, 'first-fix-only-date'); await click(page, 'appointment-next'); await route(page, 'appointment-place');
     await onlyOriginalUI(page); await click(page, 'place-search');
-    await expect(page.locator('[data-node-id="49:1166"]')).toContainText('어린이대공원');
-    await screenshot(page, info, 'first-fix-only-place'); await click(page, 'appointment-create'); await route(page, 'modes');
-    await expect(page.locator('.fix-mode-notice')).toContainText('약속이 저장되었습니다');
+    await expect(page.locator('[data-node-id="115:584"]')).toContainText('어린이대공원');
+    await screenshot(page, info, 'first-fix-only-place'); await click(page, 'appointment-create'); await route(page, 'appointment-done'); await expect(page.locator('[data-node-id="115:712"]')).toContainText('어린이대공원');await page.getByRole('button',{name:'마이룸으로 나가기',exact:true}).click();await route(page,'modes');
     const data = await page.evaluate(() => JSON.parse(localStorage.getItem('xr-spatial-service-demo-v1')!));
     expect(data.ratings).toHaveLength(1); expect(Object.values(data.ratings[0].participantRatings)).toEqual([5, 5, 5]);
     expect(data.appointments).toHaveLength(1); expect(data.appointments[0].place).toBe('park');

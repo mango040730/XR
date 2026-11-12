@@ -1,0 +1,512 @@
+{
+  "config": {
+    "argv": [
+      "/usr/local/bin/node",
+      "/Users/gimlyeogyeong/Downloads/공간 실험/node_modules/.bin/playwright",
+      "test",
+      "tests/e2e/figma-appointment.spec.ts",
+      "tests/e2e/production.spec.ts"
+    ],
+    "configFile": "/Users/gimlyeogyeong/Downloads/공간 실험/playwright.config.ts",
+    "rootDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [
+          "production.spec.ts",
+          "social.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "production-chromium",
+        "name": "production-chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "production.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "snapshotDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [
+          "production.spec.ts",
+          "social.spec.ts"
+        ],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 30000,
+        "use": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.8127.18 Safari/537.36",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium",
+          "channel": "chromium",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "launchOptions": {
+            "args": []
+          },
+          "baseURL": "http://127.0.0.1:4173"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      },
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "production-chromium",
+        "testDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "snapshotDir": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e",
+        "testIgnore": [],
+        "testMatch": "production.spec.ts",
+        "timeout": 30000,
+        "use": {
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.8127.18 Safari/537.36",
+          "viewport": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium",
+          "channel": "chromium",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "launchOptions": {
+            "args": []
+          },
+          "baseURL": "http://127.0.0.1:4174"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "production-chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.65.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "figma-appointment.spec.ts",
+      "file": "figma-appointment.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "latest appointment references preserve all original assets and the three panel layouts",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3232,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:43:19.639Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "appointment-reference-115-496",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-appointment-latest-a-a7fc1-and-the-three-panel-layouts-chromium/attachments/appointment-reference-115-496-80f0e9847f4bde2c323a553edfba2d1acd0d3922.png"
+                    },
+                    {
+                      "name": "appointment-reference-115-563",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-appointment-latest-a-a7fc1-and-the-three-panel-layouts-chromium/attachments/appointment-reference-115-563-7f4b761bf6e6e0ca21e4be0f9191fe2ab82d3f49.png"
+                    },
+                    {
+                      "name": "appointment-reference-115-704",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-appointment-latest-a-a7fc1-and-the-three-panel-layouts-chromium/attachments/appointment-reference-115-704-aa3aaece05ad98822e4341e0bb7ad698f1886a02.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-appointment-latest-a-a7fc1-and-the-three-panel-layouts-chromium/attachments/browser-diagnostics-47c65058c13c6d4b240afa5f062457dd8c2690e3.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6c04ecdcd21ce866ed30-419e087aaeef83b13eed",
+          "file": "figma-appointment.spec.ts",
+          "line": 5,
+          "column": 1
+        },
+        {
+          "title": "saved appointment shows actual details, returns after ten seconds, and cancels the old deadline after manual exit",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 25025,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:43:23.341Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "appointment-complete-live",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-appointment-saved-ap-39dea--deadline-after-manual-exit-chromium/attachments/appointment-complete-live-e0824866ac44cd3fdc37c8d4286d13e5c21a52aa.png"
+                    },
+                    {
+                      "name": "appointment-after-cancelled-return",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-appointment-saved-ap-39dea--deadline-after-manual-exit-chromium/attachments/appointment-after-cancelled-return-764f05af78f7c7c0142d347bb8ad2c19c812b8b7.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/figma-appointment-saved-ap-39dea--deadline-after-manual-exit-chromium/attachments/browser-diagnostics-bdd1c3d3d4c42f08407c9fabb3899bd5516fe487.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "6c04ecdcd21ce866ed30-5862c894bfa30e090cbd",
+          "file": "figma-appointment.spec.ts",
+          "line": 18,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "production.spec.ts",
+      "file": "production.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "production exposes only first-fix UI and loads the real GLB without debug globals",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "production-chromium",
+              "projectName": "production-chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5077,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:43:48.790Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/production-production-expo-b0d11-l-GLB-without-debug-globals-production-chromium/attachments/browser-diagnostics-43d395b6fdb24454466774db6bc5360e0cd7b90d.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ed69554c53210704c98c-e220fb80649ea996882f",
+          "file": "production.spec.ts",
+          "line": 3,
+          "column": 1
+        },
+        {
+          "title": "production social view loads the provided GLB but never exposes test diagnostics or fabricated peers",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "production-chromium",
+              "projectName": "production-chromium",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 10675,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.social-join')\nExpected: visible\nReceived: hidden\nTimeout:  8000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('.social-join') with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for locator('.social-join')\u001b[22m\n\u001b[2m    20 × locator resolved to <form class=\"social-join\">…</form>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.social-join')\nExpected: visible\nReceived: hidden\nTimeout:  8000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('.social-join') with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for locator('.social-join')\u001b[22m\n\u001b[2m    20 × locator resolved to <form class=\"social-join\">…</form>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n    at /Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/production.spec.ts:19:100",
+                    "location": {
+                      "file": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/production.spec.ts",
+                      "column": 100,
+                      "line": 19
+                    },
+                    "snippet": " \u001b[90m 17 |\u001b[39m  \u001b[36mconst\u001b[39m model\u001b[33m=\u001b[39mpage\u001b[33m.\u001b[39mwaitForResponse(r\u001b[33m=>\u001b[39mr\u001b[33m.\u001b[39murl()\u001b[33m.\u001b[39mendsWith(\u001b[32m'/avatars/cub-scout-v6.glb'\u001b[39m))\u001b[33m;\u001b[39m\n \u001b[90m 18 |\u001b[39m  \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/#my-room'\u001b[39m)\u001b[33m;\u001b[39mexpect((\u001b[36mawait\u001b[39m model)\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 19 |\u001b[39m  \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-node-id=\"115:397\"]'\u001b[39m)\u001b[33m.\u001b[39mclick()\u001b[33m;\u001b[39m\u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'.social-join'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'.social-status'\u001b[39m))\u001b[33m.\u001b[39mtoBeHidden()\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                                                                                                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 20 |\u001b[39m  expect(\u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(()\u001b[33m=>\u001b[39mwindow\u001b[33m.\u001b[39m__SOCIAL_DEBUG__))\u001b[33m.\u001b[39mtoBeUndefined()\u001b[33m;\u001b[39mexpect(\u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mevaluate(()\u001b[33m=>\u001b[39mwindow\u001b[33m.\u001b[39m__XR_DEBUG__))\u001b[33m.\u001b[39mtoBeUndefined()\u001b[33m;\u001b[39m\n \u001b[90m 21 |\u001b[39m  \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'.social-log li'\u001b[39m))\u001b[33m.\u001b[39mtoHaveCount(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 22 |\u001b[39m })\u001b[33m;\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/production.spec.ts",
+                        "column": 100,
+                        "line": 19
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('.social-join')\nExpected: visible\nReceived: hidden\nTimeout:  8000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('.social-join') with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for locator('.social-join')\u001b[22m\n\u001b[2m    20 × locator resolved to <form class=\"social-join\">…</form>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n\n  17 |  const model=page.waitForResponse(r=>r.url().endsWith('/avatars/cub-scout-v6.glb'));\n  18 |  await page.goto('/#my-room');expect((await model).status()).toBe(200);\n> 19 |  await page.locator('[data-node-id=\"115:397\"]').click();await expect(page.locator('.social-join')).toBeVisible();await expect(page.locator('.social-status')).toBeHidden();\n     |                                                                                                    ^\n  20 |  expect(await page.evaluate(()=>window.__SOCIAL_DEBUG__)).toBeUndefined();expect(await page.evaluate(()=>window.__XR_DEBUG__)).toBeUndefined();\n  21 |  await expect(page.locator('.social-log li')).toHaveCount(0);\n  22 | });\n    at /Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/production.spec.ts:19:100"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:43:54.300Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/production-production-soci-01a65-nostics-or-fabricated-peers-production-chromium/test-failed-1.png"
+                    },
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/production-production-soci-01a65-nostics-or-fabricated-peers-production-chromium/attachments/browser-diagnostics-9ceefa9077b1ab4eecd3c8c17990a1817e0a86cd.json"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/production-production-soci-01a65-nostics-or-fabricated-peers-production-chromium/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/production-production-soci-01a65-nostics-or-fabricated-peers-production-chromium/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/gimlyeogyeong/Downloads/공간 실험/tests/e2e/production.spec.ts",
+                    "column": 100,
+                    "line": 19
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "ed69554c53210704c98c-9b6ca9f680c244286895",
+          "file": "production.spec.ts",
+          "line": 16,
+          "column": 1
+        },
+        {
+          "title": "production fishing keeps only the first-fix next-step button",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "production-chromium",
+              "projectName": "production-chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6067,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:44:06.248Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/production-production-fish-a4a62--first-fix-next-step-button-production-chromium/attachments/browser-diagnostics-f163cc0dfcff68f74e46a2e0f3fa4195c9037978.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ed69554c53210704c98c-4d81d75996d931dc3ebf",
+          "file": "production.spec.ts",
+          "line": 24,
+          "column": 1
+        },
+        {
+          "title": "production fishing ignores HUD flags and keeps only mode navigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "production-chromium",
+              "projectName": "production-chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2007,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-12T01:44:12.669Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-diagnostics",
+                      "contentType": "application/json",
+                      "path": "/Users/gimlyeogyeong/Downloads/공간 실험/test-results/playwright/production-production-fish-8220e--keeps-only-mode-navigation-production-chromium/attachments/browser-diagnostics-45257b968932717f9f2c48048f2a96153871b1d7.json"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ed69554c53210704c98c-a49f1f23809209139cc2",
+          "file": "production.spec.ts",
+          "line": 35,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-12T01:43:13.956Z",
+    "duration": 60827.263,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { meshPieces, applyPieces } from './mesh-pieces.js';
 import { captureChair, buildMixedSeating } from './mixed-seating.js';
+import { PATH_Y, terraceHeight } from './space-levels.js';
 
 export const TERRACE_DEPTH = 4;
 export const PASSAGE_WIDTH = 1.2;
@@ -80,11 +81,12 @@ export function arrangeTerraceSeating(meshes, model) {
     const innerRadius = group.innerRadius ?? TERRACE_INNER;
     const outerLimit = group.outerRadius ?? TERRACE_OUTER;
     const shift = direction.multiplyScalar(innerRadius + PASSAGE_WIDTH + 0.15 - minProjection);
+    shift.y = group.kind === 'ottoman' ? terraceHeight(2) - 1.71 : PATH_Y - 1.99;
     let outerRadius = 0;
     for (const part of group.parts) {
       const p = part.mesh.geometry.attributes.position;
       for (const i of part.vertices) {
-        p.setX(i, p.getX(i) + shift.x); p.setZ(i, p.getZ(i) + shift.z);
+        p.setX(i, p.getX(i) + shift.x); p.setY(i, p.getY(i) + shift.y); p.setZ(i, p.getZ(i) + shift.z);
         outerRadius = Math.max(outerRadius, Math.hypot(p.getX(i), p.getZ(i)));
       }
     }
@@ -99,7 +101,7 @@ export function arrangeTerraceSeating(meshes, model) {
       for (const i of part.vertices) bounds.expandByPoint(new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)));
     }
     const size = bounds.getSize(new THREE.Vector3());
-    return { center: bounds.getCenter(new THREE.Vector3()), height: group.kind === 'ottoman' ? 1.71 : 1.99, radius: Math.hypot(size.x, size.z) / 2 };
+    return { center: bounds.getCenter(new THREE.Vector3()), height: group.kind === 'ottoman' ? terraceHeight(2) : PATH_Y, radius: Math.hypot(size.x, size.z) / 2 };
   });
   // The original central dining cluster slightly overhung the first terrace's
   // lane. Move that intact cluster one metre inward to keep all three lanes clear.

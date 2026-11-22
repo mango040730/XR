@@ -10,6 +10,7 @@ import { TERRACE_DEPTH, PASSAGE_WIDTH } from '../src/terrace-seating.js';
 import { SCREEN_WALL_HEIGHT } from '../src/digital-wall.js';
 import { CLAY_TRIANGLE_BUDGET } from '../src/clay-style.js';
 import { MIXED_TIERS } from '../src/mixed-seating.js';
+import { TOTAL_RISE, PREVIOUS_TOTAL_RISE, ACCESS_STEP_RISE } from '../src/space-levels.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from '../src/joined-stairs.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, expandStairRadius } from '../src/prepare-space.js';
 
@@ -57,10 +58,10 @@ test('높은 블루길에서 원형 계단을 내려가 낮은 중앙 공간으�
       const expanded = radius <= 26.3 ? expandStairRadius(radius) : PATH_INNER_RADIUS + (radius - 26.7);
       ray.set(new Vector3(Math.cos(angle) * expanded, 4, Math.sin(angle) * expanded), new Vector3(0, -1, 0));
       const hit = ray.intersectObjects(floors, false)[0];
-      assert.ok(hit && Math.abs(hit.point.y - expected) < 0.001, `반경 ${radius}의 높이 ${expected}가 필요합니다.`);
+      assert.ok(hit && Math.abs(hit.point.y - (FLOOR_Y + (expected - FLOOR_Y) * 2)) < 0.001, `반경 ${radius}의 단차가 두 배여야 합니다.`);
     }
   }
-  assert.ok(PATH_Y - FLOOR_Y > 0.8, '전체 평탄화하면 안 됩니다.');
+  assert.ok(PATH_Y - FLOOR_Y > 1.6, '전체 평탄화하면 안 됩니다.');
 });
 
 test('블루길과 최상단 계단 사이에 틈이나 별도의 턱이 없다', () => {
@@ -121,7 +122,7 @@ test('각 원형 계단 단이 가구와 통로를 담는 깊이 4m로 확장됐
   const ray = new Raycaster();
   for (const [radius, expected] of [[23.6, 1.43], [26.8, 1.43], [27.6, 1.71], [30.4, 1.71], [31.6, 1.99], [34.8, 1.99]]) {
     ray.set(new Vector3(radius / Math.SQRT2, 4, radius / Math.SQRT2), new Vector3(0, -1, 0));
-    assert.ok(Math.abs(ray.intersectObjects(floors, false)[0].point.y - expected) < 0.001);
+    assert.ok(Math.abs(ray.intersectObjects(floors, false)[0].point.y - (FLOOR_Y + (expected - FLOOR_Y) * 2)) < 0.001);
   }
 });
 
@@ -266,8 +267,8 @@ test('네 이동 계단의 양쪽 경계 전체에 빠지는 틈이 없다', () 
       const boundary = direction + side * ACCESS_HALF_ANGLE;
       for (let band = 0; band < 6; band++) {
         const radius = 24.2 + band * 2;
-        const low = band === 5 ? PATH_Y : FLOOR_Y + (band + 1) * 0.14;
-        const high = band >= 4 ? PATH_Y : FLOOR_Y + Math.ceil((band + 1) / 2) * 0.28;
+        const low = band === 5 ? PATH_Y : FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
+        const high = band >= 4 ? PATH_Y : FLOOR_Y + Math.ceil((band + 1) / 2) * ACCESS_STEP_RISE * 2;
         for (const offset of [-0.5, -0.2, -0.01, 0, 0.01, 0.2, 0.5]) {
           const angle = boundary + offset / radius;
           ray.set(new Vector3(radius * Math.cos(angle), 4, radius * Math.sin(angle)), new Vector3(0, -1, 0));
@@ -288,8 +289,8 @@ test('높이가 다른 두 계단의 측면도 빈틈 없이 연결됐다', () =
       for (const band of [0, 2, 4]) {
         const radius = 24.2 + band * 2;
         const angle = boundary - side * 0.002;
-        const low = FLOOR_Y + (band + 1) * 0.14;
-        const origin = new Vector3(radius * Math.cos(angle), low + 0.07, radius * Math.sin(angle));
+        const low = FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
+        const origin = new Vector3(radius * Math.cos(angle), low + ACCESS_STEP_RISE / 2, radius * Math.sin(angle));
         const lateral = new Vector3(-Math.sin(boundary) * side, 0, Math.cos(boundary) * side);
         ray.set(origin, lateral);
         const hit = ray.intersectObject(edited.stairs[0], false)[0];
@@ -310,4 +311,18 @@ test('계단과 블루길은 동일한 외곽선을 공유해 미세한 이음 �
       assert.ok(hit && Math.abs(hit.point.y - PATH_Y) < 0.001, '상단 계단과 블루길 사이에 미세한 빈틈도 없어야 합니다.');
     }
   }
+});
+
+
+test('중앙 원형 바닥을 유지하고 블루길까지의 전체 단차를 정확히 두 배로 높였다', () => {
+  const ray = new Raycaster();
+  ray.set(new Vector3(0, 8, 0), new Vector3(0, -1, 0));
+  const lower = ray.intersectObjects(floors, false)[0].point.y;
+  ray.set(new Vector3(40, 8, 0), new Vector3(0, -1, 0));
+  const upper = ray.intersectObjects(floors, false)[0].point.y;
+  assert.ok(Math.abs(lower - 1.15) < 0.00001);
+  assert.ok(Math.abs((upper - lower) / PREVIOUS_TOTAL_RISE - 2) < 0.00001);
+  assert.ok(Math.abs(TOTAL_RISE - 1.6804) < 0.00001);
+  assert.ok(Math.abs(upper - 2.8304) < 0.00001);
+  assert.ok(ACCESS_STEP_RISE < 0.34, '높인 후에도 이동 계단은 기존 보행 한계 안에 있어야 합니다.');
 });

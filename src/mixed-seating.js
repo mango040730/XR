@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { terraceHeight } from './space-levels.js';
 
 export const MIXED_TIERS = [
-  { inner: 23.2, outer: 27.2, height: 1.43 },
-  { inner: 27.2, outer: 31.2, height: 1.71 },
-  { inner: 31.2, outer: 35.2, height: 1.99 },
+  { inner: 23.2, outer: 27.2, height: terraceHeight(1) },
+  { inner: 27.2, outer: 31.2, height: terraceHeight(2) },
+  { inner: 31.2, outer: 35.2, height: terraceHeight(3) },
 ];
 
 export function captureChair(chair) {

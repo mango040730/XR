@@ -47,7 +47,7 @@ export function createJoinedStairs(model, { inner, outer, floorY, topY, material
   function height(band, narrow) {
     if (band < 0) return floorY;
     const level = narrow ? band + 1 : Math.ceil((band + 1) / 2) * 2;
-    return level === 6 ? topY : floorY + level * 0.14;
+    return floorY + (topY - floorY) * level / 6;
   }
   function profile(band, narrow) {
     const r0 = inner + band * bandDepth, h = height(band, narrow), previous = height(band - 1, narrow);

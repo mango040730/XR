@@ -3,15 +3,13 @@ import { arrangeTerraceSeating, TERRACE_DEPTH, TERRACE_OUTER } from './terrace-s
 import { createDigitalWall } from './digital-wall.js';
 import { applyClayStyle } from './clay-style.js';
 import { createJoinedStairs, stairAlignedRing } from './joined-stairs.js';
+import { FLOOR_Y, PATH_Y } from './space-levels.js';
 
-export const FLOOR_Y = 1.15;
+export { FLOOR_Y, PATH_Y } from './space-levels.js';
 export const PATH_INNER_RADIUS = TERRACE_OUTER;
 export const PATH_OUTER_RADIUS = PATH_INNER_RADIUS + 10;
 export const PATH_WIDTH = PATH_OUTER_RADIUS - PATH_INNER_RADIUS;
 export const CENTRAL_RADIUS = 23.2;
-// 0.2mm above the source top face avoids coplanar self-shadowing. Both the
-// connection and carpet share this height, well below the carpet pile thickness.
-export const PATH_Y = 1.9902;
 export const WALK_RADIUS = PATH_OUTER_RADIUS - 0.8;
 const SEGMENTS = 512;
 

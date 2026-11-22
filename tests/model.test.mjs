@@ -10,6 +10,7 @@ import { TERRACE_DEPTH, PASSAGE_WIDTH } from '../src/terrace-seating.js';
 import { SCREEN_WALL_HEIGHT } from '../src/digital-wall.js';
 import { CLAY_TRIANGLE_BUDGET } from '../src/clay-style.js';
 import { MIXED_TIERS } from '../src/mixed-seating.js';
+import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from '../src/joined-stairs.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, expandStairRadius } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -45,7 +46,7 @@ test('블루길 폭은 10m이며 중앙 공간을 침범하지 않고 바깥으�
   assert.equal(PATH_INNER_RADIUS, 35.2);
   assert.equal(PATH_OUTER_RADIUS, 45.2);
   assert.ok(WALK_RADIUS > 44);
-  assert.equal(edited.stairs.length, 9);
+  assert.equal(edited.stairs.length, 1);
 });
 
 test('높은 블루길에서 원형 계단을 내려가 낮은 중앙 공간으로 이어진다', () => {
@@ -256,4 +257,57 @@ test('곡면 상세를 높여도 삼각형 예산과 공간 외곽은 보존된�
   assert.ok(triangles <= CLAY_TRIANGLE_BUDGET);
   assert.ok(edited.clay.beforeBounds.min.distanceTo(edited.clay.afterBounds.min) < 0.00001);
   assert.ok(edited.clay.beforeBounds.max.distanceTo(edited.clay.afterBounds.max) < 0.00001);
+});
+
+test('네 이동 계단의 양쪽 경계 전체에 빠지는 틈이 없다', () => {
+  const ray = new Raycaster(); ray.firstHitOnly = true;
+  for (const direction of ACCESS_DIRECTIONS) {
+    for (const side of [-1, 1]) {
+      const boundary = direction + side * ACCESS_HALF_ANGLE;
+      for (let band = 0; band < 6; band++) {
+        const radius = 24.2 + band * 2;
+        const low = band === 5 ? PATH_Y : FLOOR_Y + (band + 1) * 0.14;
+        const high = band >= 4 ? PATH_Y : FLOOR_Y + Math.ceil((band + 1) / 2) * 0.28;
+        for (const offset of [-0.5, -0.2, -0.01, 0, 0.01, 0.2, 0.5]) {
+          const angle = boundary + offset / radius;
+          ray.set(new Vector3(radius * Math.cos(angle), 4, radius * Math.sin(angle)), new Vector3(0, -1, 0));
+          const hit = ray.intersectObjects(floors, false)[0];
+          assert.ok(hit && hit.point.y >= low - 0.001 && hit.point.y <= high + 0.001, '두 계단 경계가 중앙 바닥까지 꺼지면 안 됩니다.');
+          assert.equal(hit.object, edited.stairs[0]);
+        }
+      }
+    }
+  }
+});
+
+test('높이가 다른 두 계단의 측면도 빈틈 없이 연결됐다', () => {
+  const ray = new Raycaster(); ray.firstHitOnly = true; ray.far = 0.2;
+  for (const direction of ACCESS_DIRECTIONS) {
+    for (const side of [-1, 1]) {
+      const boundary = direction + side * ACCESS_HALF_ANGLE;
+      for (const band of [0, 2, 4]) {
+        const radius = 24.2 + band * 2;
+        const angle = boundary - side * 0.002;
+        const low = FLOOR_Y + (band + 1) * 0.14;
+        const origin = new Vector3(radius * Math.cos(angle), low + 0.07, radius * Math.sin(angle));
+        const lateral = new Vector3(-Math.sin(boundary) * side, 0, Math.cos(boundary) * side);
+        ray.set(origin, lateral);
+        const hit = ray.intersectObject(edited.stairs[0], false)[0];
+        assert.ok(hit && hit.distance < 0.1, '좌석 계단과 이동 계단 사이에 연결 측면이 있어야 합니다.');
+      }
+    }
+  }
+});
+
+test('계단과 블루길은 동일한 외곽선을 공유해 미세한 이음 틈도 없다', () => {
+  const ray = new Raycaster(); ray.firstHitOnly = true;
+  for (let i = 0; i < 720; i++) {
+    const angle = i * Math.PI / 360;
+    for (const delta of [-0.003, -0.0005, 0, 0.0005, 0.003]) {
+      const radius = PATH_INNER_RADIUS + delta;
+      ray.set(new Vector3(radius * Math.cos(angle), 4, radius * Math.sin(angle)), new Vector3(0, -1, 0));
+      const hit = ray.intersectObjects(floors, false)[0];
+      assert.ok(hit && Math.abs(hit.point.y - PATH_Y) < 0.001, '상단 계단과 블루길 사이에 미세한 빈틈도 없어야 합니다.');
+    }
+  }
 });

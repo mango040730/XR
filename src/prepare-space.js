@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { arrangeTerraceSeating, TERRACE_DEPTH, TERRACE_OUTER } from './terrace-seating.js';
 import { createDigitalWall } from './digital-wall.js';
 import { applyClayStyle } from './clay-style.js';
+import { createJoinedStairs, stairAlignedRing } from './joined-stairs.js';
 
 export const FLOOR_Y = 1.15;
 export const PATH_INNER_RADIUS = TERRACE_OUTER;
@@ -30,27 +31,17 @@ export function prepareSpace(model) {
   const meshes = [];
   model.traverse(object => { if (object.isMesh) meshes.push(object); });
   const porcelain = meshes.find(object => /porcelain.floor/.test(object.name)).material;
+  const stairMaterial = meshes.find(object => /^Terraces.*terrace.treads/.test(object.name)).material;
   const seating = arrangeTerraceSeating(meshes, model);
-  const stairs = meshes.filter(object => /^Terraces.*terrace.treads/.test(object.name));
-  for (const stair of stairs) {
-    stair.userData.walkable = true;
-    const p = stair.geometry.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), z = p.getZ(i), radius = Math.hypot(x, z);
-      const factor = expandStairRadius(radius) / radius;
-      p.setX(i, x * factor); p.setZ(i, z * factor);
-    }
-    p.needsUpdate = true;
-    stair.geometry.computeVertexNormals();
-    stair.geometry.computeBoundingBox();
-    stair.geometry.computeBoundingSphere();
-  }
 
   for (const mesh of meshes) {
-    if ((/^Terraces__/.test(mesh.name) && !isWalkable(mesh)) || /^(Architecture|Signage)__/.test(mesh.name)) {
+    if (/^(Terraces|Architecture|Signage)__/.test(mesh.name)) {
       mesh.removeFromParent();
     }
   }
+  const stairs = [createJoinedStairs(model, {
+    inner: CENTRAL_RADIUS, outer: PATH_INNER_RADIUS, floorY: FLOOR_Y, topY: PATH_Y, material: stairMaterial,
+  })];
 
   // Fine, non-directional pile texture; no tile lines or geometric carpet pattern.
   const size = 256, pixels = new Uint8Array(size * size * 4);
@@ -74,8 +65,8 @@ export function prepareSpace(model) {
     specularIntensity: 0.15, bumpMap: pile, bumpScale: 0.0015,
     side: THREE.DoubleSide,
   });
-  function floorMesh(name, geometry, material, height) {
-    geometry.rotateX(-Math.PI / 2);
+  function floorMesh(name, geometry, material, height, xyPlane = true) {
+    if (xyPlane) geometry.rotateX(-Math.PI / 2);
     geometry.translate(0, height, 0);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = name;
@@ -84,17 +75,9 @@ export function prepareSpace(model) {
     model.add(mesh);
     return mesh;
   }
-  const carpet = floorMesh('Blue_velvet_carpet', new THREE.RingGeometry(PATH_INNER_RADIUS, PATH_OUTER_RADIUS, SEGMENTS), velvet, PATH_Y);
+  const carpet = floorMesh('Blue_velvet_carpet', stairAlignedRing(PATH_INNER_RADIUS, PATH_OUTER_RADIUS, stairs[0].userData.boundaryAngles), velvet, PATH_Y, false);
   const interior = floorMesh('Lower_circular_room', new THREE.CircleGeometry(PATH_INNER_RADIUS, SEGMENTS), porcelain, FLOOR_Y);
-  // Cover the original narrow trench at the outside of the top tread. The cap
-  // and carpet have exactly the same height. Depth bias prevents coplanar flicker
-  // where this cap meets the existing beveled tread; it adds no geometric lip.
-  const bridgeMaterial = porcelain.clone();
-  bridgeMaterial.polygonOffset = true;
-  bridgeMaterial.polygonOffsetFactor = -1;
-  bridgeMaterial.polygonOffsetUnits = -1;
-  const bridge = floorMesh('Flush_top_tread_connection', new THREE.RingGeometry(expandStairRadius(26.25), PATH_INNER_RADIUS, SEGMENTS), bridgeMaterial, PATH_Y);
-  // The uppermost tread meets the blue path flush: no curb, lip or extra riser.
+  // The joined upper tread meets the carpet directly at the same height.
   const skirt = new THREE.Mesh(new THREE.CylinderGeometry(PATH_OUTER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, SEGMENTS, 1, true), velvet);
   skirt.name = 'Carpet_plinth_side';
   skirt.position.y = PATH_Y / 2;
@@ -109,5 +92,5 @@ export function prepareSpace(model) {
   const digitalWall = createDigitalWall(model, PATH_OUTER_RADIUS, PATH_Y);
   const clay = applyClayStyle(model);
   model.updateMatrixWorld(true);
-  return { carpet, interior, stairs, bridge, seating, digitalWall, clay, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
+  return { carpet, interior, stairs, seating, digitalWall, clay, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
 }

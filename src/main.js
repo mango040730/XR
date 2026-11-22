@@ -45,7 +45,7 @@ const sun = new THREE.DirectionalLight('#fff0db', 3.0);
 sun.position.set(-22, 38, 20);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
-Object.assign(sun.shadow.camera, { left: -42, right: 42, top: 42, bottom: -42, near: 1, far: 100 });
+Object.assign(sun.shadow.camera, { left: -62, right: 62, top: 62, bottom: -62, near: 1, far: 130 });
 sun.shadow.normalBias = 0.045;
 sun.shadow.bias = -0.00015;
 sun.shadow.camera.updateProjectionMatrix();

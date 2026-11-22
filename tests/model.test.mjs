@@ -50,9 +50,9 @@ test('블루길 폭은 10m이며 중앙 공간을 침범하지 않고 바깥으�
   assert.equal(edited.stairs.length, 1);
 });
 
-test('높은 블루길에서 이동 계단 24단을 내려가 중앙 공간으로 이어진다', () => {
+test('낮춘 블루길에서 이동 계단 15단을 내려가 중앙 공간으로 이어진다', () => {
   const ray = new Raycaster();
-  assert.equal(ACCESS_STEP_COUNT, 24);
+  assert.equal(ACCESS_STEP_COUNT, 15);
   for (const angle of ACCESS_DIRECTIONS) {
     for (let band = 0; band < ACCESS_STEP_COUNT; band++) {
       const radius = CENTRAL_RADIUS + (band + 0.5) * (PATH_INNER_RADIUS - CENTRAL_RADIUS) / ACCESS_STEP_COUNT;
@@ -172,10 +172,15 @@ test('실제 모든 의자가 테이블 바깥쪽 한 줄에서만 중앙을 바
     const back = backs.reduce((a, b) => a.center.distanceTo(seat.center) < b.center.distanceTo(seat.center) ? a : b);
     const facing = seat.center.clone().sub(back.center).setY(0).normalize();
     assert.ok(facing.dot(seat.center.clone().setY(0).normalize().negate()) > 0.99);
-    const set = edited.seating.mixed.sets.reduce((a, b) => {
-      const centerA = new Vector3(...a.center), centerB = new Vector3(...b.center);
+    const placement = edited.seating.mixed.seats.reduce((a, b) => {
+      const centerA = new Vector3(...a.position).add(new Vector3(0, 0.5, 0));
+      const centerB = new Vector3(...b.position).add(new Vector3(0, 0.5, 0));
       return seat.center.distanceTo(centerA) < seat.center.distanceTo(centerB) ? a : b;
     });
+    assert.ok(Math.hypot(seat.center.x - placement.position[0], seat.center.z - placement.position[2]) < 0.005);
+    const seatHeight = seat.center.y - placement.position[1];
+    assert.ok(seatHeight > 0.45 && seatHeight < 0.55, '실제 좌판은 해당 단 바닥에서 약 0.5m 높이에 있어야 합니다.');
+    const set = edited.seating.mixed.sets.find(set => set.id === placement.setId);
     assert.ok(Math.hypot(seat.center.x, seat.center.z) > set.outer + 0.3, '책상 바깥쪽 한 줄에만 의자가 있어야 합니다.');
   }
   assert.equal(parts.filter(p => Math.abs(p.size.y - 0.466) < 0.01).length, seats.length * 4, '의자 다리 전체가 있어야 합니다.');
@@ -326,7 +331,7 @@ test('높이가 다른 두 계단의 측면도 빈틈 없이 연결됐다', () =
   for (const direction of ACCESS_DIRECTIONS) {
     for (const side of [-1, 1]) {
       const boundary = direction + side * ACCESS_HALF_ANGLE;
-      for (const band of [0, 8, 16]) {
+      for (const band of [0, ACCESS_STEPS_PER_TIER, ACCESS_STEPS_PER_TIER * 2]) {
         const radius = CENTRAL_RADIUS + (band + 0.5) * (PATH_INNER_RADIUS - CENTRAL_RADIUS) / ACCESS_STEP_COUNT;
         const angle = boundary - side * 0.002;
         const low = FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
@@ -354,15 +359,29 @@ test('계단과 블루길은 동일한 외곽선을 공유해 미세한 이음 �
 });
 
 
-test('중앙 원형 바닥을 유지하고 직전 버전보다 전체 단차를 정확히 네 배로 높였다', () => {
+test('직전 중간 좌석 층의 높이를 새 최고 높이로 삼아 3개 층을 고르게 낮췄다', () => {
   const ray = new Raycaster();
   ray.set(new Vector3(0, PATH_Y + 2, 0), new Vector3(0, -1, 0));
   const lower = ray.intersectObjects(floors, false)[0].point.y;
   ray.set(new Vector3(40, PATH_Y + 2, 0), new Vector3(0, -1, 0));
   const upper = ray.intersectObjects(floors, false)[0].point.y;
   assert.ok(Math.abs(lower - 1.15) < 0.00001);
-  assert.ok(Math.abs((upper - lower) / PREVIOUS_TOTAL_RISE - 4) < 0.00001);
-  assert.ok(Math.abs(TOTAL_RISE - 6.7216) < 0.00001);
-  assert.ok(Math.abs(upper - 7.8716) < 0.00001);
-  assert.ok(ACCESS_STEP_RISE < 0.34, '높인 후에도 이동 계단은 기존 보행 한계 안에 있어야 합니다.');
+  assert.ok(Math.abs((upper - lower) / PREVIOUS_TOTAL_RISE - 2 / 3) < 0.00001);
+  assert.ok(Math.abs(TOTAL_RISE - 4.4810666667) < 0.00001);
+  assert.ok(Math.abs(upper - 5.6310666667) < 0.00001);
+  assert.ok(Math.abs(upper - (FLOOR_Y + PREVIOUS_TOTAL_RISE * 2 / 3)) < 0.00001);
+  const tierHeights = [];
+  for (const tier of MIXED_TIERS) {
+    const radius = (tier.inner + tier.outer) / 2;
+    ray.set(new Vector3(radius / Math.SQRT2, PATH_Y + 2, radius / Math.SQRT2), new Vector3(0, -1, 0));
+    tierHeights.push(ray.intersectObjects(floors, false)[0].point.y);
+  }
+  assert.ok(tierHeights[0] > lower && tierHeights[1] > tierHeights[0] && tierHeights[2] > tierHeights[1]);
+  assert.ok(Math.abs(tierHeights[2] - upper) < 0.00001);
+  for (let i = 0; i < tierHeights.length; i++) {
+    assert.ok(Math.abs(tierHeights[i] - (i === 0 ? lower : tierHeights[i - 1]) - TOTAL_RISE / 3) < 0.00001);
+  }
+  assert.equal(edited.seating.mixed.sets.length, 34);
+  assert.equal(edited.seating.mixed.seats.length, 83);
+  assert.ok(ACCESS_STEP_RISE < 0.34, '낮춘 이동 계단도 기존 보행 한계 안에 있어야 합니다.');
 });

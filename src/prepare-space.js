@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { arrangeTerraceSeating, TERRACE_DEPTH, TERRACE_OUTER } from './terrace-seating.js';
+import { createDigitalWall } from './digital-wall.js';
 
 export const FLOOR_Y = 1.15;
 export const PATH_INNER_RADIUS = TERRACE_OUTER;
@@ -45,29 +46,8 @@ export function prepareSpace(model) {
   }
 
   for (const mesh of meshes) {
-    if ((/^Terraces__/.test(mesh.name) && !isWalkable(mesh)) || /circulation.deck|porcelain.floor|tile.grout/.test(mesh.name)
-      || /^Architecture__Warm_luminous_strips__0_2$/.test(mesh.name)) {
+    if ((/^Terraces__/.test(mesh.name) && !isWalkable(mesh)) || /^(Architecture|Signage)__/.test(mesh.name)) {
       mesh.removeFromParent();
-    } else if (/^(Architecture|Signage)__/.test(mesh.name)) {
-      // Extend the enclosing wall outward with the deeper terraces and blue path.
-      const p = mesh.geometry.attributes.position;
-      const delta = PATH_OUTER_RADIUS - 31.7;
-      mesh.geometry.computeBoundingBox();
-      const center = mesh.geometry.boundingBox.getCenter(new THREE.Vector3());
-      const continuous = /Deep_ultramarine.*0_0|Warm_ivory.*0_0|Warm_luminous.*0_0|Azure_sculpted|Cyan_sculpture/.test(mesh.name);
-      const shift = center.clone().setY(0).normalize().multiplyScalar(delta);
-      for (let i = 0; i < p.count; i++) {
-        const x = p.getX(i), z = p.getZ(i), radius = Math.hypot(x, z);
-        if (radius > 26.7) {
-          p.setX(i, continuous ? x * (radius + delta) / radius : x + shift.x);
-          p.setZ(i, continuous ? z * (radius + delta) / radius : z + shift.z);
-          if (p.getY(i) > 1.28) p.setY(i, p.getY(i) + (PATH_Y - 1.3));
-        }
-      }
-      p.needsUpdate = true;
-      mesh.geometry.computeVertexNormals();
-      mesh.geometry.computeBoundingBox();
-      mesh.geometry.computeBoundingSphere();
     }
   }
 
@@ -118,6 +98,14 @@ export function prepareSpace(model) {
   skirt.name = 'Carpet_plinth_side';
   skirt.position.y = PATH_Y / 2;
   model.add(skirt);
+  const foundation = new THREE.Mesh(
+    new THREE.CylinderGeometry(PATH_OUTER_RADIUS + 0.3, PATH_OUTER_RADIUS + 0.3, 0.8, SEGMENTS),
+    new THREE.MeshStandardMaterial({ color: '#132d55', roughness: 0.8 }),
+  );
+  foundation.name = 'Circular_foundation';
+  foundation.position.y = -0.4;
+  model.add(foundation);
+  const digitalWall = createDigitalWall(model, PATH_OUTER_RADIUS, PATH_Y);
   model.updateMatrixWorld(true);
-  return { carpet, interior, stairs, bridge, seating, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
+  return { carpet, interior, stairs, bridge, seating, digitalWall, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
 }

@@ -7,6 +7,7 @@ import { Box3, Raycaster, Vector3 } from 'three';
 import { acceleratedRaycast, computeBoundsTree } from 'three-mesh-bvh';
 import { meshPieces } from '../src/mesh-pieces.js';
 import { TERRACE_DEPTH, PASSAGE_WIDTH } from '../src/terrace-seating.js';
+import { SCREEN_WALL_HEIGHT } from '../src/digital-wall.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, expandStairRadius } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -150,5 +151,43 @@ test('실제 가구 충돌 장면에서 1.2m 폭의 안쪽 통로가 비어 있�
       ray.set(origin, direction);
       assert.equal(ray.intersectObject(gltf.scene, true).length, 0, `각도 ${i}의 통로를 가구가 막으면 안 됩니다.`);
     }
+  }
+});
+
+test('디지털 스크린이 이음부를 포함한 360도 전 방향의 벽을 덮는다', () => {
+  const ray = new Raycaster();
+  const wall = edited.digitalWall;
+  for (let i = 0; i <= 720; i++) {
+    const angle = i * Math.PI / 360;
+    const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+    for (const height of [0.3, SCREEN_WALL_HEIGHT / 2, SCREEN_WALL_HEIGHT - 0.3]) {
+      ray.set(new Vector3(0, PATH_Y + height, 0), direction);
+      const hit = ray.intersectObject(wall.root, true)[0];
+      assert.ok(hit, `각도 ${i / 2}에서 벽에 틈이 없어야 합니다.`);
+      assert.equal(hit.object, wall.screen);
+      assert.ok(Math.abs(Math.hypot(hit.point.x, hit.point.z) - wall.radius) < 0.002);
+    }
+  }
+});
+
+test('스크린은 UI 없는 빈 발광 표면이고 기존 벽 장식은 제거됐다', () => {
+  const screen = edited.digitalWall.screen;
+  assert.equal(screen.material.map, null);
+  assert.equal(screen.material.emissiveMap, null);
+  assert.ok(screen.material.emissiveIntensity > 0);
+  assert.ok(screen.material.clearcoat > 0);
+  assert.ok(screen.geometry.attributes.uv, '나중에 콘텐츠를 적용할 독립된 화면 표면이 필요합니다.');
+  gltf.scene.traverse(mesh => assert.ok(!/^(Architecture|Signage)__/.test(mesh.name), '기존 반원 벽·간판·문·장식이 남으면 안 됩니다.'));
+});
+
+test('블루길 바깥에서 전 방향의 디지털 벽 충돌이 유지된다', () => {
+  const ray = new Raycaster(); ray.far = 1;
+  for (let i = 0; i < 360; i++) {
+    const angle = i * Math.PI / 180;
+    const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+    const origin = direction.clone().multiplyScalar(WALK_RADIUS); origin.y = PATH_Y + 1.5;
+    ray.set(origin, direction);
+    const hit = ray.intersectObject(edited.digitalWall.root, true)[0];
+    assert.ok(hit && hit.distance > 0.75 && hit.distance < 0.82, '벽의 충돌면이 전체 원을 둘러야 합니다.');
   }
 });

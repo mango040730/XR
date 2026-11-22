@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { acceleratedRaycast, computeBoundsTree } from 'three-mesh-bvh';
+import { prepareSpace, isWalkable } from './prepare-space.js';
 
 // The document intentionally contains only the rendering canvas: no HUD or VR button.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -151,6 +152,7 @@ function resetPosition() {
 
 new GLTFLoader().load(`${import.meta.env.BASE_URL}models/space.glb`, gltf => {
   const model = gltf.scene;
+  prepareSpace(model);
   scene.add(model);
   model.updateMatrixWorld(true);
   const meshes = [], floors = [];
@@ -159,7 +161,7 @@ new GLTFLoader().load(`${import.meta.env.BASE_URL}models/space.glb`, gltf => {
     meshes.push(object);
     object.castShadow = true;
     object.receiveShadow = true;
-    if (/circulation.deck|porcelain.floor|^Terraces.*terrace.treads/.test(object.name)) floors.push(object);
+    if (isWalkable(object)) floors.push(object);
   });
   collider = collisionGeometry(meshes);
   floor = collisionGeometry(floors);

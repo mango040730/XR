@@ -2,11 +2,10 @@ import * as THREE from 'three';
 import { meshPieces, applyPieces } from './mesh-pieces.js';
 import { captureChair, buildMixedSeating } from './mixed-seating.js';
 import { PATH_Y, terraceHeight } from './space-levels.js';
+import { CENTRAL_RADIUS, TERRACE_DEPTH, PASSAGE_WIDTH, TERRACE_OUTER } from './space-layout.js';
 
-export const TERRACE_DEPTH = 4;
-export const PASSAGE_WIDTH = 1.2;
-export const TERRACE_INNER = 31.2;
-export const TERRACE_OUTER = TERRACE_INNER + TERRACE_DEPTH;
+export { TERRACE_DEPTH, PASSAGE_WIDTH, TERRACE_OUTER } from './space-layout.js';
+export const TERRACE_INNER = TERRACE_OUTER - TERRACE_DEPTH;
 
 function distance(a, b) { return Math.hypot(a.x - b.x, a.z - b.z); }
 function nearest(point, items) {
@@ -60,7 +59,7 @@ export function arrangeTerraceSeating(meshes, model) {
   }
 
   const ottomanBases = cafe.filter(part => /Sofa_recessed/.test(part.mesh.name) && Math.abs(part.bounds.min.y - 1.71) < 0.005);
-  const ottomans = ottomanBases.map(base => ({ center: base.center.clone(), parts: [], kind: 'ottoman', innerRadius: 27.2, outerRadius: 31.2 }));
+  const ottomans = ottomanBases.map(base => ({ center: base.center.clone(), parts: [], kind: 'ottoman', innerRadius: CENTRAL_RADIUS + TERRACE_DEPTH, outerRadius: TERRACE_INNER }));
   for (const part of cafe) {
     if (!/Sofa_recessed|Tangerine_ottoman|Sunflower_cushions/.test(part.mesh.name) || part.bounds.min.y < 1.7 || part.bounds.min.y > 1.8) continue;
     const ottoman = nearest(part.center, ottomans);
@@ -77,10 +76,11 @@ export function arrangeTerraceSeating(meshes, model) {
       const p = part.mesh.geometry.attributes.position;
       for (const i of part.vertices) minProjection = Math.min(minProjection, p.getX(i) * direction.x + p.getZ(i) * direction.z);
     }
-    // Keep a 1.2m clear lane plus a 15cm buffer along the inner side of each set.
-    const innerRadius = group.innerRadius ?? TERRACE_INNER;
-    const outerLimit = group.outerRadius ?? TERRACE_OUTER;
-    const shift = direction.multiplyScalar(innerRadius + PASSAGE_WIDTH + 0.15 - minProjection);
+    // Large existing planters move intact onto the blue ring; the narrower
+    // terraces reserve their outer edge for a continuous rear walking lane.
+    const innerRadius = group.innerRadius ?? TERRACE_OUTER + 0.35;
+    const outerLimit = group.outerRadius ?? TERRACE_OUTER + 10;
+    const shift = direction.multiplyScalar(innerRadius + 0.08 - minProjection);
     shift.y = group.kind === 'ottoman' ? terraceHeight(2) - 1.71 : PATH_Y - 1.99;
     let outerRadius = 0;
     for (const part of group.parts) {
@@ -90,7 +90,7 @@ export function arrangeTerraceSeating(meshes, model) {
         outerRadius = Math.max(outerRadius, Math.hypot(p.getX(i), p.getZ(i)));
       }
     }
-    if (outerRadius > outerLimit - 0.1) throw new Error('Furniture exceeds the widened terrace.');
+    if (outerRadius > outerLimit - PASSAGE_WIDTH - 0.05) throw new Error(`Furniture obstructs rear lane: ${group.kind}, ${outerRadius}, limit ${outerLimit - PASSAGE_WIDTH - 0.05}`);
     group.translation = shift;
     group.outerRadius = outerRadius;
   }

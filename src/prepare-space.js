@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { arrangeTerraceSeating, TERRACE_DEPTH, TERRACE_OUTER } from './terrace-seating.js';
+import { arrangeTerraceSeating } from './terrace-seating.js';
+import { CENTRAL_RADIUS, TERRACE_OUTER } from './space-layout.js';
 import { createDigitalWall } from './digital-wall.js';
 import { applyClayStyle } from './clay-style.js';
 import { createJoinedStairs, stairAlignedRing } from './joined-stairs.js';
@@ -9,14 +10,9 @@ export { FLOOR_Y, PATH_Y } from './space-levels.js';
 export const PATH_INNER_RADIUS = TERRACE_OUTER;
 export const PATH_OUTER_RADIUS = PATH_INNER_RADIUS + 10;
 export const PATH_WIDTH = PATH_OUTER_RADIUS - PATH_INNER_RADIUS;
-export const CENTRAL_RADIUS = 23.2;
+export { CENTRAL_RADIUS } from './space-layout.js';
 export const WALK_RADIUS = PATH_OUTER_RADIUS - 0.8;
 const SEGMENTS = 512;
-
-export function expandStairRadius(radius) {
-  if (radius <= CENTRAL_RADIUS) return radius;
-  return Math.min(PATH_INNER_RADIUS, CENTRAL_RADIUS + (radius - CENTRAL_RADIUS) * (TERRACE_DEPTH / 1.05));
-}
 
 export function isWalkable(mesh) {
   return mesh.userData.walkable === true;

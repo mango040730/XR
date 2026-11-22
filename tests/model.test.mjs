@@ -12,7 +12,7 @@ import { CLAY_TRIANGLE_BUDGET } from '../src/clay-style.js';
 import { MIXED_TIERS } from '../src/mixed-seating.js';
 import { TOTAL_RISE, PREVIOUS_TOTAL_RISE, ACCESS_STEP_RISE, ACCESS_STEP_COUNT, ACCESS_STEPS_PER_TIER } from '../src/space-levels.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from '../src/joined-stairs.js';
-import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, expandStairRadius } from '../src/prepare-space.js';
+import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, CENTRAL_RADIUS } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
 const gltf = await new GLTFLoader().parseAsync(
@@ -55,7 +55,7 @@ test('높은 블루길에서 이동 계단 24단을 내려가 중앙 공간으�
   assert.equal(ACCESS_STEP_COUNT, 24);
   for (const angle of ACCESS_DIRECTIONS) {
     for (let band = 0; band < ACCESS_STEP_COUNT; band++) {
-      const radius = 23.2 + (band + 0.5) * 12 / ACCESS_STEP_COUNT;
+      const radius = CENTRAL_RADIUS + (band + 0.5) * (PATH_INNER_RADIUS - CENTRAL_RADIUS) / ACCESS_STEP_COUNT;
       ray.set(new Vector3(Math.cos(angle) * radius, PATH_Y + 2, Math.sin(angle) * radius), new Vector3(0, -1, 0));
       const hit = ray.intersectObjects(floors, false)[0];
       const expected = FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
@@ -67,7 +67,7 @@ test('높은 블루길에서 이동 계단 24단을 내려가 중앙 공간으�
 test('블루길과 최상단 계단 사이에 틈이나 별도의 턱이 없다', () => {
   const ray = new Raycaster();
   for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 16) {
-    for (const radius of [expandStairRadius(26.26), 35.1, 35.199, 35.201, 36, 40, 44.4]) {
+    for (const radius of [35.1, 35.199, 35.201, 36, 40, 44.4]) {
       ray.set(new Vector3(Math.cos(angle) * radius, PATH_Y + 2, Math.sin(angle) * radius), new Vector3(0, -1, 0));
       const hit = ray.intersectObjects(floors, false)[0];
       assert.ok(hit && Math.abs(hit.point.y - PATH_Y) < 0.001, '상단 계단과 블루길은 같은 높이여야 합니다.');
@@ -117,38 +117,57 @@ test('상단 계단의 화분과 가구를 중앙 바닥으로 내려놓지 않�
 });
 
 
-test('각 원형 계단 단이 가구와 통로를 담는 깊이 4m로 확장됐다', () => {
-  assert.equal(TERRACE_DEPTH, 4);
+test('전체 지름을 유지하며 단 깊이를 3m로 줄여 중앙 지름을 6m 넓혔다', () => {
+  assert.equal(TERRACE_DEPTH, 3);
+  assert.ok(Math.abs(CENTRAL_RADIUS - 26.2) < 0.00001);
+  assert.ok(Math.abs(PATH_OUTER_RADIUS * 2 - 90.4) < 0.00001);
   const ray = new Raycaster();
-  for (const [radius, tier] of [[23.6, 0], [26.8, 0], [27.6, 1], [30.4, 1], [31.6, 2], [34.8, 2]]) {
-    ray.set(new Vector3(radius / Math.SQRT2, PATH_Y + 2, radius / Math.SQRT2), new Vector3(0, -1, 0));
-    assert.ok(Math.abs(ray.intersectObjects(floors, false)[0].point.y - MIXED_TIERS[tier].height) < 0.001);
+  for (const tier of MIXED_TIERS) {
+    for (const radius of [tier.inner + 0.1, tier.outer - 0.1]) {
+      ray.set(new Vector3(radius / Math.SQRT2, PATH_Y + 2, radius / Math.SQRT2), new Vector3(0, -1, 0));
+      assert.ok(Math.abs(ray.intersectObjects(floors, false)[0].point.y - tier.height) < 0.001);
+    }
+  }
+  // The 3m-wide annulus that used to hold the first tier is now central floor.
+  for (let i = 0; i < 360; i++) {
+    const a = i * Math.PI / 180;
+    ray.set(new Vector3(Math.cos(a) * 25.9, PATH_Y + 2, Math.sin(a) * 25.9), new Vector3(0, -1, 0));
+    assert.ok(Math.abs(ray.intersectObjects(floors, false)[0].point.y - FLOOR_Y) < 0.001);
   }
 });
 
-test('세 계단 단 모두에 1인 테이블과 3인용 긴 테이블이 섞여 있다', () => {
+test('각 단 앞쪽에 길이가 다른 1~4인용 곡선 일체형 책상이 섞여 있다', () => {
   const mixed = edited.seating.mixed;
-  assert.equal(mixed.singleSets, 17);
-  assert.equal(mixed.sharedSets, 18);
-  assert.equal(mixed.seats.length, 71);
+  assert.ok(mixed.singleSets >= 6);
+  assert.ok(mixed.sharedSets >= 18);
+  const ray = new Raycaster();
   for (let tier = 0; tier < 3; tier++) {
     const sets = mixed.sets.filter(set => set.tier === tier);
-    assert.ok(sets.some(set => set.type === 'single' && set.capacity === 1));
-    assert.ok(sets.some(set => set.type === 'shared' && set.capacity === 3));
+    assert.equal(new Set(sets.map(s => s.capacity)).size, 4);
+    assert.equal(new Set(sets.map(s => s.width)).size, 4);
+    assert.ok(sets.length >= 10);
     for (const set of sets) {
-      assert.ok(Math.abs(set.center[1] - MIXED_TIERS[tier].height) < 0.001);
+      assert.ok(set.integrated);
+      assert.ok(Math.abs(set.inner - MIXED_TIERS[tier].inner - 0.14) < 0.001);
       assert.equal(mixed.seats.filter(seat => seat.setId === set.id).length, set.capacity);
+      for (const fraction of [0.1, 0.5, 0.9]) {
+        const a = set.start + (set.end - set.start) * fraction;
+        const r = (set.inner + set.outer) / 2;
+        ray.set(new Vector3(r * Math.cos(a), MIXED_TIERS[tier].height + 1.5, r * Math.sin(a)), new Vector3(0, -1, 0));
+        const hit = ray.intersectObject(mixed.root, true)[0];
+        assert.ok(hit && Math.abs(hit.point.y - MIXED_TIERS[tier].height - 0.79) < 0.002, '곡선 책상 상판 전체가 해당 단 앞쪽을 따라야 합니다.');
+      }
     }
   }
 });
 
-test('실제 의자 71개가 테이블 바깥쪽 한 줄에서만 중앙을 바라본다', () => {
+test('실제 모든 의자가 테이블 바깥쪽 한 줄에서만 중앙을 바라본다', () => {
   const parts = [];
   gltf.scene.traverse(mesh => { if (mesh.isMesh && mesh.userData.mixedSeating) parts.push(...meshPieces(mesh)); });
   const seats = parts.filter(p => Math.abs(p.size.y - 0.11) < 0.005 && Math.max(p.size.x, p.size.z) > 0.5 && Math.max(p.size.x, p.size.z) < 0.9);
   const backs = parts.filter(p => Math.abs(p.size.y - 0.38) < 0.005);
-  assert.equal(seats.length, 71);
-  assert.equal(backs.length, 71);
+  assert.equal(seats.length, edited.seating.mixed.seats.length);
+  assert.equal(backs.length, seats.length);
   for (const seat of seats) {
     const back = backs.reduce((a, b) => a.center.distanceTo(seat.center) < b.center.distanceTo(seat.center) ? a : b);
     const facing = seat.center.clone().sub(back.center).setY(0).normalize();
@@ -157,13 +176,12 @@ test('실제 의자 71개가 테이블 바깥쪽 한 줄에서만 중앙을 바�
       const centerA = new Vector3(...a.center), centerB = new Vector3(...b.center);
       return seat.center.distanceTo(centerA) < seat.center.distanceTo(centerB) ? a : b;
     });
-    const relative = seat.center.clone().sub(new Vector3(...set.center));
-    assert.ok(relative.dot(new Vector3(...set.outward)) > 0.7, '테이블 반대편에 의자가 있으면 안 됩니다.');
+    assert.ok(Math.hypot(seat.center.x, seat.center.z) > set.outer + 0.3, '책상 바깥쪽 한 줄에만 의자가 있어야 합니다.');
   }
-  assert.equal(parts.filter(p => Math.abs(p.size.y - 0.466) < 0.01).length, 71 * 4, '의자 다리 전체가 있어야 합니다.');
+  assert.equal(parts.filter(p => Math.abs(p.size.y - 0.466) < 0.01).length, seats.length * 4, '의자 다리 전체가 있어야 합니다.');
 });
 
-test('실제 가구 충돌 장면에서 1.2m 폭의 안쪽 통로가 비어 있다', () => {
+test('실제 가구 충돌 장면에서 1.2m 폭의 의자 뒤쪽 통로가 비어 있다', () => {
   gltf.scene.traverse(mesh => {
     if (!mesh.isMesh) return;
     computeBoundsTree.call(mesh.geometry);
@@ -177,9 +195,30 @@ test('실제 가구 충돌 장면에서 1.2m 폭의 안쪽 통로가 비어 있�
       const a = i * Math.PI / 180;
       const direction = new Vector3(Math.cos(a), 0, Math.sin(a));
       for (const height of [0.4, 0.95, 1.5]) {
-        const origin = direction.clone().multiplyScalar(tier.inner + 0.01); origin.y = tier.height + height;
-        ray.set(origin, direction);
+        const origin = direction.clone().multiplyScalar(tier.outer - 0.01); origin.y = tier.height + height;
+        ray.set(origin, direction.clone().negate());
         assert.equal(ray.intersectObject(gltf.scene, true).length, 0, `반경 ${tier.inner}, 각도 ${i}의 통로가 비어 있어야 합니다.`);
+      }
+    }
+  }
+});
+
+test('네 방향 이동 계단에서 몸통과 어깨 경로를 책상과 의자가 막지 않는다', () => {
+  const floorRay = new Raycaster(), bodyRay = new Raycaster();
+  bodyRay.firstHitOnly = true; bodyRay.far = 0.12;
+  for (const angle of ACCESS_DIRECTIONS) {
+    const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+    const tangent = new Vector3(-direction.z, 0, direction.x);
+    for (let radius = CENTRAL_RADIUS - 0.2; radius < PATH_INNER_RADIUS + 0.2; radius += 0.12) {
+      for (const side of [-0.24, 0, 0.24]) {
+        const point = direction.clone().multiplyScalar(radius).addScaledVector(tangent, side);
+        floorRay.set(new Vector3(point.x, PATH_Y + 2, point.z), new Vector3(0, -1, 0));
+        const floor = floorRay.intersectObjects(floors, false)[0];
+        assert.ok(floor);
+        for (const height of [0.7, 1.25, 1.65]) {
+          bodyRay.set(new Vector3(point.x, floor.point.y + height, point.z), direction);
+          assert.equal(bodyRay.intersectObject(gltf.scene, true).length, 0, '이동 계단의 신체 경로를 비워야 합니다.');
+        }
       }
     }
   }
@@ -267,7 +306,7 @@ test('네 이동 계단의 양쪽 경계 전체에 빠지는 틈이 없다', () 
     for (const side of [-1, 1]) {
       const boundary = direction + side * ACCESS_HALF_ANGLE;
       for (let band = 0; band < ACCESS_STEP_COUNT; band++) {
-        const radius = 23.2 + (band + 0.5) * 12 / ACCESS_STEP_COUNT;
+        const radius = CENTRAL_RADIUS + (band + 0.5) * (PATH_INNER_RADIUS - CENTRAL_RADIUS) / ACCESS_STEP_COUNT;
         const low = FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
         const high = FLOOR_Y + Math.ceil((band + 1) / ACCESS_STEPS_PER_TIER) * ACCESS_STEP_RISE * ACCESS_STEPS_PER_TIER;
         for (const offset of [-0.5, -0.2, -0.01, 0, 0.01, 0.2, 0.5]) {
@@ -288,7 +327,7 @@ test('높이가 다른 두 계단의 측면도 빈틈 없이 연결됐다', () =
     for (const side of [-1, 1]) {
       const boundary = direction + side * ACCESS_HALF_ANGLE;
       for (const band of [0, 8, 16]) {
-        const radius = 23.2 + (band + 0.5) * 12 / ACCESS_STEP_COUNT;
+        const radius = CENTRAL_RADIUS + (band + 0.5) * (PATH_INNER_RADIUS - CENTRAL_RADIUS) / ACCESS_STEP_COUNT;
         const angle = boundary - side * 0.002;
         const low = FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
         const origin = new Vector3(radius * Math.cos(angle), low + ACCESS_STEP_RISE / 2, radius * Math.sin(angle));

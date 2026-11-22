@@ -2,14 +2,16 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#353535" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="description" content="XR Spatial Platform — Figma 9주차 기반 3D 관계 탐색 서비스 데모" />
-    <title>XR Spatial Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#c5d5e3" />
+    <meta name="description" content="공간.glb 원본을 사람 눈높이에서 탐험하는 UI 없는 WebXR 가상 공간." />
+    <title>공간 VR</title>
+    <style>
+      html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #c5d5e3; }
+      canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>

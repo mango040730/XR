@@ -1,14 +1,5 @@
 node_modules/
 dist/
+.sites-runtime/
 .DS_Store
-coverage/
-*.local
-test-results/
-playwright-report/
-.playwright-browsers/
-
-.figma-audit/
-
-server-dist/
-.env.social
-.env.local
+*.zip

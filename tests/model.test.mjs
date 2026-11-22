@@ -8,6 +8,7 @@ import { acceleratedRaycast, computeBoundsTree } from 'three-mesh-bvh';
 import { meshPieces } from '../src/mesh-pieces.js';
 import { TERRACE_DEPTH, PASSAGE_WIDTH } from '../src/terrace-seating.js';
 import { SCREEN_WALL_HEIGHT } from '../src/digital-wall.js';
+import { CLAY_TRIANGLE_BUDGET } from '../src/clay-style.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, expandStairRadius } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -15,6 +16,8 @@ const gltf = await new GLTFLoader().parseAsync(
   bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '',
 );
 gltf.scene.updateMatrixWorld(true);
+const sourceLeafGeometry = gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1').geometry.clone();
+sourceLeafGeometry.computeBoundingBox();
 const originalFrameMinY = new Box3().setFromObject(gltf.scene.getObjectByName('Cafe_Furniture__Golden_oak_furniture_frame__2_0')).min.y;
 const edited = prepareSpace(gltf.scene);
 const floors = [];
@@ -190,4 +193,41 @@ test('블루길 바깥에서 전 방향의 디지털 벽 충돌이 유지된다'
     const hit = ray.intersectObject(edited.digitalWall.root, true)[0];
     assert.ok(hit && hit.distance > 0.75 && hit.distance < 0.82, '벽의 충돌면이 전체 원을 둘러야 합니다.');
   }
+});
+
+test('클레이 곡면은 실제 기하가 세분화되고 표면 형태도 둥글게 변했다', () => {
+  const leaf = gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1');
+  assert.ok(leaf.geometry.index.count > sourceLeafGeometry.index.count * 3);
+  computeBoundsTree.call(sourceLeafGeometry);
+  const p = leaf.geometry.attributes.position;
+  let largestChange = 0;
+  for (let i = 0; i < p.count; i += 3) {
+    const hit = sourceLeafGeometry.boundsTree.closestPointToPoint(new Vector3(p.getX(i), p.getY(i), p.getZ(i)));
+    largestChange = Math.max(largestChange, hit.distance);
+  }
+  assert.ok(largestChange > 0.001, '평면 삼각형만 분할하는 대신 실제 곡면을 만들어야 합니다.');
+  assert.ok(leaf.geometry.boundingBox.min.distanceTo(sourceLeafGeometry.boundingBox.min) < 0.00001);
+  assert.ok(leaf.geometry.boundingBox.max.distanceTo(sourceLeafGeometry.boundingBox.max) < 0.00001);
+});
+
+test('가구와 식재는 부드러운 무광 클레이이며 스크린과 벨벳은 유지된다', () => {
+  gltf.scene.traverse(mesh => {
+    if (!mesh.isMesh || !/^(Planting|Cafe_Furniture|Lounge_Pods|Luminaires)__/.test(mesh.name)) return;
+    assert.equal(mesh.material.flatShading, false);
+    assert.equal(mesh.material.metalness, 0);
+    assert.ok(mesh.material.roughness >= 0.85);
+    assert.equal(mesh.material.clearcoat, 0);
+    assert.ok(mesh.material.specularIntensity < 0.3);
+  });
+  assert.equal(edited.carpet.material.sheen, 1);
+  assert.equal(edited.digitalWall.screen.material.clearcoat, 0.8);
+});
+
+test('곡면 상세를 높여도 삼각형 예산과 공간 외곽은 보존된다', () => {
+  let triangles = 0;
+  gltf.scene.traverse(mesh => { if (mesh.isMesh) triangles += (mesh.geometry.index?.count ?? mesh.geometry.attributes.position.count) / 3; });
+  assert.ok(triangles > edited.clay.originalTriangles * 2);
+  assert.ok(triangles <= CLAY_TRIANGLE_BUDGET);
+  assert.ok(edited.clay.beforeBounds.min.distanceTo(edited.clay.afterBounds.min) < 0.00001);
+  assert.ok(edited.clay.beforeBounds.max.distanceTo(edited.clay.afterBounds.max) < 0.00001);
 });

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { arrangeTerraceSeating, TERRACE_DEPTH, TERRACE_OUTER } from './terrace-seating.js';
 import { createDigitalWall } from './digital-wall.js';
+import { applyClayStyle } from './clay-style.js';
 
 export const FLOOR_Y = 1.15;
 export const PATH_INNER_RADIUS = TERRACE_OUTER;
@@ -106,6 +107,7 @@ export function prepareSpace(model) {
   foundation.position.y = -0.4;
   model.add(foundation);
   const digitalWall = createDigitalWall(model, PATH_OUTER_RADIUS, PATH_Y);
+  const clay = applyClayStyle(model);
   model.updateMatrixWorld(true);
-  return { carpet, interior, stairs, bridge, seating, digitalWall, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
+  return { carpet, interior, stairs, bridge, seating, digitalWall, clay, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
 }

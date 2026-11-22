@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+import { ACCESS_STEP_COUNT, ACCESS_STEPS_PER_TIER } from './space-levels.js';
 
 export const ACCESS_HALF_ANGLE = Math.atan2(1.7, 25.5);
 export const ACCESS_DIRECTIONS = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
@@ -26,7 +27,7 @@ export function createJoinedStairs(model, { inner, outer, floorY, topY, material
   const keys = angles.filter((a, i) => i === 0 || a - angles[i - 1] > 1e-9);
   const count = keys.length - 1;
   const access = Array.from({ length: count }, (_, i) => isAccessAngle((keys[i] + keys[i + 1]) / 2));
-  const bandDepth = (outer - inner) / 6;
+  const bandDepth = (outer - inner) / ACCESS_STEP_COUNT;
   const positions = [], indices = [], cache = new Map();
   function vertex(radius, angle, height) {
     const x = Math.round(radius * Math.cos(angle) * 1e7) / 1e7;
@@ -46,8 +47,8 @@ export function createJoinedStairs(model, { inner, outer, floorY, topY, material
   }
   function height(band, narrow) {
     if (band < 0) return floorY;
-    const level = narrow ? band + 1 : Math.ceil((band + 1) / 2) * 2;
-    return floorY + (topY - floorY) * level / 6;
+    const level = narrow ? band + 1 : Math.ceil((band + 1) / ACCESS_STEPS_PER_TIER) * ACCESS_STEPS_PER_TIER;
+    return floorY + (topY - floorY) * level / ACCESS_STEP_COUNT;
   }
   function profile(band, narrow) {
     const r0 = inner + band * bandDepth, h = height(band, narrow), previous = height(band - 1, narrow);
@@ -61,12 +62,14 @@ export function createJoinedStairs(model, { inner, outer, floorY, topY, material
     result.push([r0 + bandDepth, h]);
     return result;
   }
-  for (let band = 0; band < 6; band++) {
+  for (let band = 0; band < ACCESS_STEP_COUNT; band++) {
     const profiles = [profile(band, false), profile(band, true)];
     for (let i = 0; i < count; i++) {
       const a0 = keys[i], a1 = keys[i + 1], narrow = access[i], p = profiles[Number(narrow)];
-      for (let j = 0; j < p.length - 1; j++) {
-        const [r0, y0] = p[j], [r1, y1] = p[j + 1];
+      const boundaryCell = access[(i + count - 1) % count] !== narrow || access[(i + 1) % count] !== narrow;
+      const topProfile = !boundaryCell && Math.abs(p[0][1] - p[p.length - 1][1]) < 1e-7 ? [p[0], p[p.length - 1]] : p;
+      for (let j = 0; j < topProfile.length - 1; j++) {
+        const [r0, y0] = topProfile[j], [r1, y1] = topProfile[j + 1];
         quad([[r0, a0, y0], [r0, a1, y0], [r1, a1, y1], [r1, a0, y1]]);
       }
       const previous = height(band - 1, narrow);
@@ -74,7 +77,7 @@ export function createJoinedStairs(model, { inner, outer, floorY, topY, material
         const radius = p[0][0];
         quad([[radius, a0, previous], [radius, a1, previous], [radius, a1, p[0][1]], [radius, a0, p[0][1]]]);
       }
-      // Close the lateral change from six access treads to three broad tiers.
+      // Close every lateral change from access treads to the three broad tiers.
       const left = access[(i + count - 1) % count];
       if (left !== narrow) {
         const leftProfile = profiles[Number(left)];

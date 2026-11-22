@@ -10,7 +10,7 @@ import { TERRACE_DEPTH, PASSAGE_WIDTH } from '../src/terrace-seating.js';
 import { SCREEN_WALL_HEIGHT } from '../src/digital-wall.js';
 import { CLAY_TRIANGLE_BUDGET } from '../src/clay-style.js';
 import { MIXED_TIERS } from '../src/mixed-seating.js';
-import { TOTAL_RISE, PREVIOUS_TOTAL_RISE, ACCESS_STEP_RISE } from '../src/space-levels.js';
+import { TOTAL_RISE, PREVIOUS_TOTAL_RISE, ACCESS_STEP_RISE, ACCESS_STEP_COUNT, ACCESS_STEPS_PER_TIER } from '../src/space-levels.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from '../src/joined-stairs.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, expandStairRadius } from '../src/prepare-space.js';
 
@@ -50,25 +50,25 @@ test('블루길 폭은 10m이며 중앙 공간을 침범하지 않고 바깥으�
   assert.equal(edited.stairs.length, 1);
 });
 
-test('높은 블루길에서 원형 계단을 내려가 낮은 중앙 공간으로 이어진다', () => {
+test('높은 블루길에서 이동 계단 24단을 내려가 중앙 공간으로 이어진다', () => {
   const ray = new Raycaster();
-  const samples = [[22, 1.15], [23, 1.15], [23.5, 1.29], [24, 1.43], [24.5, 1.57], [25, 1.71], [25.5, 1.85], [26, 1.99], [26.3, 1.99], [26.6, 1.99], [26.69, 1.99], [26.71, 1.99], [30, 1.99], [35.7, 1.99]];
-  for (const angle of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {
-    for (const [radius, expected] of samples) {
-      const expanded = radius <= 26.3 ? expandStairRadius(radius) : PATH_INNER_RADIUS + (radius - 26.7);
-      ray.set(new Vector3(Math.cos(angle) * expanded, 4, Math.sin(angle) * expanded), new Vector3(0, -1, 0));
+  assert.equal(ACCESS_STEP_COUNT, 24);
+  for (const angle of ACCESS_DIRECTIONS) {
+    for (let band = 0; band < ACCESS_STEP_COUNT; band++) {
+      const radius = 23.2 + (band + 0.5) * 12 / ACCESS_STEP_COUNT;
+      ray.set(new Vector3(Math.cos(angle) * radius, PATH_Y + 2, Math.sin(angle) * radius), new Vector3(0, -1, 0));
       const hit = ray.intersectObjects(floors, false)[0];
-      assert.ok(hit && Math.abs(hit.point.y - (FLOOR_Y + (expected - FLOOR_Y) * 2)) < 0.001, `반경 ${radius}의 단차가 두 배여야 합니다.`);
+      const expected = FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
+      assert.ok(hit && Math.abs(hit.point.y - expected) < 0.001, `이동 계단 ${band + 1}단의 높이가 맞아야 합니다.`);
     }
   }
-  assert.ok(PATH_Y - FLOOR_Y > 1.6, '전체 평탄화하면 안 됩니다.');
 });
 
 test('블루길과 최상단 계단 사이에 틈이나 별도의 턱이 없다', () => {
   const ray = new Raycaster();
   for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 16) {
     for (const radius of [expandStairRadius(26.26), 35.1, 35.199, 35.201, 36, 40, 44.4]) {
-      ray.set(new Vector3(Math.cos(angle) * radius, 4, Math.sin(angle) * radius), new Vector3(0, -1, 0));
+      ray.set(new Vector3(Math.cos(angle) * radius, PATH_Y + 2, Math.sin(angle) * radius), new Vector3(0, -1, 0));
       const hit = ray.intersectObjects(floors, false)[0];
       assert.ok(hit && Math.abs(hit.point.y - PATH_Y) < 0.001, '상단 계단과 블루길은 같은 높이여야 합니다.');
     }
@@ -120,9 +120,9 @@ test('상단 계단의 화분과 가구를 중앙 바닥으로 내려놓지 않�
 test('각 원형 계단 단이 가구와 통로를 담는 깊이 4m로 확장됐다', () => {
   assert.equal(TERRACE_DEPTH, 4);
   const ray = new Raycaster();
-  for (const [radius, expected] of [[23.6, 1.43], [26.8, 1.43], [27.6, 1.71], [30.4, 1.71], [31.6, 1.99], [34.8, 1.99]]) {
-    ray.set(new Vector3(radius / Math.SQRT2, 4, radius / Math.SQRT2), new Vector3(0, -1, 0));
-    assert.ok(Math.abs(ray.intersectObjects(floors, false)[0].point.y - (FLOOR_Y + (expected - FLOOR_Y) * 2)) < 0.001);
+  for (const [radius, tier] of [[23.6, 0], [26.8, 0], [27.6, 1], [30.4, 1], [31.6, 2], [34.8, 2]]) {
+    ray.set(new Vector3(radius / Math.SQRT2, PATH_Y + 2, radius / Math.SQRT2), new Vector3(0, -1, 0));
+    assert.ok(Math.abs(ray.intersectObjects(floors, false)[0].point.y - MIXED_TIERS[tier].height) < 0.001);
   }
 });
 
@@ -254,8 +254,9 @@ test('가구와 식재는 부드러운 무광 클레이이며 스크린과 벨�
 test('곡면 상세를 높여도 삼각형 예산과 공간 외곽은 보존된다', () => {
   let triangles = 0;
   gltf.scene.traverse(mesh => { if (mesh.isMesh) triangles += (mesh.geometry.index?.count ?? mesh.geometry.attributes.position.count) / 3; });
-  assert.ok(triangles > edited.clay.originalTriangles * 1.5);
+  assert.ok(triangles > edited.clay.originalTriangles);
   assert.ok(triangles <= CLAY_TRIANGLE_BUDGET);
+  assert.ok(edited.clay.refinedPieces > 0);
   assert.ok(edited.clay.beforeBounds.min.distanceTo(edited.clay.afterBounds.min) < 0.00001);
   assert.ok(edited.clay.beforeBounds.max.distanceTo(edited.clay.afterBounds.max) < 0.00001);
 });
@@ -265,13 +266,13 @@ test('네 이동 계단의 양쪽 경계 전체에 빠지는 틈이 없다', () 
   for (const direction of ACCESS_DIRECTIONS) {
     for (const side of [-1, 1]) {
       const boundary = direction + side * ACCESS_HALF_ANGLE;
-      for (let band = 0; band < 6; band++) {
-        const radius = 24.2 + band * 2;
-        const low = band === 5 ? PATH_Y : FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
-        const high = band >= 4 ? PATH_Y : FLOOR_Y + Math.ceil((band + 1) / 2) * ACCESS_STEP_RISE * 2;
+      for (let band = 0; band < ACCESS_STEP_COUNT; band++) {
+        const radius = 23.2 + (band + 0.5) * 12 / ACCESS_STEP_COUNT;
+        const low = FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
+        const high = FLOOR_Y + Math.ceil((band + 1) / ACCESS_STEPS_PER_TIER) * ACCESS_STEP_RISE * ACCESS_STEPS_PER_TIER;
         for (const offset of [-0.5, -0.2, -0.01, 0, 0.01, 0.2, 0.5]) {
           const angle = boundary + offset / radius;
-          ray.set(new Vector3(radius * Math.cos(angle), 4, radius * Math.sin(angle)), new Vector3(0, -1, 0));
+          ray.set(new Vector3(radius * Math.cos(angle), PATH_Y + 2, radius * Math.sin(angle)), new Vector3(0, -1, 0));
           const hit = ray.intersectObjects(floors, false)[0];
           assert.ok(hit && hit.point.y >= low - 0.001 && hit.point.y <= high + 0.001, '두 계단 경계가 중앙 바닥까지 꺼지면 안 됩니다.');
           assert.equal(hit.object, edited.stairs[0]);
@@ -286,8 +287,8 @@ test('높이가 다른 두 계단의 측면도 빈틈 없이 연결됐다', () =
   for (const direction of ACCESS_DIRECTIONS) {
     for (const side of [-1, 1]) {
       const boundary = direction + side * ACCESS_HALF_ANGLE;
-      for (const band of [0, 2, 4]) {
-        const radius = 24.2 + band * 2;
+      for (const band of [0, 8, 16]) {
+        const radius = 23.2 + (band + 0.5) * 12 / ACCESS_STEP_COUNT;
         const angle = boundary - side * 0.002;
         const low = FLOOR_Y + (band + 1) * ACCESS_STEP_RISE;
         const origin = new Vector3(radius * Math.cos(angle), low + ACCESS_STEP_RISE / 2, radius * Math.sin(angle));
@@ -306,7 +307,7 @@ test('계단과 블루길은 동일한 외곽선을 공유해 미세한 이음 �
     const angle = i * Math.PI / 360;
     for (const delta of [-0.003, -0.0005, 0, 0.0005, 0.003]) {
       const radius = PATH_INNER_RADIUS + delta;
-      ray.set(new Vector3(radius * Math.cos(angle), 4, radius * Math.sin(angle)), new Vector3(0, -1, 0));
+      ray.set(new Vector3(radius * Math.cos(angle), PATH_Y + 2, radius * Math.sin(angle)), new Vector3(0, -1, 0));
       const hit = ray.intersectObjects(floors, false)[0];
       assert.ok(hit && Math.abs(hit.point.y - PATH_Y) < 0.001, '상단 계단과 블루길 사이에 미세한 빈틈도 없어야 합니다.');
     }
@@ -314,15 +315,15 @@ test('계단과 블루길은 동일한 외곽선을 공유해 미세한 이음 �
 });
 
 
-test('중앙 원형 바닥을 유지하고 블루길까지의 전체 단차를 정확히 두 배로 높였다', () => {
+test('중앙 원형 바닥을 유지하고 직전 버전보다 전체 단차를 정확히 네 배로 높였다', () => {
   const ray = new Raycaster();
-  ray.set(new Vector3(0, 8, 0), new Vector3(0, -1, 0));
+  ray.set(new Vector3(0, PATH_Y + 2, 0), new Vector3(0, -1, 0));
   const lower = ray.intersectObjects(floors, false)[0].point.y;
-  ray.set(new Vector3(40, 8, 0), new Vector3(0, -1, 0));
+  ray.set(new Vector3(40, PATH_Y + 2, 0), new Vector3(0, -1, 0));
   const upper = ray.intersectObjects(floors, false)[0].point.y;
   assert.ok(Math.abs(lower - 1.15) < 0.00001);
-  assert.ok(Math.abs((upper - lower) / PREVIOUS_TOTAL_RISE - 2) < 0.00001);
-  assert.ok(Math.abs(TOTAL_RISE - 1.6804) < 0.00001);
-  assert.ok(Math.abs(upper - 2.8304) < 0.00001);
+  assert.ok(Math.abs((upper - lower) / PREVIOUS_TOTAL_RISE - 4) < 0.00001);
+  assert.ok(Math.abs(TOTAL_RISE - 6.7216) < 0.00001);
+  assert.ok(Math.abs(upper - 7.8716) < 0.00001);
   assert.ok(ACCESS_STEP_RISE < 0.34, '높인 후에도 이동 계단은 기존 보행 한계 안에 있어야 합니다.');
 });

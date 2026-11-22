@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { acceleratedRaycast, computeBoundsTree } from 'three-mesh-bvh';
-import { prepareSpace, isWalkable } from './prepare-space.js';
+import { prepareSpace, isWalkable, WALK_RADIUS } from './prepare-space.js';
 
 // The document intentionally contains only the rendering canvas: no HUD or VR button.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -106,7 +106,7 @@ function tryMove(dx, dz, delta) {
   camera.getWorldPosition(head);
   const x = head.x, z = head.z;
   // Keep the viewer within the original circular architecture.
-  if (Math.hypot(x + dx, z + dz) > 30.9) return;
+  if (Math.hypot(x + dx, z + dz) > WALK_RADIUS) return;
   const height = floorHeight(x + dx, z + dz, rig.position.y);
   if (height === null || height - rig.position.y > 0.34) return;
   direction.set(dx, 0, dz);
@@ -222,7 +222,7 @@ controllers.forEach(controller => {
     if (!destination || Math.abs(destination.face.normal.y) < 0.7) return;
     const obstruction = ray.intersectObject(collider, false)[0];
     if (obstruction && obstruction.distance < destination.distance - 0.07) return;
-    if (Math.hypot(destination.point.x, destination.point.z) > 30.9) return;
+    if (Math.hypot(destination.point.x, destination.point.z) > WALK_RADIUS) return;
     // Ensure the landing spot has enough clear space for a standing viewer.
     for (const offset of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {
       origin.copy(destination.point).addScaledVector(up, 0.9);

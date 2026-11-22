@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Box3, Raycaster, Vector3 } from 'three';
-import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS } from '../src/prepare-space.js';
+import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
 const gltf = await new GLTFLoader().parseAsync(
@@ -33,45 +33,70 @@ test('사람 눈높이의 시작점 아래에 평평한 바닥이 있다', () =>
   assert.equal(ray.intersectObject(gltf.scene, true).length, 0, '시작점 앞에 보행 공간이 필요합니다.');
 });
 
-test('두 배 폭의 카펫과 내부 공간의 바닥이 모두 같은 높이로 연결된다', () => {
-  assert.equal(PATH_WIDTH, 10);
-  assert.equal(PATH_WIDTH, (31.7 - 26.7) * 2);
-  assert.equal(floors.length, 2);
+test('블루길 폭은 10m이며 중앙 공간을 침범하지 않고 바깥으로 확장된다', () => {
+  assert.ok(Math.abs(PATH_WIDTH - 10) < 0.001);
+  assert.equal(PATH_INNER_RADIUS, 26.7);
+  assert.equal(PATH_OUTER_RADIUS, 36.7);
+  assert.ok(WALK_RADIUS > 35);
+  assert.equal(edited.stairs.length, 9);
+});
+
+test('높은 블루길에서 원형 계단을 내려가 낮은 중앙 공간으로 이어진다', () => {
+  const ray = new Raycaster();
+  const samples = [[22, 1.15], [23, 1.15], [23.5, 1.29], [24, 1.43], [24.5, 1.57], [25, 1.71], [25.5, 1.85], [26, 1.99], [26.3, 1.99], [26.6, 1.99], [26.69, 1.99], [26.71, 1.99], [30, 1.99], [35.7, 1.99]];
+  for (const angle of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {
+    for (const [radius, expected] of samples) {
+      ray.set(new Vector3(Math.cos(angle) * radius, 4, Math.sin(angle) * radius), new Vector3(0, -1, 0));
+      const hit = ray.intersectObjects(floors, false)[0];
+      assert.ok(hit && Math.abs(hit.point.y - expected) < 0.001, `반경 ${radius}의 높이 ${expected}가 필요합니다.`);
+    }
+  }
+  assert.ok(PATH_Y - FLOOR_Y > 0.8, '전체 평탄화하면 안 됩니다.');
+});
+
+test('블루길과 최상단 계단 사이에 틈이나 별도의 턱이 없다', () => {
   const ray = new Raycaster();
   for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 16) {
-    for (const radius of [0, 20, PATH_INNER_RADIUS - 0.01, PATH_INNER_RADIUS + 0.01, 22, 23, 24, 25, 26, 27, 29, 30.8, PATH_OUTER_RADIUS - 0.01]) {
-    ray.set(new Vector3(Math.cos(angle) * radius, 4, Math.sin(angle) * radius), new Vector3(0, -1, 0));
-    const hit = ray.intersectObjects(floors, false)[0];
-    assert.ok(hit && Math.abs(hit.point.y - FLOOR_Y) < 0.001, `반경 ${radius}의 바닥이 평평하게 이어져야 합니다.`);
+    for (const radius of [26.26, 26.4, 26.6, 26.699, 26.701, 27, 30, 35.8]) {
+      ray.set(new Vector3(Math.cos(angle) * radius, 4, Math.sin(angle) * radius), new Vector3(0, -1, 0));
+      const hit = ray.intersectObjects(floors, false)[0];
+      assert.ok(hit && Math.abs(hit.point.y - PATH_Y) < 0.001, '상단 계단과 블루길은 같은 높이여야 합니다.');
     }
   }
 });
 
-test('체크 줄눈과 주변 계단·턱이 렌더링 및 충돌 장면에서 제거됐다', () => {
+test('원형 계단은 보존하고 체크 줄눈과 경계 장식 턱만 제거했다', () => {
   gltf.scene.traverse(object => {
-    assert.ok(!/^Terraces__|tile.grout|circulation.deck/.test(object.name), object.name);
+    assert.ok(!/tile.grout|circulation.deck|^Terraces.*Warm_ivory/.test(object.name), object.name);
   });
   assert.equal(edited.carpet.material.type, 'MeshPhysicalMaterial');
   assert.equal(edited.carpet.material.sheen, 1);
   assert.ok(edited.carpet.material.roughness > 0.9);
   assert.ok(edited.carpet.material.bumpScale < 0.002);
   assert.equal(edited.carpet.material.map, null);
+  assert.ok(edited.stairs.every(stair => isWalkable(stair)));
 });
 
-test('네 방향의 기존 계단 자리를 가로질러 이동할 수 있다', () => {
-  for (const direction of [new Vector3(1, 0, 0), new Vector3(-1, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 0, -1)]) {
-    for (const height of [0.4, 0.95, 1.5]) {
-      const origin = direction.clone().multiplyScalar(20);
-      origin.y = FLOOR_Y + height;
-      const ray = new Raycaster(origin, direction, 0, 10);
-      assert.equal(ray.intersectObject(gltf.scene, true).length, 0, '옛 계단 구간에 보행을 막는 턱이 없어야 합니다.');
+test('실제 계단 바닥을 한 단씩 오르내려 블루길 전체 폭을 이용할 수 있다', () => {
+  const ray = new Raycaster();
+  for (const sign of [1, -1]) {
+    let previous = sign === 1 ? FLOOR_Y : PATH_Y;
+    for (let distance = 0; distance <= 13.6; distance += 0.08) {
+      const radius = sign === 1 ? 22 + distance : 35.6 - distance;
+      ray.set(new Vector3(0, previous + 0.36, radius), new Vector3(0, -1, 0));
+      ray.far = 0.96;
+      const hit = ray.intersectObjects(floors, false)[0];
+      assert.ok(hit, `반경 ${radius}에서 발을 디딜 바닥이 필요합니다.`);
+      assert.ok(hit.point.y - previous <= 0.34, '이동 코드가 오를 수 있는 높이를 넘으면 안 됩니다.');
+      assert.ok(previous - hit.point.y <= 0.6, '계단에 낙하하는 틈이 없어야 합니다.');
+      previous = hit.point.y;
     }
   }
 });
 
-test('옛 상단 데크의 화분과 가구도 새 바닥으로 내려왔다', () => {
+test('상단 계단의 화분과 가구를 중앙 바닥으로 내려놓지 않는다', () => {
   const planter = gltf.scene.getObjectByName('Planting__Warm_ivory_•_matte_ceramic__0_2');
-  assert.ok(Math.abs(new Box3().setFromObject(planter).min.y - FLOOR_Y) < 0.001);
+  assert.ok(Math.abs(new Box3().setFromObject(planter).min.y - PATH_Y) < 0.001);
   const frame = gltf.scene.getObjectByName('Cafe_Furniture__Golden_oak_furniture_frame__2_0');
-  assert.ok(Math.abs(new Box3().setFromObject(frame).min.y - (originalFrameMinY - 0.84)) < 0.001);
+  assert.ok(Math.abs(new Box3().setFromObject(frame).min.y - originalFrameMinY) < 0.001);
 });

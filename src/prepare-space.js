@@ -1,10 +1,14 @@
 import * as THREE from 'three';
-import { acceleratedRaycast, computeBoundsTree } from 'three-mesh-bvh';
 
 export const FLOOR_Y = 1.15;
-export const PATH_OUTER_RADIUS = 31.7;
-export const PATH_INNER_RADIUS = 21.7;
+export const PATH_OUTER_RADIUS = 36.7;
+export const PATH_INNER_RADIUS = 26.7;
 export const PATH_WIDTH = PATH_OUTER_RADIUS - PATH_INNER_RADIUS;
+export const CENTRAL_RADIUS = 23.2;
+// 0.2mm above the source top face avoids coplanar self-shadowing. Both the
+// connection and carpet share this height, well below the carpet pile thickness.
+export const PATH_Y = 1.9902;
+export const WALK_RADIUS = PATH_OUTER_RADIUS - 0.8;
 const SEGMENTS = 512;
 
 export function isWalkable(mesh) {
@@ -17,67 +21,31 @@ export function prepareSpace(model) {
   model.updateMatrixWorld(true);
   const meshes = [];
   model.traverse(object => { if (object.isMesh) meshes.push(object); });
-  const oldFloors = meshes.filter(object => /circulation.deck|porcelain.floor|^Terraces.*terrace.treads/.test(object.name));
-  for (const mesh of oldFloors) {
-    computeBoundsTree.call(mesh.geometry);
-    mesh.raycast = acceleratedRaycast;
-  }
   const porcelain = meshes.find(object => /porcelain.floor/.test(object.name)).material;
-  const supportRay = new THREE.Raycaster();
-  supportRay.firstHitOnly = true;
-  const down = new THREE.Vector3(0, -1, 0);
-  const at = new THREE.Vector3();
-  function originalSupport(x, z) {
-    at.set(x, 10, z);
-    supportRay.set(at, down);
-    return supportRay.intersectObjects(oldFloors, false)[0]?.point.y ?? FLOOR_Y;
-  }
-  // A mesh can contain several pieces of furniture on different former levels.
-  // Weld coincident seam vertices and move each connected piece as a rigid object.
-  for (const mesh of meshes) {
-    if (!/^(Cafe_Furniture|Planting|Luminaires)__/.test(mesh.name)) continue;
-    const geometry = mesh.geometry;
-    const position = geometry.attributes.position;
-    const parents = Uint32Array.from({ length: position.count }, (_, i) => i);
-    function root(i) {
-      while (parents[i] !== i) { parents[i] = parents[parents[i]]; i = parents[i]; }
-      return i;
-    }
-    function join(a, b) { parents[root(a)] = root(b); }
-    const seams = new Map();
-    for (let i = 0; i < position.count; i++) {
-      const key = `${Math.round(position.getX(i) * 10000)},${Math.round(position.getY(i) * 10000)},${Math.round(position.getZ(i) * 10000)}`;
-      if (seams.has(key)) join(i, seams.get(key));
-      else seams.set(key, i);
-    }
-    const index = geometry.index;
-    for (let i = 0, count = index?.count ?? position.count; i < count; i += 3) {
-      const a = index ? index.getX(i) : i;
-      join(a, index ? index.getX(i + 1) : i + 1);
-      join(a, index ? index.getX(i + 2) : i + 2);
-    }
-    const pieces = new Map();
-    for (let i = 0; i < position.count; i++) {
-      const id = root(i), x = position.getX(i), z = position.getZ(i);
-      if (!pieces.has(id)) pieces.set(id, { minX: x, maxX: x, minZ: z, maxZ: z });
-      const p = pieces.get(id);
-      p.minX = Math.min(p.minX, x); p.maxX = Math.max(p.maxX, x);
-      p.minZ = Math.min(p.minZ, z); p.maxZ = Math.max(p.maxZ, z);
-    }
-    for (const piece of pieces.values()) {
-      const x = (piece.minX + piece.maxX) / 2, z = (piece.minZ + piece.maxZ) / 2;
-      piece.drop = Math.max(0, Math.round((originalSupport(x, z) - FLOOR_Y) / 0.14) * 0.14);
-    }
-    for (let i = 0; i < position.count; i++) position.setY(i, position.getY(i) - pieces.get(root(i)).drop);
-    position.needsUpdate = true;
-    geometry.computeBoundingBox();
-    geometry.computeBoundingSphere();
-  }
+  const stairs = meshes.filter(object => /^Terraces.*terrace.treads/.test(object.name));
+  for (const stair of stairs) stair.userData.walkable = true;
 
   for (const mesh of meshes) {
-    if (/^Terraces__|circulation.deck|porcelain.floor|tile.grout/.test(mesh.name)
+    if ((/^Terraces__/.test(mesh.name) && !isWalkable(mesh)) || /circulation.deck|porcelain.floor|tile.grout/.test(mesh.name)
       || /^Architecture__Warm_luminous_strips__0_2$/.test(mesh.name)) {
       mesh.removeFromParent();
+    } else if (/^(Architecture|Signage)__/.test(mesh.name)) {
+      // Keep the original central space and stair footprint. Widen the blue path
+      // outward by 5m, taking its enclosing wall with it instead of eating into
+      // the central room. The wall/door bases follow the upper blue-path level.
+      const p = mesh.geometry.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i), z = p.getZ(i), radius = Math.hypot(x, z);
+        if (radius > PATH_INNER_RADIUS) {
+          p.setX(i, x * (radius + 5) / radius);
+          p.setZ(i, z * (radius + 5) / radius);
+          if (p.getY(i) > 1.28) p.setY(i, p.getY(i) + (PATH_Y - 1.3));
+        }
+      }
+      p.needsUpdate = true;
+      mesh.geometry.computeVertexNormals();
+      mesh.geometry.computeBoundingBox();
+      mesh.geometry.computeBoundingSphere();
     }
   }
 
@@ -103,9 +71,9 @@ export function prepareSpace(model) {
     specularIntensity: 0.15, bumpMap: pile, bumpScale: 0.0015,
     side: THREE.DoubleSide,
   });
-  function floorMesh(name, geometry, material) {
+  function floorMesh(name, geometry, material, height) {
     geometry.rotateX(-Math.PI / 2);
-    geometry.translate(0, FLOOR_Y, 0);
+    geometry.translate(0, height, 0);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.name = name;
     mesh.userData.walkable = true;
@@ -113,13 +81,21 @@ export function prepareSpace(model) {
     model.add(mesh);
     return mesh;
   }
-  const carpet = floorMesh('Blue_velvet_carpet', new THREE.RingGeometry(PATH_INNER_RADIUS, PATH_OUTER_RADIUS, SEGMENTS), velvet);
-  const interior = floorMesh('Level_porcelain_floor', new THREE.CircleGeometry(PATH_INNER_RADIUS, SEGMENTS), porcelain);
-  // A vertical skirt closes the existing plinth without adding a raised edge.
-  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(PATH_OUTER_RADIUS, PATH_OUTER_RADIUS, FLOOR_Y, SEGMENTS, 1, true), velvet);
+  const carpet = floorMesh('Blue_velvet_carpet', new THREE.RingGeometry(PATH_INNER_RADIUS, PATH_OUTER_RADIUS, SEGMENTS), velvet, PATH_Y);
+  const interior = floorMesh('Lower_circular_room', new THREE.CircleGeometry(PATH_INNER_RADIUS, SEGMENTS), porcelain, FLOOR_Y);
+  // Cover the original narrow trench at the outside of the top tread. The cap
+  // and carpet have exactly the same height. Depth bias prevents coplanar flicker
+  // where this cap meets the existing beveled tread; it adds no geometric lip.
+  const bridgeMaterial = porcelain.clone();
+  bridgeMaterial.polygonOffset = true;
+  bridgeMaterial.polygonOffsetFactor = -1;
+  bridgeMaterial.polygonOffsetUnits = -1;
+  const bridge = floorMesh('Flush_top_tread_connection', new THREE.RingGeometry(26.25, PATH_INNER_RADIUS, SEGMENTS), bridgeMaterial, PATH_Y);
+  // The uppermost tread meets the blue path flush: no curb, lip or extra riser.
+  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(PATH_OUTER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, SEGMENTS, 1, true), velvet);
   skirt.name = 'Carpet_plinth_side';
-  skirt.position.y = FLOOR_Y / 2;
+  skirt.position.y = PATH_Y / 2;
   model.add(skirt);
   model.updateMatrixWorld(true);
-  return { carpet, interior, floorY: FLOOR_Y, pathWidth: PATH_WIDTH };
+  return { carpet, interior, stairs, bridge, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
 }

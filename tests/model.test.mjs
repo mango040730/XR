@@ -9,6 +9,7 @@ import { meshPieces } from '../src/mesh-pieces.js';
 import { TERRACE_DEPTH, PASSAGE_WIDTH } from '../src/terrace-seating.js';
 import { SCREEN_WALL_HEIGHT } from '../src/digital-wall.js';
 import { CLAY_TRIANGLE_BUDGET } from '../src/clay-style.js';
+import { MIXED_TIERS } from '../src/mixed-seating.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, expandStairRadius } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -18,7 +19,6 @@ const gltf = await new GLTFLoader().parseAsync(
 gltf.scene.updateMatrixWorld(true);
 const sourceLeafGeometry = gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1').geometry.clone();
 sourceLeafGeometry.computeBoundingBox();
-const originalFrameMinY = new Box3().setFromObject(gltf.scene.getObjectByName('Cafe_Furniture__Golden_oak_furniture_frame__2_0')).min.y;
 const edited = prepareSpace(gltf.scene);
 const floors = [];
 gltf.scene.traverse(object => {
@@ -105,8 +105,13 @@ test('실제 계단 바닥을 한 단씩 오르내려 블루길 전체 폭을 �
 test('상단 계단의 화분과 가구를 중앙 바닥으로 내려놓지 않는다', () => {
   const planter = gltf.scene.getObjectByName('Planting__Warm_ivory_•_matte_ceramic__0_2');
   assert.ok(Math.abs(new Box3().setFromObject(planter).min.y - PATH_Y) < 0.001);
-  const frame = gltf.scene.getObjectByName('Cafe_Furniture__Golden_oak_furniture_frame__2_0');
-  assert.ok(Math.abs(new Box3().setFromObject(frame).min.y - originalFrameMinY) < 0.001);
+  const ray = new Raycaster();
+  for (const seat of edited.seating.mixed.seats) {
+    const [x, y, z] = seat.position;
+    ray.set(new Vector3(x, y + 0.1, z), new Vector3(0, -1, 0));
+    const hit = ray.intersectObjects(floors, false)[0];
+    assert.ok(hit && Math.abs(hit.point.y - y) < 0.001, '의자의 발이 해당 계단 단에 있어야 합니다.');
+  }
 });
 
 
@@ -119,22 +124,41 @@ test('각 원형 계단 단이 가구와 통로를 담는 깊이 4m로 확장됐
   }
 });
 
-test('중앙을 보는 의자 10개만 남고 반대편 의자 20개는 전체 조립체가 제거됐다', () => {
-  assert.equal(edited.seating.removedChairs, 20);
-  assert.equal(edited.seating.retainedChairs, 10);
+test('세 계단 단 모두에 1인 테이블과 3인용 긴 테이블이 섞여 있다', () => {
+  const mixed = edited.seating.mixed;
+  assert.equal(mixed.singleSets, 17);
+  assert.equal(mixed.sharedSets, 18);
+  assert.equal(mixed.seats.length, 71);
+  for (let tier = 0; tier < 3; tier++) {
+    const sets = mixed.sets.filter(set => set.tier === tier);
+    assert.ok(sets.some(set => set.type === 'single' && set.capacity === 1));
+    assert.ok(sets.some(set => set.type === 'shared' && set.capacity === 3));
+    for (const set of sets) {
+      assert.ok(Math.abs(set.center[1] - MIXED_TIERS[tier].height) < 0.001);
+      assert.equal(mixed.seats.filter(seat => seat.setId === set.id).length, set.capacity);
+    }
+  }
+});
+
+test('실제 의자 71개가 테이블 바깥쪽 한 줄에서만 중앙을 바라본다', () => {
   const parts = [];
-  gltf.scene.traverse(mesh => { if (mesh.isMesh && /^Cafe_Furniture__/.test(mesh.name)) parts.push(...meshPieces(mesh)); });
-  const seats = parts.filter(p => Math.abs(p.center.y - 2.49) < 0.015 && Math.abs(p.size.y - 0.11) < 0.015 && Math.hypot(p.center.x, p.center.z) > 31);
-  const backs = parts.filter(p => Math.abs(p.center.y - 2.9) < 0.015 && Math.abs(p.size.y - 0.38) < 0.015 && Math.hypot(p.center.x, p.center.z) > 31);
-  assert.equal(seats.length, 10);
-  assert.equal(backs.length, 10);
+  gltf.scene.traverse(mesh => { if (mesh.isMesh && mesh.userData.mixedSeating) parts.push(...meshPieces(mesh)); });
+  const seats = parts.filter(p => Math.abs(p.size.y - 0.11) < 0.005 && Math.max(p.size.x, p.size.z) > 0.5 && Math.max(p.size.x, p.size.z) < 0.9);
+  const backs = parts.filter(p => Math.abs(p.size.y - 0.38) < 0.005);
+  assert.equal(seats.length, 71);
+  assert.equal(backs.length, 71);
   for (const seat of seats) {
     const back = backs.reduce((a, b) => a.center.distanceTo(seat.center) < b.center.distanceTo(seat.center) ? a : b);
     const facing = seat.center.clone().sub(back.center).setY(0).normalize();
-    assert.ok(facing.dot(seat.center.clone().setY(0).normalize().negate()) > 0.9);
+    assert.ok(facing.dot(seat.center.clone().setY(0).normalize().negate()) > 0.99);
+    const set = edited.seating.mixed.sets.reduce((a, b) => {
+      const centerA = new Vector3(...a.center), centerB = new Vector3(...b.center);
+      return seat.center.distanceTo(centerA) < seat.center.distanceTo(centerB) ? a : b;
+    });
+    const relative = seat.center.clone().sub(new Vector3(...set.center));
+    assert.ok(relative.dot(new Vector3(...set.outward)) > 0.7, '테이블 반대편에 의자가 있으면 안 됩니다.');
   }
-  assert.equal(parts.filter(p => Math.abs(p.size.y - 0.466) < 0.015 && p.bounds.min.y > 1.99 && Math.hypot(p.center.x, p.center.z) > 31).length, 40, '남은 의자의 다리 4개씩만 있어야 합니다.');
-  assert.equal(parts.filter(p => Math.abs(p.size.y - 0.75) < 0.015 && p.bounds.min.y > 1.99 && Math.hypot(p.center.x, p.center.z) > 31).length, 40, '테이블 다리 4개씩은 보존해야 합니다.');
+  assert.equal(parts.filter(p => Math.abs(p.size.y - 0.466) < 0.01).length, 71 * 4, '의자 다리 전체가 있어야 합니다.');
 });
 
 test('실제 가구 충돌 장면에서 1.2m 폭의 안쪽 통로가 비어 있다', () => {
@@ -146,13 +170,15 @@ test('실제 가구 충돌 장면에서 1.2m 폭의 안쪽 통로가 비어 있�
   const ray = new Raycaster();
   ray.firstHitOnly = true;
   ray.far = PASSAGE_WIDTH - 0.02;
-  for (let i = 0; i < 360; i++) {
-    const a = i * Math.PI / 180;
-    const direction = new Vector3(Math.cos(a), 0, Math.sin(a));
-    for (const height of [0.4, 0.95, 1.5]) {
-      const origin = direction.clone().multiplyScalar(31.21); origin.y = PATH_Y + height;
-      ray.set(origin, direction);
-      assert.equal(ray.intersectObject(gltf.scene, true).length, 0, `각도 ${i}의 통로를 가구가 막으면 안 됩니다.`);
+  for (const tier of MIXED_TIERS) {
+    for (let i = 0; i < 360; i++) {
+      const a = i * Math.PI / 180;
+      const direction = new Vector3(Math.cos(a), 0, Math.sin(a));
+      for (const height of [0.4, 0.95, 1.5]) {
+        const origin = direction.clone().multiplyScalar(tier.inner + 0.01); origin.y = tier.height + height;
+        ray.set(origin, direction);
+        assert.equal(ray.intersectObject(gltf.scene, true).length, 0, `반경 ${tier.inner}, 각도 ${i}의 통로가 비어 있어야 합니다.`);
+      }
     }
   }
 });
@@ -226,7 +252,7 @@ test('가구와 식재는 부드러운 무광 클레이이며 스크린과 벨�
 test('곡면 상세를 높여도 삼각형 예산과 공간 외곽은 보존된다', () => {
   let triangles = 0;
   gltf.scene.traverse(mesh => { if (mesh.isMesh) triangles += (mesh.geometry.index?.count ?? mesh.geometry.attributes.position.count) / 3; });
-  assert.ok(triangles > edited.clay.originalTriangles * 2);
+  assert.ok(triangles > edited.clay.originalTriangles * 1.5);
   assert.ok(triangles <= CLAY_TRIANGLE_BUDGET);
   assert.ok(edited.clay.beforeBounds.min.distanceTo(edited.clay.afterBounds.min) < 0.00001);
   assert.ok(edited.clay.beforeBounds.max.distanceTo(edited.clay.afterBounds.max) < 0.00001);

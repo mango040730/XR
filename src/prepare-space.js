@@ -30,7 +30,7 @@ export function prepareSpace(model) {
   const meshes = [];
   model.traverse(object => { if (object.isMesh) meshes.push(object); });
   const porcelain = meshes.find(object => /porcelain.floor/.test(object.name)).material;
-  const seating = arrangeTerraceSeating(meshes);
+  const seating = arrangeTerraceSeating(meshes, model);
   const stairs = meshes.filter(object => /^Terraces.*terrace.treads/.test(object.name));
   for (const stair of stairs) {
     stair.userData.walkable = true;

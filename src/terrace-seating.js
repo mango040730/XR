@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { meshPieces, applyPieces } from './mesh-pieces.js';
+import { captureChair, buildMixedSeating } from './mixed-seating.js';
 
 export const TERRACE_DEPTH = 4;
 export const PASSAGE_WIDTH = 1.2;
@@ -11,7 +12,7 @@ function nearest(point, items) {
   return items.reduce((best, item) => !best || distance(point, item.center) < distance(point, best.center) ? item : best, null);
 }
 
-export function arrangeTerraceSeating(meshes) {
+export function arrangeTerraceSeating(meshes, model) {
   const cafeMeshes = meshes.filter(mesh => /^Cafe_Furniture__/.test(mesh.name));
   const plantMeshes = meshes.filter(mesh => /^Planting__/.test(mesh.name));
   const lampMeshes = meshes.filter(mesh => /^Luminaires__/.test(mesh.name));
@@ -38,6 +39,7 @@ export function arrangeTerraceSeating(meshes) {
     }
   }
   if (chairs.length !== 30 || chairs.some(chair => chair.parts.length !== 8)) throw new Error('Unexpected source chair assembly.');
+  const chairTemplate = captureChair(chairs.find(chair => !chair.remove));
 
   const tables = lampMeshes.filter(mesh => /Golden_oak/.test(mesh.name)).map(mesh => ({
     center: new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3()), parts: [], kind: 'table',
@@ -63,7 +65,10 @@ export function arrangeTerraceSeating(meshes) {
     const ottoman = nearest(part.center, ottomans);
     if (ottoman && distance(part.center, ottoman.center) < 1) ottoman.parts.push(part);
   }
-  const groups = [...tables, ...pots.filter(pot => pot.parts.length), ...ottomans];
+  // Replace the old terrace table sets with reference-style one-sided seating.
+  for (const table of tables) for (const part of table.parts) part.remove = true;
+  for (const chair of chairs) for (const part of chair.parts) part.remove = true;
+  const groups = [...pots.filter(pot => pot.parts.length), ...ottomans];
   for (const group of groups) {
     const direction = group.center.clone().setY(0).normalize();
     let minProjection = Infinity;
@@ -87,10 +92,28 @@ export function arrangeTerraceSeating(meshes) {
     group.translation = shift;
     group.outerRadius = outerRadius;
   }
+  const obstacles = groups.map(group => {
+    const bounds = new THREE.Box3();
+    for (const part of group.parts) {
+      const p = part.mesh.geometry.attributes.position;
+      for (const i of part.vertices) bounds.expandByPoint(new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)));
+    }
+    const size = bounds.getSize(new THREE.Vector3());
+    return { center: bounds.getCenter(new THREE.Vector3()), height: group.kind === 'ottoman' ? 1.71 : 1.99, radius: Math.hypot(size.x, size.z) / 2 };
+  });
+  // The original central dining cluster slightly overhung the first terrace's
+  // lane. Move that intact cluster one metre inward to keep all three lanes clear.
+  for (const part of cafe) {
+    if (part.remove || part.center.x <= 9 || part.center.z <= 9) continue;
+    const p = part.mesh.geometry.attributes.position;
+    for (const i of part.vertices) { p.setX(i, p.getX(i) - 1); p.setZ(i, p.getZ(i) - 1); }
+  }
   for (const [mesh, pieces] of byMesh) applyPieces(mesh, pieces);
+  const mixed = buildMixedSeating(model, chairTemplate, obstacles);
   return {
     removedChairs: chairs.filter(chair => chair.remove).length,
-    retainedChairs: chairs.filter(chair => !chair.remove).length,
+    retainedChairs: mixed.seats.length,
+    mixed,
     chairs: chairs.map(chair => ({ sourceCenter: chair.center.toArray(), inward: !chair.remove, parts: chair.parts.length })),
     groups: groups.map(group => ({ kind: group.kind, sourceCenter: group.center.toArray(), translation: group.translation.toArray(), outerRadius: group.outerRadius })),
   };

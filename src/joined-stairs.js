@@ -140,3 +140,34 @@ export function stairAlignedRing(inner, outer, angles) {
   geometry.setIndex(indices);
   return geometry;
 }
+
+export function colorJoinedStairs(stairs, { upperInner, topY, gray, railMaterial, railOuterRadius }) {
+  const geometry = stairs.geometry, p = geometry.attributes.position;
+  const triangles = [[], []];
+  // Keep the same triangles, batching the two colors into two material groups.
+  for (let i = 0; i < geometry.index.count; i += 3) {
+    const ids = [geometry.index.getX(i), geometry.index.getX(i + 1), geometry.index.getX(i + 2)];
+    let x = 0, z = 0, y = 0, radius = 0;
+    for (const index of ids) {
+      x += p.getX(index); z += p.getZ(index); y += p.getY(index);
+      radius += Math.hypot(p.getX(index), p.getZ(index));
+    }
+    const upper = radius / 3 >= upperInner - 0.00001;
+    const narrow = isAccessAngle(Math.atan2(z, x));
+    const blueFace = upper && (!narrow || y / 3 >= topY - 0.021);
+    triangles[Number(blueFace)].push(...ids);
+  }
+  geometry.setIndex([...triangles[0], ...triangles[1]]);
+  geometry.clearGroups();
+  geometry.addGroup(0, triangles[0].length, 0);
+  geometry.addGroup(triangles[0].length, triangles[1].length, 1);
+  // Share the rail finish and its world-aligned pile coordinates for a
+  // continuous blue surface at the top, rather than a pale reflected tint.
+  const uv = [];
+  for (let i = 0; i < p.count; i++) uv.push(p.getX(i) / (railOuterRadius * 2) + 0.5, p.getZ(i) / (railOuterRadius * 2) + 0.5);
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  const grayMaterial = stairs.material.clone();
+  grayMaterial.color.set(gray);
+  grayMaterial.sheenColor.set(gray);
+  stairs.material = [grayMaterial, railMaterial];
+}

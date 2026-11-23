@@ -264,6 +264,30 @@ test('지정한 다섯 색상과 아래 두 단 좌석만 적용되고 맨윗단
   });
 });
 
+test('아래 두 원형 단은 연그레이이고 빈 최상단은 블루레일과 같은 색이다', () => {
+  const stairs = edited.stairs[0];
+  assert.ok(Array.isArray(stairs.material));
+  assert.equal(stairs.geometry.groups.length, 2);
+  assert.equal(stairs.material[1], edited.carpet.material);
+  const ray = new Raycaster();
+  for (let tier = 0; tier < 3; tier++) {
+    const radius = (MIXED_TIERS[tier].inner + MIXED_TIERS[tier].outer) / 2;
+    for (const angle of [Math.PI / 4, Math.PI * 3 / 4, Math.PI * 5 / 4, Math.PI * 7 / 4]) {
+      ray.set(new Vector3(radius * Math.cos(angle), PATH_Y + 2, radius * Math.sin(angle)), new Vector3(0, -1, 0));
+      const hit = ray.intersectObject(stairs, false)[0];
+      assert.ok(hit);
+      const actual = stairs.material[hit.face.materialIndex].color.getHexString();
+      assert.equal(actual, tier === 2 ? edited.carpet.material.color.getHexString() : 'd9dadd');
+    }
+  }
+  for (let band = 0; band < ACCESS_STEP_COUNT - 1; band++) {
+    const radius = CENTRAL_RADIUS + (band + 0.5) * (PATH_INNER_RADIUS - CENTRAL_RADIUS) / ACCESS_STEP_COUNT;
+    ray.set(new Vector3(0, PATH_Y + 2, radius), new Vector3(0, -1, 0));
+    const hit = ray.intersectObject(stairs, false)[0];
+    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'd9dadd', '이동용 계단은 연그레이로 구분해야 합니다.');
+  }
+});
+
 test('실제 모든 의자가 테이블 바깥쪽 한 줄에서만 중앙을 바라본다', () => {
   const parts = [];
   gltf.scene.traverse(mesh => { if (mesh.isMesh && mesh.userData.mixedSeating) parts.push(...meshPieces(mesh)); });

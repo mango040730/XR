@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { terraceHeight } from './space-levels.js';
 import { CENTRAL_RADIUS, TERRACE_DEPTH } from './space-layout.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from './joined-stairs.js';
@@ -24,7 +23,7 @@ function arcBoard(inner, outer, start, end, bottom, height, bevel = 0.035) {
   shape.closePath();
   const geometry = new THREE.ExtrudeGeometry(shape, {
     depth: height - bevel * 2, bevelEnabled: true, bevelThickness: bevel,
-    bevelSize: bevel, bevelSegments: outer - inner < 0.1 ? 2 : 4, steps: 1,
+    bevelSize: bevel, bevelSegments: 4, steps: 1,
   });
   geometry.rotateX(-Math.PI / 2);
   geometry.translate(0, bottom + bevel, 0);
@@ -71,10 +70,15 @@ function deskIntervals(tier, obstacles) {
 export function buildMixedSeating(model, chairTemplate, obstacles) {
   const root = new THREE.Group(); root.name = 'Terrace_integrated_seating';
   const wood = createDeskWoodMaterial();
-  const leg = new RoundedBoxGeometry(0.1, 0.7, 0.1, 1, 0.014);
-  // Rotate the leg UVs so timber grain runs vertically along the support.
-  const legUV = leg.attributes.uv;
-  for (let i = 0; i < legUV.count; i++) legUV.setXY(i, legUV.getY(i) * 0.7 / 2, legUV.getX(i) * 0.1 / 0.7);
+  const chairMaterials = new Map();
+  for (const part of chairTemplate) {
+    if (chairMaterials.has(part.material)) continue;
+    const material = part.material.clone();
+    const frame = /Golden oak/.test(part.material.name);
+    material.name = frame ? 'Terrace chair walnut frame' : 'Terrace chair brown seat';
+    material.color.set(frame ? '#95502a' : '#b87948');
+    chairMaterials.set(part.material, material);
+  }
   const batches = new Map(), sets = [], seats = [];
   function add(geometry, material, transform = new THREE.Matrix4()) {
     const g = geometry.clone(); g.applyMatrix4(transform);
@@ -114,17 +118,11 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
         const outward = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
         const center = outward.clone().multiplyScalar(radius); center.y = tier.height;
         slot++;
-        // Thin timber top on open wooden legs, following the circular tier.
+        // Restore the original integrated desk profile while retaining walnut.
         board(tier.inner + 0.14, tier.inner + 0.84, start, end, tier.height + 0.70, 0.09);
-        for (const r of [tier.inner + 0.2, tier.inner + 0.78]) {
-          board(r - 0.025, r + 0.025, start + 0.1 / radius, end - 0.1 / radius, tier.height + 0.59, 0.11, 0.01);
-        }
-        const supportAngles = [start + 0.13 / radius, end - 0.13 / radius];
-        if (width > 4.5) supportAngles.push(start + (end - start) * Math.floor(capacity / 2) / capacity);
-        for (const a of supportAngles) for (const r of [tier.inner + 0.23, tier.inner + 0.74]) {
-          const matrix = new THREE.Matrix4().makeRotationY(-a);
-          matrix.setPosition(r * Math.cos(a), tier.height + 0.35, r * Math.sin(a));
-          add(leg, wood, matrix);
+        board(tier.inner + 0.14, tier.inner + 0.24, start, end, tier.height, 1.03);
+        for (const edge of [start, end]) {
+          board(tier.inner + 0.18, tier.inner + 0.80, edge - 0.035 / radius, edge + 0.035 / radius, tier.height, 0.74, 0.012);
         }
         const setId = `tier-${tierIndex + 1}-desk-${slot}`;
         const type = capacity === 1 ? 'single' : 'shared';
@@ -135,10 +133,10 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
           const position = direction.clone().multiplyScalar(tier.inner + 1.22); position.y = tier.height;
           const matrix = new THREE.Matrix4().makeBasis(along, new THREE.Vector3(0, 1, 0), direction);
           matrix.setPosition(position);
-          for (const part of chairTemplate) add(part.geometry, part.material, matrix);
+          for (const part of chairTemplate) add(part.geometry, chairMaterials.get(part.material), matrix);
           seats.push({ setId, tier: tierIndex, type, position: position.toArray(), facing: direction.clone().negate().toArray() });
         }
-        sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: true, wooden: true, legs: supportAngles.length * 2 });
+        sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: true, wooden: true });
       }
     }
   }
@@ -151,7 +149,6 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
     root.add(mesh); parts.forEach(part => part.dispose());
   }
   chairTemplate.forEach(part => part.geometry.dispose());
-  leg.dispose();
   model.add(root);
   return { root, sets, seats, clearIntervals, singleSets: sets.filter(s => s.type === 'single').length, sharedSets: sets.filter(s => s.type === 'shared').length };
 }

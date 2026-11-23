@@ -63,6 +63,8 @@ function softenUpholstery(piece) {
 }
 
 function surfaceFinish(name) {
+  if (/Terrace chair walnut frame/.test(name)) return { roughness: 0.28, clearcoat: 0.45, clearcoatRoughness: 0.2, envMapIntensity: 0.8 };
+  if (/Terrace chair brown seat/.test(name)) return { roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.23 };
   if (/Planter dark soil/.test(name)) return { roughness: 0.95, specularIntensity: 0.15 };
   if (/Sofa recessed/.test(name)) return { color: '#bfc5cb', roughness: 0.24, metalness: 0.8, clearcoat: 0.25, envMapIntensity: 1 };
   if (/foliage|Plant stems/.test(name)) return { roughness: 0.4, clearcoat: 0.2, clearcoatRoughness: 0.3 };

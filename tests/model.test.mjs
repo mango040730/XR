@@ -232,15 +232,14 @@ test('각 단 앞쪽에 1~4인용 곡선 일체형 책상을 모두 섞어 촘�
   }
 });
 
-test('책상은 일체형 턱·앞판·양끝 지지판과 나뭇결을 유지하며 지정 골드를 사용한다', () => {
+test('책상은 일체형 형태와 지정 골드를 유지하며 나뭇결·요철이 없다', () => {
   const wood = gltf.scene.getObjectByName('Terrace_wood_desks');
   assert.ok(wood && wood.userData.woodenDesks);
   assert.equal(wood.material.name, 'Terrace golden timber');
-  assert.ok(wood.material.map && wood.material.bumpMap && wood.geometry.attributes.uv);
-  const tones = new Set();
-  const pixels = wood.material.map.image.data;
-  for (let i = 0; i < pixels.length; i += 4) tones.add(pixels[i]);
-  assert.ok(tones.size > 8);
+  assert.equal(wood.material.map, null);
+  assert.equal(wood.material.bumpMap, null);
+  assert.equal(wood.material.bumpScale, 0);
+  assert.equal(wood.material.color.getHexString(), 'e99804');
   const parts = meshPieces(wood), sets = edited.seating.mixed.sets;
   const fronts = parts.filter(p => Math.abs(p.size.y - 1.03) < 0.001);
   const sides = parts.filter(p => Math.abs(p.size.y - 0.74) < 0.001);

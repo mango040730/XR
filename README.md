@@ -42,3 +42,5 @@ npm run dev
 브라우저의 VR 접근 권한창은 브라우저가 표시합니다. 별도의 VR 버튼이나 HUD는 없습니다.
 WebXR은 HTTPS 또는 localhost에서 사용할 수 있습니다. 헤드셋을 사용하지 않는 PC·모바일에서는 일반 3D 탐색으로 동작합니다.
 실제 헤드셋에서의 입체 표시와 컨트롤러 동작은 기기 검증이 필요합니다.
+
+충돌 계산은 `src/collision.js`에서 GLB의 인덱스 메시와 새로 생성한 비인덱스 바닥을 같은 형식으로 변환한 뒤 병합합니다. 모델 검사에는 실제 런타임 병합 및 시작점 이동 경로 검사가 포함됩니다. 별도 Chrome을 `--headless=new --remote-debugging-port=9223 --user-data-dir=/private/tmp/gonggan-movement-chrome`로 실행한 환경에서는 `node scripts/check-browser-movement.mjs <검증할 URL>`로 W/S·방향키·두 손가락 터치 이동과 브라우저 예외를 검증할 수 있습니다.

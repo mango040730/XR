@@ -13,6 +13,7 @@ import { MIXED_TIERS, SEATED_TIER_COUNT } from '../src/mixed-seating.js';
 import { TOTAL_RISE, PREVIOUS_TOTAL_RISE, ACCESS_STEP_RISE, ACCESS_STEP_COUNT, ACCESS_STEPS_PER_TIER } from '../src/space-levels.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from '../src/joined-stairs.js';
 import { CENTRAL_STEP_RISE, centralBoundary, centralIsRaised } from '../src/central-room.js';
+import { collisionGeometry } from '../src/collision.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, CENTRAL_RADIUS } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -44,6 +45,33 @@ const edited = prepareSpace(gltf.scene);
 const floors = [];
 gltf.scene.traverse(object => {
   if (object.isMesh && isWalkable(object)) floors.push(object);
+});
+
+test('실행용 충돌 병합은 GLB와 비인덱스 중앙 바닥을 함께 처리한다', () => {
+  const meshes = [];
+  gltf.scene.traverse(object => { if (object.isMesh) meshes.push(object); });
+  assert.equal(edited.central.platform.geometry.index, null, '생성한 비인덱스 바닥도 검사에 포함해야 합니다.');
+  const body = collisionGeometry(meshes), floor = collisionGeometry(floors);
+  assert.ok(body.geometry.boundsTree && floor.geometry.boundsTree);
+  const triangles = meshes.reduce((sum, mesh) => sum + (mesh.geometry.index?.count ?? mesh.geometry.attributes.position.count) / 3, 0);
+  assert.equal(body.geometry.index.count / 3, triangles, '충돌 병합에서 바닥이나 가구를 누락하면 안 됩니다.');
+  const ray = new Raycaster(new Vector3(0, 1.535, 22), new Vector3(0, -1, 0), 0, 0.96);
+  assert.ok(Math.abs(ray.intersectObject(floor)[0].point.y - 1.15) < 0.00001);
+  // The real merged collider must allow a full metre of forward travel from
+  // the spawn point, checking the same feet and body samples as the runtime.
+  for (let z = 22; z >= 21; z -= 0.05) {
+    ray.set(new Vector3(0, 1.535, z), new Vector3(0, -1, 0));
+    assert.ok(Math.abs(ray.intersectObject(floor)[0].point.y - 1.15) < 0.00001);
+    for (const height of [0.4, 0.95, 1.5]) for (const x of [-0.22, 0, 0.22]) {
+      ray.set(new Vector3(x, 1.175 + height, z), new Vector3(0, 0, -1));
+      ray.far = 0.32;
+      assert.equal(ray.intersectObject(body).length, 0);
+    }
+    ray.far = 0.96;
+  }
+  ray.set(new Vector3(3, 1.79, 0), new Vector3(0, -1, 0));
+  assert.ok(Math.abs(ray.intersectObject(floor)[0].point.y - 1.43) < 0.00001, '새 중앙 바닥도 실제 충돌 바닥에 들어 있어야 합니다.');
+  for (const mesh of [body, floor]) { mesh.geometry.dispose(); mesh.material.dispose(); }
 });
 
 test('원본 공간 모델이 누락되거나 변경되지 않았다', () => {

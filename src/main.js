@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { acceleratedRaycast, computeBoundsTree } from 'three-mesh-bvh';
+import { acceleratedRaycast } from 'three-mesh-bvh';
 import { prepareSpace, isWalkable, WALK_RADIUS } from './prepare-space.js';
+import { collisionGeometry } from './collision.js';
 
 // The document intentionally contains only the rendering canvas: no HUD or VR button.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -77,20 +77,6 @@ let collider, floor, ready = false, xrSupported = false, xrStarting = false;
 let lastTime = 0, snapReady = true;
 const keys = new Set();
 const touches = new Map();
-
-function collisionGeometry(meshes) {
-  const parts = meshes.map(mesh => {
-    const part = new THREE.BufferGeometry();
-    part.setAttribute('position', mesh.geometry.attributes.position.clone());
-    if (mesh.geometry.index) part.setIndex(mesh.geometry.index.clone());
-    part.applyMatrix4(mesh.matrixWorld);
-    return part;
-  });
-  const geometry = mergeGeometries(parts, false);
-  parts.forEach(part => part.dispose());
-  computeBoundsTree.call(geometry, { maxLeafSize: 12 });
-  return new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
-}
 
 function floorHeight(x, z, y, maxDrop = 0.6) {
   origin.set(x, y + 0.36, z);

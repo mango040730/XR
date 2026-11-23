@@ -32,8 +32,6 @@ function expectedLiftedGeometry(mesh) {
   }
   return geometry;
 }
-const sourceLeafGeometry = expectedLiftedGeometry(gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1'));
-sourceLeafGeometry.computeBoundingBox();
 let sourceCentralRoundSeats = 0;
 gltf.scene.traverse(mesh => {
   if (mesh.isMesh && /^Lounge_Pods__.*Tangerine_ottoman/.test(mesh.name)) {
@@ -466,21 +464,6 @@ test('블루길 바깥에서 전 방향의 디지털 벽 충돌이 유지된다'
   }
 });
 
-test('클레이 곡면은 실제 기하가 세분화되고 표면 형태도 둥글게 변했다', () => {
-  const leaf = gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1');
-  assert.ok(leaf.geometry.index.count > sourceLeafGeometry.index.count * 3);
-  computeBoundsTree.call(sourceLeafGeometry);
-  const p = leaf.geometry.attributes.position;
-  let largestChange = 0;
-  for (let i = 0; i < p.count; i += 3) {
-    const hit = sourceLeafGeometry.boundsTree.closestPointToPoint(new Vector3(p.getX(i), p.getY(i), p.getZ(i)));
-    largestChange = Math.max(largestChange, hit.distance);
-  }
-  assert.ok(largestChange > 0.001, '평면 삼각형만 분할하는 대신 실제 곡면을 만들어야 합니다.');
-  assert.ok(leaf.geometry.boundingBox.min.distanceTo(sourceLeafGeometry.boundingBox.min) < 0.00001);
-  assert.ok(leaf.geometry.boundingBox.max.distanceTo(sourceLeafGeometry.boundingBox.max) < 0.00001);
-});
-
 test('소파 쿠션의 실제 곡면을 부드럽게 다듬되 좌석 외곽과 크기는 보존했다', () => {
   const geometry = gltf.scene.getObjectByName('Lounge_Pods__Coral_cushion_variation__0_0').geometry;
   computeBoundsTree.call(sourceUpholstery);
@@ -543,14 +526,14 @@ test('곡면 상세를 높여도 삼각형 예산과 공간 외곽은 보존된�
 });
 
 test('가구·식재 전체가 곡면 처리되고 잎·자갈·다리는 매끄러운 입체로 재구성됐다', () => {
-  assert.ok(edited.clay.detail.length > 2000);
+  assert.ok(edited.clay.detail.length > 1500);
   assert.ok(edited.clay.detail.every(p => p.primitive || p.passes >= 1), '면 수 제한 때문에 성긴 원본 부품을 건너뛰면 안 됩니다.');
-  assert.equal(edited.clay.detail.filter(p => /foliage/.test(p.name)).every(p => p.primitive === 'leaf'), true);
+  assert.ok(edited.clay.detail.every(p => !/foliage|Plant_stems/.test(p.name)), '기존 구형 식물 메시를 남기지 않아야 합니다.');
   assert.equal(edited.clay.detail.filter(p => /River_pebble/.test(p.name)).every(p => p.primitive === 'pebble'), true);
   const frame = gltf.scene.getObjectByName('Cafe_Furniture__Integrated_Terrace_chair_gold_frame');
   assert.ok(frame.geometry.index.count / 3 >= 158 * 6 * 400, '158개 의자의 여섯 프레임 부품이 실제 원형 곡면이어야 합니다.');
-  const leaf = gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1');
-  assert.ok(leaf.geometry.index.count >= sourceLeafGeometry.index.count * 16);
+  const leaf = gltf.scene.getObjectByName('Botanical_leaves');
+  assert.ok(leaf.geometry.index.count > 1000000);
   for (const mesh of [frame, leaf]) {
     const normals = mesh.geometry.attributes.normal;
     for (let i = 0; i < normals.count; i += 17) {
@@ -718,4 +701,34 @@ test('중앙 소파와 화분의 바닥 접점은 곡선 단차를 가로지르�
     }
   });
   assert.ok(checked > 150);
+});
+
+
+test('식물은 얇고 뾰족한 잎몸·잎맥·잎자루와 분지된 가지로 구성된다', () => {
+  const botanical = edited.botanical, mesh = gltf.scene.getObjectByName('Botanical_leaves');
+  assert.equal(botanical.plots.length, 11);
+  assert.equal(botanical.trees, 34);
+  assert.ok(botanical.leaves.length > 800);
+  assert.ok(botanical.leaves.filter(l => l.kind === 'canopy').every(l => l.petiole));
+  const p = mesh.geometry.attributes.position;
+  for (const leaf of botanical.leaves.filter((_, i) => i % 23 === 0)) {
+    const point = key => new Vector3().fromBufferAttribute(p, leaf.range.start + leaf.sample[key]);
+    assert.ok(point('base').distanceTo(leaf.base) < 0.00001);
+    assert.ok(point('tip').distanceTo(leaf.tip) < 0.00001);
+    const thickness = point('upper').distanceTo(point('lower'));
+    assert.ok(thickness > 0.00001 && thickness < 0.01, '잎은 두꺼운 타원체가 아니라 얇은 잎몸이어야 합니다.');
+    assert.ok(point('base').distanceTo(point('tip')) > leaf.width);
+  }
+  assert.ok(gltf.scene.getObjectByName('Botanical_branches').geometry.index.count > 100000, '가지·잎자루·잎맥이 실제 입체 메시여야 합니다.');
+});
+
+test('식물 뿌리는 기존 화분 흙에 닿고 수관은 기존 식재 영역 안에 있다', () => {
+  for (const group of edited.botanical.plots) {
+    assert.ok(group.envelope.clone().expandByScalar(0.0001).containsBox(group.bounds), '식물이 보행 영역으로 새로 튀어나오면 안 됩니다.');
+  }
+  for (const root of edited.botanical.roots) {
+    const group = edited.botanical.plots[root.plot];
+    assert.ok(root.point.y <= group.soilY && root.point.y >= group.soilY - 0.03);
+    assert.ok(group.envelope.containsPoint(root.point));
+  }
 });

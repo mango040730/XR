@@ -4,7 +4,7 @@ import { SPACE_COLORS } from './space-colors.js';
 import { isUpholstery, seatOutline, crownCushion, addSeatWelting } from './upholstery-detail.js';
 import { rebuildSmoothPrimitive } from './smooth-primitives.js';
 
-export const CLAY_TRIANGLE_BUDGET = 3300000;
+export const CLAY_TRIANGLE_BUDGET = 3400000;
 const PROP = /^(Planting|Cafe_Furniture|Lounge_Pods|Luminaires)__/;
 const palette = [
   [/Warm ivory/, SPACE_COLORS.sculpture], [/Terracotta coral/, SPACE_COLORS.coral], [/Coral cushion/, SPACE_COLORS.coral],

@@ -6,27 +6,7 @@ export function rebuildSmoothPrimitive(piece) {
   const name = piece.mesh.material.name;
   const size = piece.bounds.getSize(new THREE.Vector3());
   let geometry, kind;
-  if (/foliage/.test(name)) {
-    geometry = new THREE.SphereGeometry(1, 40, 20);
-    const center = piece.bounds.getCenter(new THREE.Vector3());
-    let xx = 0, zz = 0, xz = 0;
-    for (const v of piece.vertices) {
-      const x = v.x - center.x, z = v.z - center.z;
-      xx += x * x; zz += z * z; xz += x * z;
-    }
-    const angle = 0.5 * Math.atan2(2 * xz, xx - zz);
-    const major = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
-    const minor = new THREE.Vector3(-major.z, 0, major.x);
-    let a = 0, b = 0;
-    for (const v of piece.vertices) {
-      const d = v.clone().sub(center);
-      a = Math.max(a, Math.abs(d.dot(major))); b = Math.max(b, Math.abs(d.dot(minor)));
-    }
-    const basis = new THREE.Matrix4().makeBasis(major, new THREE.Vector3(0, 1, 0), minor);
-    geometry.scale(a, size.y / 2, b);
-    geometry.applyMatrix4(basis);
-    kind = 'leaf';
-  } else if (/River pebble/.test(name)) {
+  if (/River pebble/.test(name)) {
     geometry = new THREE.SphereGeometry(1, 32, 16);
     const p = geometry.attributes.position;
     for (let i = 0; i < p.count; i++) {

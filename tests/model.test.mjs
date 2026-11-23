@@ -190,6 +190,38 @@ test('각 단 앞쪽에 1~4인용 곡선 일체형 책상을 모두 섞어 촘�
   }
 });
 
+test('원형 계단 책상은 나뭇결이 있는 얇은 상판과 열린 목재 다리 구조다', () => {
+  const wood = gltf.scene.getObjectByName('Terrace_wood_desks');
+  assert.ok(wood && wood.userData.woodenDesks);
+  assert.equal(wood.material.name, 'Terrace walnut wood');
+  assert.ok(wood.material.map && wood.material.bumpMap);
+  assert.ok(wood.geometry.attributes.uv);
+  const pixels = wood.material.map.image.data;
+  const tones = new Set();
+  for (let i = 0; i < pixels.length; i += 4) tones.add(pixels[i]);
+  assert.ok(tones.size > 20, '단색 대신 자연스러운 명암의 나뭇결이 필요합니다.');
+  assert.equal(wood.material.metalness, 0);
+  const legs = meshPieces(wood).filter(p => Math.abs(p.size.y - 0.7) < 0.001);
+  assert.equal(legs.length, edited.seating.mixed.sets.reduce((sum, set) => sum + set.legs, 0));
+  const ray = new Raycaster();
+  for (const set of edited.seating.mixed.sets) {
+    assert.ok(set.wooden && [4, 6].includes(set.legs));
+    const center = new Vector3(...set.center);
+    center.y += 0.4;
+    ray.set(center, new Vector3(0, -1, 0));
+    assert.equal(ray.intersectObject(wood, false).length, 0, '상판 아래 무릎 공간이 앞판으로 막히면 안 됩니다.');
+    center.y = set.center[1] + 0.95;
+    ray.set(center, new Vector3(0, -1, 0));
+    const top = ray.intersectObject(wood, false)[0];
+    assert.ok(top && Math.abs(top.point.y - set.center[1] - 0.79) < 0.001, '높은 턱 없이 평평한 목재 상판이 있어야 합니다.');
+  }
+  for (const leg of legs) {
+    ray.set(new Vector3(leg.center.x, leg.bounds.min.y + 0.01, leg.center.z), new Vector3(0, -1, 0));
+    const floor = ray.intersectObjects(floors, false)[0];
+    assert.ok(floor && Math.abs(floor.point.y - leg.bounds.min.y) < 0.001, '목재 다리가 계단 바닥에 닿아야 합니다.');
+  }
+});
+
 test('실제 모든 의자가 테이블 바깥쪽 한 줄에서만 중앙을 바라본다', () => {
   const parts = [];
   gltf.scene.traverse(mesh => { if (mesh.isMesh && mesh.userData.mixedSeating) parts.push(...meshPieces(mesh)); });

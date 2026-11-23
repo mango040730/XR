@@ -38,6 +38,44 @@ function weldedPiece(piece) {
   return { vertices, faces: piece.faces.map(i => remap.get(i)), bounds: piece.bounds, mesh: piece.mesh, refined: false };
 }
 
+function softenUpholstery(piece) {
+  if (!/^Lounge_Pods__/.test(piece.mesh.name) || !/upholstery|cushion|fabric|ottoman/.test(piece.mesh.material.name)) return false;
+  const original = piece.vertices.map(v => v.clone());
+  const neighbours = piece.vertices.map(() => new Set());
+  for (let i = 0; i < piece.faces.length; i += 3) {
+    const triangle = piece.faces.slice(i, i + 3);
+    for (const a of triangle) for (const b of triangle) if (a !== b) neighbours[a].add(b);
+  }
+  // Alternating relaxation rounds foam without shrinking the assembled seat.
+  // Bound each displacement and restore its original envelope before rendering.
+  for (const amount of [0.4, -0.42, 0.4, -0.42]) {
+    piece.vertices = piece.vertices.map((v, i) => {
+      if (!neighbours[i].size) return v.clone();
+      const average = new THREE.Vector3();
+      for (const n of neighbours[i]) average.add(piece.vertices[n]);
+      average.divideScalar(neighbours[i].size);
+      const next = v.clone().lerp(average, amount);
+      return original[i].clone().add(next.sub(original[i]).clampLength(0, 0.035));
+    });
+  }
+  fitBounds(piece);
+  return true;
+}
+
+function surfaceFinish(name) {
+  if (/Planter dark soil/.test(name)) return { roughness: 0.95, specularIntensity: 0.15 };
+  if (/Sofa recessed/.test(name)) return { color: '#bfc5cb', roughness: 0.24, metalness: 0.8, clearcoat: 0.25, envMapIntensity: 1 };
+  if (/foliage|Plant stems/.test(name)) return { roughness: 0.4, clearcoat: 0.2, clearcoatRoughness: 0.3 };
+  if (/River pebble/.test(name)) return { roughness: 0.62, specularIntensity: 0.35, clearcoat: 0.06 };
+  if (/Golden oak/.test(name)) return { roughness: 0.28, clearcoat: 0.45, clearcoatRoughness: 0.2, envMapIntensity: 0.8 };
+  if (/Honey yellow table/.test(name)) return { roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.23 };
+  if (/upholstery|cushion|fabric|ottoman/.test(name)) return { roughness: 0.43, specularIntensity: 0.5, clearcoat: 0.08, sheen: 0.3, sheenRoughness: 0.65 };
+  if (/Warm grey terrace/.test(name)) return { roughness: 0.65, specularIntensity: 0.35, clearcoat: 0.04 };
+  if (/Cream porcelain/.test(name)) return { roughness: 0.52, specularIntensity: 0.45, clearcoat: 0.12 };
+  if (/ivory|Porcelain|Opal lamp/.test(name)) return { roughness: 0.3, clearcoat: 0.35, clearcoatRoughness: 0.2 };
+  return {};
+}
+
 function refine(piece, limit) {
   const vertices = piece.vertices, oldNormals = normals(vertices, piece.faces);
   const edgeMap = new Map(), faces = [];
@@ -99,8 +137,14 @@ export function applyClayStyle(model) {
   model.traverse(mesh => { if (mesh.isMesh) triangles += (mesh.geometry.index?.count ?? mesh.geometry.attributes.position.count) / 3; });
   const originalTriangles = triangles;
   const pieces = [...geometryByMesh.values()].flat();
+  let softenedPieces = 0;
+  for (const piece of pieces) if (softenUpholstery(piece)) softenedPieces++;
+  // Preserve fine leaf silhouettes before spending the remaining geometry
+  // budget on furniture, whose new bevels are already densely modelled.
+  const priority = piece => /Forest_foliage/.test(piece.mesh.name) ? 0 : /foliage|Plant_stems/.test(piece.mesh.name) ? 1 : 2;
+  const refinementOrder = [...pieces].sort((a, b) => priority(a) - priority(b));
   let refinedPieces = 0;
-  for (const piece of pieces) {
+  for (const piece of refinementOrder) {
     const count = piece.faces.length / 3;
     if (count > 256 || triangles + count * 3 > CLAY_TRIANGLE_BUDGET) continue;
     refine(piece, /foliage|Plant_stems/.test(piece.mesh.name) ? 0.035 : 0.018);
@@ -120,16 +164,17 @@ export function applyClayStyle(model) {
     if (!materials.has(source)) {
       const color = palette.find(([pattern]) => pattern.test(source.name))?.[1] ?? source.color;
       const material = new THREE.MeshPhysicalMaterial({
-        name: source.name, color, roughness: 0.88, metalness: 0,
-        specularIntensity: 0.22, clearcoat: 0, sheen: 0.12, sheenRoughness: 0.95,
-        sheenColor: color, envMapIntensity: 0.22, side: THREE.DoubleSide,
+        name: source.name, color, roughness: 0.48, metalness: 0,
+        specularIntensity: 0.65, clearcoat: 0.15, clearcoatRoughness: 0.25, sheen: 0.08, sheenRoughness: 0.8,
+        sheenColor: color, envMapIntensity: 0.65, side: THREE.DoubleSide,
         emissive: source.emissive ?? '#000000', emissiveIntensity: Math.min(source.emissiveIntensity ?? 0, 0.65),
         polygonOffset: source.polygonOffset, polygonOffsetFactor: source.polygonOffsetFactor, polygonOffsetUnits: source.polygonOffsetUnits,
+        ...surfaceFinish(source.name),
       });
       materials.set(source, material);
     }
     mesh.material = materials.get(source);
     mesh.material.flatShading = false;
   });
-  return { originalTriangles, triangles, refinedPieces, beforeBounds, afterBounds: new THREE.Box3().setFromObject(model) };
+  return { originalTriangles, triangles, refinedPieces, softenedPieces, beforeBounds, afterBounds: new THREE.Box3().setFromObject(model) };
 }

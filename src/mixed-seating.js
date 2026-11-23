@@ -11,7 +11,7 @@ export const MIXED_TIERS = Array.from({ length: 3 }, (_, i) => ({
 }));
 
 // Rounded annular boards follow the exact curvature of each seating tier.
-function arcBoard(inner, outer, start, end, bottom, height, bevel = 0.025) {
+function arcBoard(inner, outer, start, end, bottom, height, bevel = 0.035) {
   const shape = new THREE.Shape();
   const point = (radius, angle) => [radius * Math.cos(angle), -radius * Math.sin(angle)];
   const segments = Math.max(16, Math.ceil((end - start) * outer * 4));
@@ -22,7 +22,7 @@ function arcBoard(inner, outer, start, end, bottom, height, bevel = 0.025) {
   shape.closePath();
   const geometry = new THREE.ExtrudeGeometry(shape, {
     depth: height - bevel * 2, bevelEnabled: true, bevelThickness: bevel,
-    bevelSize: bevel, bevelSegments: 3, steps: 1,
+    bevelSize: bevel, bevelSegments: 4, steps: 1,
   });
   geometry.rotateX(-Math.PI / 2);
   geometry.translate(0, bottom + bevel, 0);

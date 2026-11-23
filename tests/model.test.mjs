@@ -27,6 +27,8 @@ gltf.scene.traverse(mesh => {
     sourceCentralRoundSeats += meshPieces(mesh).filter(p => Math.hypot(p.center.x, p.center.z) < 23.2).length;
   }
 });
+const sourceUpholstery = gltf.scene.getObjectByName('Lounge_Pods__Coral_cushion_variation__0_0').geometry.clone();
+sourceUpholstery.computeBoundingBox();
 const edited = prepareSpace(gltf.scene);
 const floors = [];
 gltf.scene.traverse(object => {
@@ -332,15 +334,39 @@ test('클레이 곡면은 실제 기하가 세분화되고 표면 형태도 둥�
   assert.ok(leaf.geometry.boundingBox.max.distanceTo(sourceLeafGeometry.boundingBox.max) < 0.00001);
 });
 
-test('가구와 식재는 부드러운 무광 클레이이며 스크린과 벨벳은 유지된다', () => {
+test('소파 쿠션의 실제 곡면을 부드럽게 다듬되 좌석 외곽과 크기는 보존했다', () => {
+  const geometry = gltf.scene.getObjectByName('Lounge_Pods__Coral_cushion_variation__0_0').geometry;
+  computeBoundsTree.call(sourceUpholstery);
+  let largestChange = 0;
+  const p = geometry.attributes.position;
+  for (let i = 0; i < p.count; i += 3) {
+    const hit = sourceUpholstery.boundsTree.closestPointToPoint(new Vector3(p.getX(i), p.getY(i), p.getZ(i)));
+    largestChange = Math.max(largestChange, hit.distance);
+  }
+  assert.ok(largestChange > 0.003, '재질 변경과 함께 쿠션의 실제 형상도 둥글게 다듬어야 합니다.');
+  assert.ok(largestChange < 0.08, '쿠션 형태를 과하게 변형하면 안 됩니다.');
+  assert.ok(geometry.boundingBox.min.distanceTo(sourceUpholstery.boundingBox.min) < 0.00001);
+  assert.ok(geometry.boundingBox.max.distanceTo(sourceUpholstery.boundingBox.max) < 0.00001);
+  assert.ok(edited.clay.softenedPieces >= 150);
+});
+
+test('도장·새틴·도자기·금속의 광택을 구분하고 스크린과 벨벳은 유지했다', () => {
+  const materials = new Map();
   gltf.scene.traverse(mesh => {
     if (!mesh.isMesh || !/^(Planting|Cafe_Furniture|Lounge_Pods|Luminaires)__/.test(mesh.name)) return;
     assert.equal(mesh.material.flatShading, false);
-    assert.equal(mesh.material.metalness, 0);
-    assert.ok(mesh.material.roughness >= 0.85);
-    assert.equal(mesh.material.clearcoat, 0);
-    assert.ok(mesh.material.specularIntensity < 0.3);
+    materials.set(mesh.material.name, mesh.material);
   });
+  const lacquer = materials.get('Golden oak furniture frame');
+  const fabric = materials.get('Terracotta coral upholstery');
+  const ceramic = materials.get('Warm ivory • matte ceramic');
+  const metal = materials.get('Sofa recessed plinth');
+  const floor = materials.get('Warm grey terrace treads');
+  assert.ok(lacquer.roughness < fabric.roughness && fabric.roughness < floor.roughness);
+  assert.ok(lacquer.clearcoat >= 0.3 && ceramic.clearcoat >= 0.25);
+  assert.ok(fabric.sheen >= 0.2 && fabric.metalness === 0);
+  assert.ok(metal.metalness >= 0.7 && metal.roughness < 0.3);
+  assert.equal(ceramic.metalness, 0);
   assert.equal(edited.carpet.material.sheen, 1);
   assert.equal(edited.digitalWall.screen.material.clearcoat, 0.8);
 });

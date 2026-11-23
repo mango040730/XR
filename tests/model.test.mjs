@@ -136,18 +136,19 @@ test('전체 지름을 유지하며 단 깊이를 3m로 줄여 중앙 지름을 
   }
 });
 
-test('각 단 앞쪽에 길이가 다른 1~4인용 곡선 일체형 책상이 섞여 있다', () => {
+test('각 단 앞쪽에 길이가 다른 긴 곡선 일체형 책상이 촘촘히 배치된다', () => {
   const mixed = edited.seating.mixed;
-  assert.ok(mixed.singleSets >= 6);
-  assert.ok(mixed.sharedSets >= 18);
+  assert.ok(mixed.sharedSets >= 36);
+  assert.ok(mixed.seats.length > 200);
   const ray = new Raycaster();
   for (let tier = 0; tier < 3; tier++) {
     const sets = mixed.sets.filter(set => set.tier === tier);
-    assert.equal(new Set(sets.map(s => s.capacity)).size, 4);
-    assert.equal(new Set(sets.map(s => s.width)).size, 4);
+    assert.ok(new Set(sets.map(s => Math.round(s.width))).size >= 4);
     assert.ok(sets.length >= 10);
     for (const set of sets) {
       assert.ok(set.integrated);
+      assert.ok(set.width >= 8 && set.width < 18);
+      assert.ok(set.capacity >= 4);
       assert.ok(Math.abs(set.inner - MIXED_TIERS[tier].inner - 0.14) < 0.001);
       assert.equal(mixed.seats.filter(seat => seat.setId === set.id).length, set.capacity);
       for (const fraction of [0.1, 0.5, 0.9]) {
@@ -203,6 +204,29 @@ test('실제 가구 충돌 장면에서 1.2m 폭의 의자 뒤쪽 통로가 비�
         const origin = direction.clone().multiplyScalar(tier.outer - 0.01); origin.y = tier.height + height;
         ray.set(origin, direction.clone().negate());
         assert.equal(ray.intersectObject(gltf.scene, true).length, 0, `반경 ${tier.inner}, 각도 ${i}의 통로가 비어 있어야 합니다.`);
+      }
+    }
+  }
+});
+
+test('실제 책상 상판이 각 단 둘레의 80% 이상을 채우며 불필요한 큰 공백이 없다', () => {
+  const ray = new Raycaster(); ray.firstHitOnly = true;
+  const mixed = edited.seating.mixed;
+  for (let t = 0; t < MIXED_TIERS.length; t++) {
+    const tier = MIXED_TIERS[t], radius = tier.inner + 0.49;
+    function hasDesktop(angle) {
+      ray.set(new Vector3(radius * Math.cos(angle), tier.height + 1.5, radius * Math.sin(angle)), new Vector3(0, -1, 0));
+      const hit = ray.intersectObject(mixed.root, true)[0];
+      return !!hit && Math.abs(hit.point.y - tier.height - 0.79) < 0.002;
+    }
+    let covered = 0;
+    for (let i = 0; i < 720; i++) if (hasDesktop(i * Math.PI / 360)) covered++;
+    assert.ok(covered / 720 > 0.8, `좌석 ${t + 1}층의 책상 점유율이 충분해야 합니다.`);
+    for (const [start, end] of mixed.clearIntervals[t]) {
+      let gap = 0;
+      for (let distance = 0.08; distance < (end - start) * radius; distance += 0.15) {
+        gap = hasDesktop(start + distance / radius) ? 0 : gap + 0.15;
+        assert.ok(gap <= 1.2, '계단·스툴을 제외한 책상 사이에 넓은 빈 구간이 남으면 안 됩니다.');
       }
     }
   }
@@ -381,7 +405,6 @@ test('직전 중간 좌석 층의 높이를 새 최고 높이로 삼아 3개 층
   for (let i = 0; i < tierHeights.length; i++) {
     assert.ok(Math.abs(tierHeights[i] - (i === 0 ? lower : tierHeights[i - 1]) - TOTAL_RISE / 3) < 0.00001);
   }
-  assert.equal(edited.seating.mixed.sets.length, 34);
-  assert.equal(edited.seating.mixed.seats.length, 83);
+
   assert.ok(ACCESS_STEP_RISE < 0.34, '낮춘 이동 계단도 기존 보행 한계 안에 있어야 합니다.');
 });

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { terraceHeight } from './space-levels.js';
 import { CENTRAL_RADIUS, TERRACE_DEPTH } from './space-layout.js';
+import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from './joined-stairs.js';
 
 export const MIXED_TIERS = Array.from({ length: 3 }, (_, i) => ({
   inner: CENTRAL_RADIUS + TERRACE_DEPTH * i,
@@ -13,7 +14,7 @@ export const MIXED_TIERS = Array.from({ length: 3 }, (_, i) => ({
 function arcBoard(inner, outer, start, end, bottom, height, bevel = 0.025) {
   const shape = new THREE.Shape();
   const point = (radius, angle) => [radius * Math.cos(angle), -radius * Math.sin(angle)];
-  const segments = Math.max(16, Math.ceil((end - start) * outer * 8));
+  const segments = Math.max(16, Math.ceil((end - start) * outer * 4));
   shape.moveTo(...point(inner, start));
   for (let i = 1; i <= segments; i++) shape.lineTo(...point(inner, start + (end - start) * i / segments));
   shape.lineTo(...point(outer, end));
@@ -45,6 +46,26 @@ export function captureChair(chair) {
   });
 }
 
+// Subtract stair corridors and existing stools, then fill each remaining arc.
+function deskIntervals(tier, obstacles) {
+  const radius = tier.inner + 0.49;
+  const clearance = ACCESS_HALF_ANGLE + 0.45 / radius;
+  let intervals = ACCESS_DIRECTIONS.map(a => [a + clearance, a + Math.PI / 2 - clearance]);
+  for (const obstacle of obstacles) {
+    if (Math.abs(obstacle.height - tier.height) > 0.15) continue;
+    const r = Math.hypot(obstacle.center.x, obstacle.center.z), padded = obstacle.radius + 0.4;
+    if (r - padded > tier.inner + 1.7 || r + padded < tier.inner + 0.1) continue;
+    const angle = Math.atan2(obstacle.center.z, obstacle.center.x);
+    const half = Math.asin(Math.min(1, padded / r));
+    for (const wrap of [-Math.PI * 2, 0, Math.PI * 2]) {
+      const start = angle + wrap - half, end = angle + wrap + half;
+      intervals = intervals.flatMap(([a, b]) => end <= a || start >= b ? [[a, b]]
+        : [[a, Math.min(start, b)], [Math.max(end, a), b]].filter(([x, y]) => y > x));
+    }
+  }
+  return intervals.filter(([start, end]) => (end - start) * radius >= 2);
+}
+
 export function buildMixedSeating(model, chairTemplate, obstacles) {
   const root = new THREE.Group(); root.name = 'Terrace_integrated_seating';
   const wood = chairTemplate.find(p => /Golden oak/.test(p.material.name)).material;
@@ -60,48 +81,53 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
     const g = arcBoard(inner, outer, start, end, bottom, height, bevel);
     add(g, wood); g.dispose();
   }
-  // Stable irregular rhythm: short, long, medium and extra-long desks repeat
-  // with a tier offset, rather than changing on reload or forming uniform rows.
-  const rhythm = [1, 3, 2, 4, 2, 1, 4, 3, 1, 2, 3, 4];
+  // Nearly continuous long desks, with a stable staggered rhythm between tiers.
+  const rhythm = [1, 1.25, 0.85, 1.1];
+  const clearIntervals = [];
   for (let tierIndex = 0; tierIndex < MIXED_TIERS.length; tierIndex++) {
     const tier = MIXED_TIERS[tierIndex];
-    for (let slot = 0; slot < 12; slot++) {
-      const capacity = rhythm[(slot + tierIndex * 3) % rhythm.length];
-      const width = capacity * 1.6;
-      const angle = THREE.MathUtils.degToRad(15 + slot * 30 + [0, -2, 2][tierIndex]);
-      const radius = tier.inner + 0.49;
-      const half = width / radius / 2;
-      const outward = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
-      const tangent = new THREE.Vector3(outward.z, 0, -outward.x);
-      const center = outward.clone().multiplyScalar(radius); center.y = tier.height;
-      const blocked = obstacles.some(o => {
-        if (Math.abs(o.height - tier.height) > 0.15) return false;
-        const relative = o.center.clone().sub(center);
-        return Math.abs(relative.dot(tangent)) < width / 2 + o.radius + 0.4
-          && Math.abs(relative.dot(outward) - 0.35) < 1.05 + o.radius + 0.4;
-      });
-      if (blocked) continue;
-      const start = angle - half, end = angle + half;
-      // Continuous wood top, low inner upstand, and joined end panels make
-      // each desk a built-in piece along the front edge, with open knee room.
-      board(tier.inner + 0.14, tier.inner + 0.84, start, end, tier.height + 0.70, 0.09);
-      board(tier.inner + 0.14, tier.inner + 0.24, start, end, tier.height, 1.03);
-      for (const edge of [start, end]) {
-        board(tier.inner + 0.18, tier.inner + 0.80, edge - 0.035 / radius, edge + 0.035 / radius, tier.height, 0.74, 0.012);
+    const radius = tier.inner + 0.49;
+    const intervals = deskIntervals(tier, obstacles);
+    clearIntervals.push(intervals);
+    let slot = 0;
+    for (let section = 0; section < intervals.length; section++) {
+      const [a, b] = intervals[section];
+      const length = (b - a) * radius;
+      const count = Math.max(1, Math.round(length / 13));
+      const gap = 0.9;
+      const weights = Array.from({ length: count }, (_, i) => rhythm[(i + section + tierIndex) % rhythm.length]);
+      const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+      let cursor = a;
+      for (const weight of weights) {
+        const width = (length - gap * (count - 1)) * weight / totalWeight;
+        const start = cursor, end = cursor + width / radius;
+        cursor = end + gap / radius;
+        const angle = (start + end) / 2;
+        const capacity = Math.max(1, Math.floor(width / 2));
+        const outward = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+        const center = outward.clone().multiplyScalar(radius); center.y = tier.height;
+        slot++;
+        // Continuous wood top, low inner upstand, and joined end panels make
+        // each desk a built-in piece along the front edge, with open knee room.
+        board(tier.inner + 0.14, tier.inner + 0.84, start, end, tier.height + 0.70, 0.09);
+        board(tier.inner + 0.14, tier.inner + 0.24, start, end, tier.height, 1.03);
+        for (const edge of [start, end]) {
+          board(tier.inner + 0.18, tier.inner + 0.80, edge - 0.035 / radius, edge + 0.035 / radius, tier.height, 0.74, 0.012);
+        }
+        const setId = `tier-${tierIndex + 1}-desk-${slot}`;
+        const type = capacity === 1 ? 'single' : 'shared';
+        for (let chair = 0; chair < capacity; chair++) {
+          const chairAngle = angle + (chair - (capacity - 1) / 2) * (width / capacity) / radius;
+          const direction = new THREE.Vector3(Math.cos(chairAngle), 0, Math.sin(chairAngle));
+          const along = new THREE.Vector3(direction.z, 0, -direction.x);
+          const position = direction.clone().multiplyScalar(tier.inner + 1.22); position.y = tier.height;
+          const matrix = new THREE.Matrix4().makeBasis(along, new THREE.Vector3(0, 1, 0), direction);
+          matrix.setPosition(position);
+          for (const part of chairTemplate) add(part.geometry, part.material, matrix);
+          seats.push({ setId, tier: tierIndex, type, position: position.toArray(), facing: direction.clone().negate().toArray() });
+        }
+        sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: true });
       }
-      const setId = `tier-${tierIndex + 1}-desk-${slot + 1}`;
-      const type = capacity === 1 ? 'single' : 'shared';
-      for (let chair = 0; chair < capacity; chair++) {
-        const chairAngle = angle + (chair - (capacity - 1) / 2) * 1.6 / radius;
-        const direction = new THREE.Vector3(Math.cos(chairAngle), 0, Math.sin(chairAngle));
-        const along = new THREE.Vector3(direction.z, 0, -direction.x);
-        const position = direction.clone().multiplyScalar(tier.inner + 1.22); position.y = tier.height;
-        const matrix = new THREE.Matrix4().makeBasis(along, new THREE.Vector3(0, 1, 0), direction);
-        matrix.setPosition(position);
-        for (const part of chairTemplate) add(part.geometry, part.material, matrix);
-        seats.push({ setId, tier: tierIndex, type, position: position.toArray(), facing: direction.clone().negate().toArray() });
-      }
-      sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: true });
     }
   }
   for (const [material, parts] of batches) {
@@ -113,5 +139,5 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
   }
   chairTemplate.forEach(part => part.geometry.dispose());
   model.add(root);
-  return { root, sets, seats, singleSets: sets.filter(s => s.type === 'single').length, sharedSets: sets.filter(s => s.type === 'shared').length };
+  return { root, sets, seats, clearIntervals, singleSets: sets.filter(s => s.type === 'single').length, sharedSets: sets.filter(s => s.type === 'shared').length };
 }

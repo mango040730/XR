@@ -12,6 +12,7 @@ import { CLAY_TRIANGLE_BUDGET } from '../src/clay-style.js';
 import { MIXED_TIERS, SEATED_TIER_COUNT } from '../src/mixed-seating.js';
 import { TOTAL_RISE, PREVIOUS_TOTAL_RISE, ACCESS_STEP_RISE, ACCESS_STEP_COUNT, ACCESS_STEPS_PER_TIER } from '../src/space-levels.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from '../src/joined-stairs.js';
+import { CENTRAL_STEP_RISE, centralBoundary, centralIsRaised } from '../src/central-room.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, CENTRAL_RADIUS } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -19,7 +20,17 @@ const gltf = await new GLTFLoader().parseAsync(
   bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '',
 );
 gltf.scene.updateMatrixWorld(true);
-const sourceLeafGeometry = gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1').geometry.clone();
+// Compare smoothing against the original shapes after the requested rigid
+// floor-level translation, rather than treating that translation as distortion.
+function expectedLiftedGeometry(mesh) {
+  const geometry = mesh.geometry.clone(), p = geometry.attributes.position;
+  for (const piece of meshPieces(mesh)) {
+    if (!centralIsRaised(piece.center.x, piece.center.z)) continue;
+    for (const i of piece.vertices) p.setY(i, p.getY(i) + CENTRAL_STEP_RISE);
+  }
+  return geometry;
+}
+const sourceLeafGeometry = expectedLiftedGeometry(gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1'));
 sourceLeafGeometry.computeBoundingBox();
 let sourceCentralRoundSeats = 0;
 gltf.scene.traverse(mesh => {
@@ -27,7 +38,7 @@ gltf.scene.traverse(mesh => {
     sourceCentralRoundSeats += meshPieces(mesh).filter(p => Math.hypot(p.center.x, p.center.z) < 23.2).length;
   }
 });
-const sourceUpholstery = gltf.scene.getObjectByName('Lounge_Pods__Coral_cushion_variation__0_0').geometry.clone();
+const sourceUpholstery = expectedLiftedGeometry(gltf.scene.getObjectByName('Lounge_Pods__Coral_cushion_variation__0_0'));
 sourceUpholstery.computeBoundingBox();
 const edited = prepareSpace(gltf.scene);
 const floors = [];
@@ -140,7 +151,8 @@ test('전체 지름을 유지하며 단 깊이를 3m로 줄여 중앙 지름을 
   for (let i = 0; i < 360; i++) {
     const a = i * Math.PI / 180;
     ray.set(new Vector3(Math.cos(a) * 25.9, PATH_Y + 2, Math.sin(a) * 25.9), new Vector3(0, -1, 0));
-    assert.ok(Math.abs(ray.intersectObjects(floors, false)[0].point.y - FLOOR_Y) < 0.001);
+    const expected = FLOOR_Y + (centralIsRaised(Math.cos(a) * 25.9, Math.sin(a) * 25.9) ? CENTRAL_STEP_RISE : 0);
+    assert.ok(Math.abs(ray.intersectObjects(floors, false)[0].point.y - expected) < 0.001);
   }
 });
 
@@ -544,7 +556,7 @@ test('계단과 블루길은 동일한 외곽선을 공유해 미세한 이음 �
 
 test('직전 중간 좌석 층의 높이를 새 최고 높이로 삼아 3개 층을 고르게 낮췄다', () => {
   const ray = new Raycaster();
-  ray.set(new Vector3(0, PATH_Y + 2, 0), new Vector3(0, -1, 0));
+  ray.set(new Vector3(0, PATH_Y + 2, 22), new Vector3(0, -1, 0));
   const lower = ray.intersectObjects(floors, false)[0].point.y;
   ray.set(new Vector3(40, PATH_Y + 2, 0), new Vector3(0, -1, 0));
   const upper = ray.intersectObjects(floors, false)[0].point.y;
@@ -566,4 +578,83 @@ test('직전 중간 좌석 층의 높이를 새 최고 높이로 삼아 3개 층
   }
 
   assert.ok(ACCESS_STEP_RISE < 0.34, '낮춘 이동 계단도 기존 보행 한계 안에 있어야 합니다.');
+});
+
+test('중앙은 앞쪽보다 뒤쪽 바닥이 28cm 높은 실제 두 레벨이다', () => {
+  const ray = new Raycaster(new Vector3(), new Vector3(0, -1, 0));
+  for (const [x, z, height] of [[0, 22, 1.15], [-10, -12, 1.43], [3, 0, 1.43], [-12, 12, 1.15], [15, 15, 1.15]]) {
+    ray.ray.origin.set(x, 3, z);
+    const hit = ray.intersectObjects(floors, false)[0];
+    assert.ok(Math.abs(hit.point.y - height) < 0.00001);
+    assert.ok(hit.face.normal.y > 0.99);
+  }
+  const platform = edited.central.platform;
+  assert.equal(platform.userData.walkable, true);
+  platform.geometry.computeBoundingBox();
+  assert.ok(Math.abs(platform.geometry.boundingBox.min.y - 1.15) < 0.00001);
+  assert.ok(Math.abs(platform.geometry.boundingBox.max.y - 1.43) < 0.00001);
+  const p = platform.geometry.attributes.position;
+  let topArea = 0;
+  for (let i = 0; i < p.count; i += 3) {
+    const a = new Vector3().fromBufferAttribute(p, i), b = new Vector3().fromBufferAttribute(p, i + 1), c = new Vector3().fromBufferAttribute(p, i + 2);
+    if ([a, b, c].every(v => Math.abs(v.y - 1.43) < 0.00001)) topArea += b.sub(a).cross(c.sub(a)).length() / 2;
+  }
+  assert.ok(topArea > 1000, '가느다란 경계 오브젝트 대신 뒤쪽 바닥 전체를 채워야 합니다.');
+});
+
+test('굽은 중앙 단차에 수직면이 있고 실제 보행 높이로 양방향 통과할 수 있다', () => {
+  const ray = new Raycaster(), direction = new Vector3(-1, 0, -1).normalize();
+  for (let u = -10.2; u <= -4.4; u += 0.2) {
+    const boundary = centralBoundary(u);
+    const point = s => new Vector3((s + u) / Math.SQRT2, 0, (s - u) / Math.SQRT2);
+    const front = point(boundary + 0.08), back = point(boundary - 0.08);
+    for (const [from, to, expected] of [[1.15, back, 1.43], [1.43, front, 1.15]]) {
+      ray.set(to.clone().setY(from + 0.36), new Vector3(0, -1, 0));
+      const hit = ray.intersectObjects(floors, false)[0];
+      assert.ok(Math.abs(hit.point.y - expected) < 0.00001);
+      assert.ok(hit.point.y - from <= 0.34 && from - hit.point.y <= 0.6);
+    }
+    ray.set(front.clone().setY(1.29), direction); ray.far = 0.2;
+    const side = ray.intersectObject(edited.central.platform, false)[0];
+    assert.ok(side && Math.abs(side.face.normal.y) < 0.01, '경계 아래에 빈틈 없는 실제 단의 수직면이 필요합니다.');
+    ray.far = Infinity;
+  }
+});
+
+test('X 표시된 앞 오른쪽 테이블과 의자·소품 및 별도 경계 블록이 제거됐다', () => {
+  assert.equal(edited.seating.removedCentralCafeParts, 65);
+  assert.equal(edited.central.removedDividers, 2);
+  gltf.scene.traverse(mesh => {
+    if (!mesh.isMesh || mesh.userData.mixedSeating) return;
+    if (/^Cafe_Furniture__/.test(mesh.name)) {
+      for (const p of meshPieces(mesh)) {
+        assert.ok(!(p.center.x > 9 && p.center.z > 9 && Math.hypot(p.center.x, p.center.z) < CENTRAL_RADIUS));
+      }
+    }
+    if (/^Lounge_Pods__Warm_ivory/.test(mesh.name)) {
+      assert.ok(meshPieces(mesh).every(p => Math.abs(p.size.y - 0.5848) > 0.002));
+    }
+  });
+});
+
+test('중앙 소파와 화분의 바닥 접점은 곡선 단차를 가로지르거나 공중에 뜨지 않는다', () => {
+  const ray = new Raycaster(new Vector3(), new Vector3(0, -1, 0));
+  let checked = 0;
+  gltf.scene.traverse(mesh => {
+    if (!mesh.isMesh || !/^(Lounge_Pods|Planting)__.*Warm_ivory/.test(mesh.name)) return;
+    const positions = mesh.geometry.attributes.position;
+    for (const p of meshPieces(mesh)) {
+      if (Math.hypot(p.center.x, p.center.z) >= CENTRAL_RADIUS) continue;
+      if (![1.15, 1.43].some(y => Math.abs(p.bounds.min.y - y) < 0.001)) continue;
+      const bottom = p.vertices.filter(i => positions.getY(i) < p.bounds.min.y + 0.001);
+      for (let k = 0; k < bottom.length; k += Math.max(1, Math.floor(bottom.length / 12))) {
+        const i = bottom[k];
+        ray.ray.origin.set(positions.getX(i), 2, positions.getZ(i));
+        const hit = ray.intersectObjects(floors, false)[0];
+        assert.ok(Math.abs(hit.point.y - p.bounds.min.y) < 0.001, `가구가 바닥 높이를 따라야 합니다: ${mesh.name}`);
+        checked++;
+      }
+    }
+  });
+  assert.ok(checked > 150);
 });

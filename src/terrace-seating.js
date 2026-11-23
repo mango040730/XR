@@ -105,17 +105,19 @@ export function arrangeTerraceSeating(meshes, model) {
     const size = bounds.getSize(new THREE.Vector3());
     return { center: bounds.getCenter(new THREE.Vector3()), height: PATH_Y, radius: Math.hypot(size.x, size.z) / 2 };
   });
-  // The original central dining cluster slightly overhung the first terrace's
-  // lane. Move that intact cluster one metre inward to keep all three lanes clear.
+  // Remove the entire front-right dining set crossed out in the reference,
+  // including the tabletop, chair frames/backs, cups and tabletop accessories.
+  let removedCentralCafeParts = 0;
   for (const part of cafe) {
     if (part.remove || part.center.x <= 9 || part.center.z <= 9) continue;
-    const p = part.mesh.geometry.attributes.position;
-    for (const i of part.vertices) { p.setX(i, p.getX(i) - 1); p.setZ(i, p.getZ(i) - 1); }
+    part.remove = true;
+    removedCentralCafeParts++;
   }
   for (const [mesh, pieces] of byMesh) applyPieces(mesh, pieces);
   const mixed = buildMixedSeating(model, chairTemplate, obstacles);
   return {
     removedStools: ottomans.length,
+    removedCentralCafeParts,
     removedChairs: chairs.filter(chair => chair.remove).length,
     retainedChairs: mixed.seats.length,
     mixed,

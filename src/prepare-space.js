@@ -6,6 +6,7 @@ import { applyClayStyle } from './clay-style.js';
 import { createJoinedStairs, stairAlignedRing, colorJoinedStairs } from './joined-stairs.js';
 import { FLOOR_Y, PATH_Y } from './space-levels.js';
 import { SPACE_COLORS } from './space-colors.js';
+import { rebuildCentralRoom } from './central-room.js';
 
 export { FLOOR_Y, PATH_Y } from './space-levels.js';
 export const PATH_INNER_RADIUS = TERRACE_OUTER;
@@ -85,11 +86,14 @@ export function prepareSpace(model) {
   foundation.position.y = -0.4;
   model.add(foundation);
   const digitalWall = createDigitalWall(model, PATH_OUTER_RADIUS, PATH_Y);
+  const central = rebuildCentralRoom(model);
   const clay = applyClayStyle(model);
+  central.platform.material[0].dispose();
+  central.platform.material[0] = interior.material;
   colorJoinedStairs(stairs[0], {
     upperInner: PATH_INNER_RADIUS - TERRACE_DEPTH, topY: PATH_Y,
     gray: SPACE_COLORS.stairs, railMaterial: carpet.material, railOuterRadius: PATH_OUTER_RADIUS,
   });
   model.updateMatrixWorld(true);
-  return { carpet, interior, stairs, seating, digitalWall, clay, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
+  return { carpet, interior, stairs, seating, digitalWall, central, clay, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
 }

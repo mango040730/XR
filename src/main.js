@@ -8,8 +8,8 @@ import { prepareSpace, isWalkable, WALK_RADIUS } from './prepare-space.js';
 // The document intentionally contains only the rendering canvas: no HUD or VR button.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#223e78');
-scene.fog = new THREE.Fog('#223e78', 85, 180);
+scene.background = new THREE.Color('#cbd7dc');
+scene.fog = new THREE.Fog('#cbd7dc', 85, 180);
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
 renderer.setSize(innerWidth, innerHeight);

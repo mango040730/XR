@@ -7,13 +7,13 @@ export function createDigitalWall(model, radius, floorY) {
   const root = new THREE.Group();
   root.name = 'Full_circle_digital_wall';
   const frame = new THREE.MeshStandardMaterial({
-    name: 'Dark display housing', color: '#111b29', roughness: 0.65, metalness: 0.2,
+    name: 'Dark display housing', color: '#172e59', roughness: 0.65, metalness: 0.2,
     side: THREE.DoubleSide,
   });
   const display = new THREE.MeshPhysicalMaterial({
-    name: 'Blank digital screen', color: '#0c1d35', roughness: 0.3, metalness: 0.05,
+    name: 'Blank digital screen', color: '#122958', roughness: 0.3, metalness: 0.05,
     clearcoat: 0.8, clearcoatRoughness: 0.18,
-    emissive: '#173964', emissiveIntensity: 0.28, side: THREE.DoubleSide,
+    emissive: '#19386f', emissiveIntensity: 0.28, side: THREE.DoubleSide,
   });
   const screen = new THREE.Mesh(
     new THREE.CylinderGeometry(radius - 0.01, radius - 0.01, SCREEN_WALL_HEIGHT - 0.24, SEGMENTS, 1, true),
@@ -40,8 +40,8 @@ export function createDigitalWall(model, radius, floorY) {
     root.add(cap);
   }
   const bezelMaterial = new THREE.MeshStandardMaterial({
-    name: 'Slim screen bezel', color: '#253c54', roughness: 0.35, metalness: 0.4,
-    emissive: '#326487', emissiveIntensity: 0.15,
+    name: 'Slim screen bezel', color: '#ffe1ae', roughness: 0.35, metalness: 0.4,
+    emissive: '#ffb461', emissiveIntensity: 0.15,
   });
   for (const y of [floorY + 0.12, floorY + SCREEN_WALL_HEIGHT - 0.12]) {
     const geometry = new THREE.TorusGeometry(radius - 0.01, 0.025, 6, SEGMENTS);

@@ -4,14 +4,14 @@ import { meshPieces } from './mesh-pieces.js';
 export const CLAY_TRIANGLE_BUDGET = 900000;
 const PROP = /^(Planting|Cafe_Furniture|Lounge_Pods|Luminaires)__/;
 const palette = [
-  [/Warm ivory/, '#ede6d8'], [/Terracotta coral/, '#d78f7b'], [/Coral cushion/, '#e3a18e'],
-  [/Cobalt fabric/, '#66859b'], [/Sunflower/, '#dfbc7d'], [/Tangerine/, '#d7a06e'],
-  [/Honey yellow/, '#cfa879'], [/Golden oak/, '#bd956b'], [/Sofa recessed/, '#b5a38d'],
-  [/River pebble warm/, '#b6a58f'], [/River pebble grey/, '#9ca797'],
-  [/Forest foliage/, '#59785e'], [/Sage foliage/, '#8c9f7e'], [/Fresh yellow green/, '#a5b27f'],
-  [/Plant stems/, '#687452'], [/Planter dark soil/, '#62503e'],
-  [/Porcelain and sign/, '#eee7db'], [/Cream porcelain/, '#e6e1d8'], [/Warm grey terrace/, '#d5d2c9'],
-  [/Opal lamp/, '#f5eee1'],
+  [/Warm ivory/, '#fff2e2'], [/Terracotta coral/, '#ef6c50'], [/Coral cushion/, '#f8785e'],
+  [/Cobalt fabric/, '#163e8c'], [/Sunflower/, '#ffce32'], [/Tangerine/, '#ff891c'],
+  [/Honey yellow/, '#ffc553'], [/Golden oak/, '#f2b44e'], [/Sofa recessed/, '#a78d74'],
+  [/River pebble warm/, '#b6a58d'], [/River pebble grey/, '#92978c'],
+  [/Forest foliage/, '#596b1f'], [/Sage foliage/, '#829238'], [/Fresh yellow green/, '#b4b72c'],
+  [/Plant stems/, '#77802b'], [/Planter dark soil/, '#63502f'],
+  [/Porcelain and sign/, '#fff1dd'], [/Cream porcelain/, '#fff0df'], [/Warm grey terrace/, '#e4ddd3'],
+  [/Opal lamp/, '#fff0d5'],
 ];
 
 function normals(vertices, faces) {

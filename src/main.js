@@ -8,8 +8,8 @@ import { prepareSpace, isWalkable, WALK_RADIUS } from './prepare-space.js';
 // The document intentionally contains only the rendering canvas: no HUD or VR button.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#cbd7dc');
-scene.fog = new THREE.Fog('#cbd7dc', 85, 180);
+scene.background = new THREE.Color('#223e78');
+scene.fog = new THREE.Fog('#223e78', 85, 180);
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
 renderer.setSize(innerWidth, innerHeight);
@@ -40,8 +40,8 @@ scene.environment = environment.texture;
 scene.environmentIntensity = 0.55;
 room.dispose();
 pmrem.dispose();
-scene.add(new THREE.HemisphereLight('#fff6e9', '#a89b89', 2.1));
-const sun = new THREE.DirectionalLight('#fff0d9', 2.5);
+scene.add(new THREE.HemisphereLight('#fff1df', '#6b7895', 2.1));
+const sun = new THREE.DirectionalLight('#ffe7cd', 2.5);
 sun.position.set(-22, 38, 20);
 sun.castShadow = true;
 sun.shadow.mapSize.set(4096, 4096);
@@ -50,12 +50,12 @@ sun.shadow.normalBias = 0.045;
 sun.shadow.bias = -0.00015;
 sun.shadow.camera.updateProjectionMatrix();
 scene.add(sun);
-const fill = new THREE.DirectionalLight('#e8eff5', 1.0);
+const fill = new THREE.DirectionalLight('#dde7ff', 1.0);
 fill.position.set(25, 14, -20);
 scene.add(fill);
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(1000, 1000),
-  new THREE.MeshStandardMaterial({ color: '#b8c9d8', roughness: 1 }),
+  new THREE.MeshStandardMaterial({ color: '#17346f', roughness: 1 }),
 );
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = -0.825;

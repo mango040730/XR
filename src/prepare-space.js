@@ -54,8 +54,8 @@ export function prepareSpace(model) {
   pile.generateMipmaps = true;
   pile.needsUpdate = true;
   const velvet = new THREE.MeshPhysicalMaterial({
-    name: 'Blue velvet carpet', color: '#245ab4', roughness: 0.96,
-    metalness: 0, sheen: 1, sheenColor: '#6b8dd1', sheenRoughness: 0.85,
+    name: 'Blue velvet carpet', color: '#1c3d86', roughness: 0.96,
+    metalness: 0, sheen: 1, sheenColor: '#4266b2', sheenRoughness: 0.85,
     specularIntensity: 0.15, bumpMap: pile, bumpScale: 0.0015,
     side: THREE.DoubleSide,
   });
@@ -78,7 +78,7 @@ export function prepareSpace(model) {
   model.add(skirt);
   const foundation = new THREE.Mesh(
     new THREE.CylinderGeometry(PATH_OUTER_RADIUS + 0.3, PATH_OUTER_RADIUS + 0.3, 0.8, SEGMENTS),
-    new THREE.MeshStandardMaterial({ color: '#132d55', roughness: 0.8 }),
+    new THREE.MeshStandardMaterial({ color: '#112853', roughness: 0.8 }),
   );
   foundation.name = 'Circular_foundation';
   foundation.position.y = -0.4;

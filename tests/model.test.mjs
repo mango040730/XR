@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Box3, Raycaster, Vector3 } from 'three';
+import { Box3, Color, Raycaster, Vector3 } from 'three';
 import { acceleratedRaycast, computeBoundsTree } from 'three-mesh-bvh';
 import { meshPieces } from '../src/mesh-pieces.js';
 import { TERRACE_DEPTH, PASSAGE_WIDTH } from '../src/terrace-seating.js';
 import { SCREEN_WALL_HEIGHT } from '../src/digital-wall.js';
 import { CLAY_TRIANGLE_BUDGET } from '../src/clay-style.js';
-import { MIXED_TIERS } from '../src/mixed-seating.js';
+import { MIXED_TIERS, SEATED_TIER_COUNT } from '../src/mixed-seating.js';
 import { TOTAL_RISE, PREVIOUS_TOTAL_RISE, ACCESS_STEP_RISE, ACCESS_STEP_COUNT, ACCESS_STEPS_PER_TIER } from '../src/space-levels.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from '../src/joined-stairs.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, CENTRAL_RADIUS } from '../src/prepare-space.js';
@@ -163,11 +163,11 @@ test('계단 사이의 둥근 스툴은 바닥 받침·쿠션까지 제거하고
 
 test('각 단 앞쪽에 1~4인용 곡선 일체형 책상을 모두 섞어 촘촘히 배치했다', () => {
   const mixed = edited.seating.mixed;
-  assert.ok(mixed.singleSets >= 12);
-  assert.ok(mixed.sharedSets >= 36);
-  assert.ok(mixed.seats.length > 200);
+  assert.ok(mixed.singleSets >= SEATED_TIER_COUNT * 4);
+  assert.ok(mixed.sharedSets >= SEATED_TIER_COUNT * 12);
+  assert.ok(mixed.seats.length > 100);
   const ray = new Raycaster();
-  for (let tier = 0; tier < 3; tier++) {
+  for (let tier = 0; tier < SEATED_TIER_COUNT; tier++) {
     const sets = mixed.sets.filter(set => set.tier === tier);
     assert.deepEqual([...new Set(sets.map(s => s.capacity))].sort(), [1, 2, 3, 4]);
     assert.ok(new Set(sets.map(s => Math.round(s.width))).size >= 4);
@@ -190,15 +190,15 @@ test('각 단 앞쪽에 1~4인용 곡선 일체형 책상을 모두 섞어 촘�
   }
 });
 
-test('책상은 이전의 일체형 턱·앞판·양끝 지지판으로 복원하고 갈색 나뭇결을 유지했다', () => {
+test('책상은 일체형 턱·앞판·양끝 지지판과 나뭇결을 유지하며 지정 골드를 사용한다', () => {
   const wood = gltf.scene.getObjectByName('Terrace_wood_desks');
   assert.ok(wood && wood.userData.woodenDesks);
-  assert.equal(wood.material.name, 'Terrace walnut wood');
+  assert.equal(wood.material.name, 'Terrace golden timber');
   assert.ok(wood.material.map && wood.material.bumpMap && wood.geometry.attributes.uv);
   const tones = new Set();
   const pixels = wood.material.map.image.data;
   for (let i = 0; i < pixels.length; i += 4) tones.add(pixels[i]);
-  assert.ok(tones.size > 20);
+  assert.ok(tones.size > 8);
   const parts = meshPieces(wood), sets = edited.seating.mixed.sets;
   const fronts = parts.filter(p => Math.abs(p.size.y - 1.03) < 0.001);
   const sides = parts.filter(p => Math.abs(p.size.y - 0.74) < 0.001);
@@ -228,10 +228,40 @@ test('책상은 이전의 일체형 턱·앞판·양끝 지지판으로 복원�
   assert.equal(chairMaterials.size, 2);
   for (const material of chairMaterials) {
     assert.match(material.name, /^Terrace chair/);
-    const c = material.color;
-    assert.ok(c.r > c.g * 1.3 && c.g > c.b * 1.4, '원형 계단 의자의 프레임과 좌판 모두 갈색이어야 합니다.');
+    assert.equal(material.color.getHexString(), 'e99804', '계단 의자 전체가 지정 골드여야 합니다.');
     assert.ok(material.clearcoat >= 0.3, '의자의 기존 마감 광택은 유지해야 합니다.');
   }
+});
+
+test('지정한 다섯 색상과 아래 두 단 좌석만 적용되고 맨윗단 가구는 없다', () => {
+  assert.equal(edited.interior.material.color.getHexString(), 'f4cfb8');
+  assert.equal(edited.carpet.material.color.getHexString(), '1a3880');
+  assert.equal(gltf.scene.getObjectByName('Terrace_wood_desks').material.color.getHexString(), 'e99804');
+  const cushion = gltf.scene.getObjectByName('Lounge_Pods__Coral_cushion_variation__0_0');
+  assert.equal(cushion.material.color.getHexString(), 'ed715d');
+  const shell = gltf.scene.getObjectByName('Lounge_Pods__Warm_ivory_•_matte_ceramic__0_0');
+  assert.equal(shell.material.color.getHexString(), 'fde8dc');
+  const upholstery = gltf.scene.getObjectByName('Lounge_Pods__Terracotta_coral_upholstery__0_0');
+  assert.ok(upholstery.material.vertexColors);
+  let backs = 0, pads = 0;
+  for (const part of meshPieces(upholstery)) {
+    const vertex = [...part.vertices][0];
+    const actual = new Color().fromBufferAttribute(upholstery.geometry.attributes.color, vertex).getHexString();
+    if (part.size.y > 0.35) { assert.equal(actual, 'fde8dc'); backs++; }
+    else { assert.equal(actual, 'ed715d'); pads++; }
+  }
+  assert.ok(backs > 0 && pads > 0);
+  assert.equal(SEATED_TIER_COUNT, 2);
+  const mixed = edited.seating.mixed;
+  assert.ok(mixed.sets.every(s => s.tier < 2));
+  assert.ok(mixed.seats.every(s => s.tier < 2));
+  mixed.root.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    const p = mesh.geometry.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      assert.ok(Math.hypot(p.getX(i), p.getZ(i)) < MIXED_TIERS[2].inner, '맨윗단에 실제 책상·의자 부품이 남으면 안 됩니다.');
+    }
+  });
 });
 
 test('실제 모든 의자가 테이블 바깥쪽 한 줄에서만 중앙을 바라본다', () => {
@@ -284,7 +314,7 @@ test('실제 가구 충돌 장면에서 1.2m 폭의 의자 뒤쪽 통로가 비�
 test('실제 책상 상판이 각 단 둘레의 80% 이상을 채우며 불필요한 큰 공백이 없다', () => {
   const ray = new Raycaster(); ray.firstHitOnly = true;
   const mixed = edited.seating.mixed;
-  for (let t = 0; t < MIXED_TIERS.length; t++) {
+  for (let t = 0; t < SEATED_TIER_COUNT; t++) {
     const tier = MIXED_TIERS[t], radius = tier.inner + 0.49;
     function hasDesktop(angle) {
       ray.set(new Vector3(radius * Math.cos(angle), tier.height + 1.5, radius * Math.sin(angle)), new Vector3(0, -1, 0));

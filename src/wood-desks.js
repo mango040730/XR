@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { SPACE_COLORS } from './space-colors.js';
 
 export function createDeskWoodMaterial() {
   const width = 512, height = 256;
@@ -14,7 +15,8 @@ export function createDeskWoodMaterial() {
     seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
     const tone = broad * 12 + grain * 5 + fine * 2 + ((seed >>> 24) / 255 - 0.5) * 3;
     const i = (y * width + x) * 4;
-    color.set([164 + tone, 87 + tone * 0.7, 42 + tone * 0.4, 255], i);
+    const value = Math.min(255, 245 + tone * 0.5);
+    color.set([value, value, value, 255], i);
     const h = 128 + grain * 16 + fine * 7;
     relief.set([h, h, h, 255], i);
   }
@@ -29,10 +31,10 @@ export function createDeskWoodMaterial() {
     map.needsUpdate = true;
     return map;
   }
-  const map = texture(color, 'Warm walnut lengthwise grain');
+  const map = texture(color, 'Neutral lengthwise timber grain');
   map.colorSpace = THREE.SRGBColorSpace;
   const material = new THREE.MeshPhysicalMaterial({
-    name: 'Terrace walnut wood', color: '#ffffff', map,
+    name: 'Terrace golden timber', color: SPACE_COLORS.terraceFurniture, map,
     bumpMap: texture(relief, 'Fine timber pores'), bumpScale: 0.0008,
     roughness: 0.42, metalness: 0, clearcoat: 0.18, clearcoatRoughness: 0.3,
     specularIntensity: 0.45, envMapIntensity: 0.55,

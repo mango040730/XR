@@ -5,6 +5,7 @@ import { createDigitalWall } from './digital-wall.js';
 import { applyClayStyle } from './clay-style.js';
 import { createJoinedStairs, stairAlignedRing } from './joined-stairs.js';
 import { FLOOR_Y, PATH_Y } from './space-levels.js';
+import { SPACE_COLORS } from './space-colors.js';
 
 export { FLOOR_Y, PATH_Y } from './space-levels.js';
 export const PATH_INNER_RADIUS = TERRACE_OUTER;
@@ -54,7 +55,7 @@ export function prepareSpace(model) {
   pile.generateMipmaps = true;
   pile.needsUpdate = true;
   const velvet = new THREE.MeshPhysicalMaterial({
-    name: 'Blue velvet carpet', color: '#1c3d86', roughness: 0.96,
+    name: 'Blue velvet carpet', color: SPACE_COLORS.rail, roughness: 0.96,
     metalness: 0, sheen: 1, sheenColor: '#4266b2', sheenRoughness: 0.85,
     specularIntensity: 0.15, bumpMap: pile, bumpScale: 0.0015,
     side: THREE.DoubleSide,

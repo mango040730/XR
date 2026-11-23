@@ -4,6 +4,9 @@ import { terraceHeight } from './space-levels.js';
 import { CENTRAL_RADIUS, TERRACE_DEPTH } from './space-layout.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from './joined-stairs.js';
 import { createDeskWoodMaterial, mapCurvedWood } from './wood-desks.js';
+import { SPACE_COLORS } from './space-colors.js';
+
+export const SEATED_TIER_COUNT = 2;
 
 export const MIXED_TIERS = Array.from({ length: 3 }, (_, i) => ({
   inner: CENTRAL_RADIUS + TERRACE_DEPTH * i,
@@ -75,8 +78,8 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
     if (chairMaterials.has(part.material)) continue;
     const material = part.material.clone();
     const frame = /Golden oak/.test(part.material.name);
-    material.name = frame ? 'Terrace chair walnut frame' : 'Terrace chair brown seat';
-    material.color.set(frame ? '#95502a' : '#b87948');
+    material.name = frame ? 'Terrace chair gold frame' : 'Terrace chair gold seat';
+    material.color.set(SPACE_COLORS.terraceFurniture);
     chairMaterials.set(part.material, material);
   }
   const batches = new Map(), sets = [], seats = [];
@@ -95,7 +98,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
   // Close-spaced 1–4-person desks, staggered in a stable irregular rhythm.
   const rhythm = [1, 4, 2, 3, 2, 4, 1, 3, 4, 2, 1, 3];
   const clearIntervals = [];
-  for (let tierIndex = 0; tierIndex < MIXED_TIERS.length; tierIndex++) {
+  for (let tierIndex = 0; tierIndex < SEATED_TIER_COUNT; tierIndex++) {
     const tier = MIXED_TIERS[tierIndex];
     const radius = tier.inner + 0.49;
     const intervals = deskIntervals(tier, obstacles);

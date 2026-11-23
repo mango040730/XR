@@ -1,16 +1,17 @@
 import * as THREE from 'three';
 import { meshPieces } from './mesh-pieces.js';
+import { SPACE_COLORS } from './space-colors.js';
 
 export const CLAY_TRIANGLE_BUDGET = 900000;
 const PROP = /^(Planting|Cafe_Furniture|Lounge_Pods|Luminaires)__/;
 const palette = [
-  [/Warm ivory/, '#fff2e2'], [/Terracotta coral/, '#ef6c50'], [/Coral cushion/, '#f8785e'],
+  [/Warm ivory/, SPACE_COLORS.sculpture], [/Terracotta coral/, SPACE_COLORS.coral], [/Coral cushion/, SPACE_COLORS.coral],
   [/Cobalt fabric/, '#163e8c'], [/Sunflower/, '#ffce32'], [/Tangerine/, '#ff891c'],
   [/Honey yellow/, '#ffc553'], [/Golden oak/, '#f2b44e'], [/Sofa recessed/, '#a78d74'],
   [/River pebble warm/, '#b6a58d'], [/River pebble grey/, '#92978c'],
   [/Forest foliage/, '#596b1f'], [/Sage foliage/, '#829238'], [/Fresh yellow green/, '#b4b72c'],
   [/Plant stems/, '#77802b'], [/Planter dark soil/, '#63502f'],
-  [/Porcelain and sign/, '#fff1dd'], [/Cream porcelain/, '#fff0df'], [/Warm grey terrace/, '#e4ddd3'],
+  [/Porcelain and sign/, SPACE_COLORS.sculpture], [/Cream porcelain/, SPACE_COLORS.floor], [/Warm grey terrace/, SPACE_COLORS.sculpture],
   [/Opal lamp/, '#fff0d5'],
 ];
 
@@ -63,8 +64,8 @@ function softenUpholstery(piece) {
 }
 
 function surfaceFinish(name) {
-  if (/Terrace chair walnut frame/.test(name)) return { roughness: 0.28, clearcoat: 0.45, clearcoatRoughness: 0.2, envMapIntensity: 0.8 };
-  if (/Terrace chair brown seat/.test(name)) return { roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.23 };
+  if (/Terrace chair .* frame/.test(name)) return { roughness: 0.28, clearcoat: 0.45, clearcoatRoughness: 0.2, envMapIntensity: 0.8 };
+  if (/Terrace chair .* seat/.test(name)) return { roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.23 };
   if (/Planter dark soil/.test(name)) return { roughness: 0.95, specularIntensity: 0.15 };
   if (/Sofa recessed/.test(name)) return { color: '#bfc5cb', roughness: 0.24, metalness: 0.8, clearcoat: 0.25, envMapIntensity: 1 };
   if (/foliage|Plant stems/.test(name)) return { roughness: 0.4, clearcoat: 0.2, clearcoatRoughness: 0.3 };
@@ -177,6 +178,21 @@ export function applyClayStyle(model) {
     }
     mesh.material = materials.get(source);
     mesh.material.flatShading = false;
+  });
+  // The source batches seat pads and tall sofa backs together. Per-component
+  // colors keep their geometry intact while giving backrests the pale tone.
+  model.traverse(mesh => {
+    if (!mesh.isMesh || !/^Lounge_Pods__Terracotta_coral_upholstery/.test(mesh.name)) return;
+    const coral = new THREE.Color(SPACE_COLORS.coral), pale = new THREE.Color(SPACE_COLORS.sculpture);
+    const colors = new Float32Array(mesh.geometry.attributes.position.count * 3);
+    for (const part of meshPieces(mesh)) {
+      const color = part.size.y > 0.35 ? pale : coral;
+      for (const i of part.vertices) color.toArray(colors, i * 3);
+    }
+    mesh.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    mesh.material = mesh.material.clone();
+    mesh.material.color.set('#ffffff');
+    mesh.material.vertexColors = true;
   });
   return { originalTriangles, triangles, refinedPieces, softenedPieces, beforeBounds, afterBounds: new THREE.Box3().setFromObject(model) };
 }

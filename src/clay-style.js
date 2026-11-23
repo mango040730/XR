@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { meshPieces } from './mesh-pieces.js';
 import { SPACE_COLORS } from './space-colors.js';
 import { isUpholstery, seatOutline, crownCushion, addSeatWelting } from './upholstery-detail.js';
+import { rebuildSmoothPrimitive } from './smooth-primitives.js';
 
-export const CLAY_TRIANGLE_BUDGET = 900000;
+export const CLAY_TRIANGLE_BUDGET = 3300000;
 const PROP = /^(Planting|Cafe_Furniture|Lounge_Pods|Luminaires)__/;
 const palette = [
   [/Warm ivory/, SPACE_COLORS.sculpture], [/Terracotta coral/, SPACE_COLORS.coral], [/Coral cushion/, SPACE_COLORS.coral],
@@ -44,7 +45,7 @@ function weldedPiece(piece) {
     if (!map.has(key)) { map.set(key, vertices.length); vertices.push(v); }
     remap.set(i, map.get(key));
   }
-  return { vertices, faces: piece.faces.map(i => remap.get(i)), bounds: piece.bounds, mesh: piece.mesh, refined: false };
+  return { vertices, faces: piece.faces.map(i => remap.get(i)), bounds: piece.bounds, mesh: piece.mesh, sourceTriangles: piece.faces.length / 3, passes: 0 };
 }
 
 function softenUpholstery(piece) {
@@ -101,6 +102,9 @@ function refine(piece, limit) {
     const curve = oldNormals[a].clone().multiplyScalar(-delta.dot(oldNormals[a]) / 8)
       .addScaledVector(oldNormals[b], delta.dot(oldNormals[b]) / 8).clampLength(0, limit);
     const v = vertices[a].clone().add(vertices[b]).multiplyScalar(0.5).add(curve);
+    // A rounded silhouette must not turn a flat supporting cap into a hanging
+    // point. Keep the top/bottom planes within their original height envelope.
+    v.y = THREE.MathUtils.clamp(v.y, piece.bounds.min.y, piece.bounds.max.y);
     const id = vertices.length; vertices.push(v); edgeMap.set(key, id);
     return id;
   }
@@ -110,7 +114,7 @@ function refine(piece, limit) {
     faces.push(a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca);
   }
   piece.faces = faces;
-  piece.refined = true;
+  piece.passes++;
 }
 
 function fitBounds(piece) {
@@ -151,23 +155,17 @@ export function applyClayStyle(model) {
   const originalTriangles = triangles;
   const pieces = [...geometryByMesh.values()].flat();
   for (const piece of pieces) piece.seatOutline = seatOutline(piece);
-  const weltingReserve = pieces.filter(p => p.seatOutline).length * 32 * 5 * 2;
-  const refinementBudget = CLAY_TRIANGLE_BUDGET - weltingReserve;
-  // Spend geometry on upholstered silhouettes first, then leaves. Large flat
-  // cushion faces now gain curved intermediate vertices instead of only normals.
-  const priority = piece => isUpholstery(piece) ? 0 : /Forest_foliage/.test(piece.mesh.name) ? 1 : /foliage|Plant_stems/.test(piece.mesh.name) ? 2 : 3;
-  const refinementOrder = [...pieces].sort((a, b) => priority(a) - priority(b));
+  // Every component receives actual curved-edge subdivision, including large
+  // sofa shells and every chair. No face-count cutoff leaves coarse props behind.
   let refinedPieces = 0;
-  for (const piece of refinementOrder) {
-    const count = piece.faces.length / 3;
-    if (count > (isUpholstery(piece) ? 512 : 256) || triangles + count * 3 > refinementBudget) continue;
-    refine(piece, /foliage|Plant_stems/.test(piece.mesh.name) ? 0.035 : 0.018);
-    triangles += count * 3; refinedPieces++;
-  }
   for (const piece of pieces) {
     const count = piece.faces.length / 3;
-    if (!/foliage|Plant_stems/.test(piece.mesh.name) || count > 512 || triangles + count * 3 > refinementBudget) continue;
-    refine(piece, 0.018); triangles += count * 3;
+    if (rebuildSmoothPrimitive(piece)) {
+      triangles += piece.faces.length / 3 - count;
+      continue;
+    }
+    refine(piece, /foliage|Plant_stems/.test(piece.mesh.name) ? 0.035 : 0.018);
+    triangles += count * 3; refinedPieces++;
   }
   let softenedPieces = 0;
   for (const piece of pieces) if (softenUpholstery(piece)) softenedPieces++;
@@ -209,5 +207,6 @@ export function applyClayStyle(model) {
     mesh.material.color.set('#ffffff');
     mesh.material.vertexColors = true;
   });
-  return { originalTriangles, triangles, refinedPieces, softenedPieces, welting, beforeBounds, afterBounds: new THREE.Box3().setFromObject(model) };
+  const detail = pieces.map(piece => ({ name: piece.mesh.name, sourceTriangles: piece.sourceTriangles, triangles: piece.faces.length / 3, passes: piece.passes, primitive: piece.primitive ?? null }));
+  return { originalTriangles, triangles, refinedPieces, softenedPieces, welting, detail, beforeBounds, afterBounds: new THREE.Box3().setFromObject(model) };
 }

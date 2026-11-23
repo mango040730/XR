@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SPACE_COLORS } from './space-colors.js';
 
+export const WELT_CURVE_SEGMENTS = 64;
+export const WELT_RADIAL_SEGMENTS = 12;
+
 export function isUpholstery(piece) {
   return /^Lounge_Pods__/.test(piece.mesh.name) && /upholstery|cushion|fabric|ottoman/.test(piece.mesh.material.name);
 }
@@ -53,7 +56,7 @@ export function addSeatWelting(model, pieces) {
     if (!piece.seatOutline) continue;
     const points = piece.seatOutline.map(i => piece.vertices[i].clone().add(new THREE.Vector3(0, 0.001, 0)));
     const curve = new THREE.CatmullRomCurve3(points, true, 'centripetal');
-    parts.push(new THREE.TubeGeometry(curve, 32, 0.006, 5, true));
+    parts.push(new THREE.TubeGeometry(curve, WELT_CURVE_SEGMENTS, 0.006, WELT_RADIAL_SEGMENTS, true));
   }
   if (!parts.length) return { seats: 0, triangles: 0 };
   const geometry = mergeGeometries(parts, false);

@@ -31,7 +31,7 @@ function send(method, params = {}) {
 }
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function evaluate(expression) {
-  const result = await send('Runtime.evaluate', { expression, returnByValue: true });
+  const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
   assert.ok(!result.exceptionDetails, JSON.stringify(result.exceptionDetails));
   return result.result.value;
 }
@@ -76,8 +76,20 @@ try {
   await pause(120);
   const touch = await evaluate('window.spaceVR.position');
   assert.ok(start[2] - touch[2] > 0.2, `두 손가락 전진 실패: ${touch}`);
+  const frames = await evaluate(`new Promise(resolve => {
+    const times = [], start = performance.now(); let previous = start;
+    function sample(now) {
+      times.push(now - previous); previous = now;
+      if (now - start < 2000) requestAnimationFrame(sample);
+      else {
+        const ordered = times.slice().sort((a, b) => a - b);
+        resolve({ fps: times.length * 1000 / (now - start), p95FrameMs: ordered[Math.floor(ordered.length * 0.95)] });
+      }
+    }
+    requestAnimationFrame(sample);
+  })`);
   assert.deepEqual(errors, [], '브라우저 실행 오류가 없어야 합니다.');
-  console.log(JSON.stringify({ url, ready: true, start, forward, backward, left, touch, mobile, errors }, null, 2));
+  console.log(JSON.stringify({ url, ready: true, start, forward, backward, left, touch, mobile, frames, errors }, null, 2));
   const screenshot = await send('Page.captureScreenshot', { format: 'png' });
   await writeFile('/private/tmp/gonggan-movement-browser.png', Buffer.from(screenshot.data, 'base64'));
 } finally { ws.close(); }

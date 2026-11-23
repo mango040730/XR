@@ -543,6 +543,24 @@ test('곡면 상세를 높여도 삼각형 예산과 공간 외곽은 보존된�
   assert.ok(edited.clay.beforeBounds.max.distanceTo(edited.clay.afterBounds.max) < 0.00001);
 });
 
+test('가구·식재 전체가 곡면 처리되고 잎·자갈·다리는 매끄러운 입체로 재구성됐다', () => {
+  assert.ok(edited.clay.detail.length > 2000);
+  assert.ok(edited.clay.detail.every(p => p.primitive || p.passes >= 1), '면 수 제한 때문에 성긴 원본 부품을 건너뛰면 안 됩니다.');
+  assert.equal(edited.clay.detail.filter(p => /foliage/.test(p.name)).every(p => p.primitive === 'leaf'), true);
+  assert.equal(edited.clay.detail.filter(p => /River_pebble/.test(p.name)).every(p => p.primitive === 'pebble'), true);
+  const frame = gltf.scene.getObjectByName('Cafe_Furniture__Integrated_Terrace_chair_gold_frame');
+  assert.ok(frame.geometry.index.count / 3 >= 158 * 6 * 400, '158개 의자의 여섯 프레임 부품이 실제 원형 곡면이어야 합니다.');
+  const leaf = gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1');
+  assert.ok(leaf.geometry.index.count >= sourceLeafGeometry.index.count * 16);
+  for (const mesh of [frame, leaf]) {
+    const normals = mesh.geometry.attributes.normal;
+    for (let i = 0; i < normals.count; i += 17) {
+      const n = new Vector3().fromBufferAttribute(normals, i);
+      assert.ok(Number.isFinite(n.lengthSq()) && Math.abs(n.length() - 1) < 0.00001);
+    }
+  }
+});
+
 test('네 이동 계단의 양쪽 경계 전체에 빠지는 틈이 없다', () => {
   const ray = new Raycaster(); ray.firstHitOnly = true;
   for (const direction of ACCESS_DIRECTIONS) {

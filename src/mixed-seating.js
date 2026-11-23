@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 import { terraceHeight } from './space-levels.js';
 import { CENTRAL_RADIUS, TERRACE_DEPTH } from './space-layout.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from './joined-stairs.js';
@@ -7,6 +7,7 @@ import { createDeskWoodMaterial, mapCurvedWood } from './wood-desks.js';
 import { SPACE_COLORS } from './space-colors.js';
 
 export const SEATED_TIER_COUNT = 2;
+export const DESK_BEVEL_SEGMENTS = 12;
 
 export const MIXED_TIERS = Array.from({ length: 3 }, (_, i) => ({
   inner: CENTRAL_RADIUS + TERRACE_DEPTH * i,
@@ -26,11 +27,13 @@ function arcBoard(inner, outer, start, end, bottom, height, bevel = 0.035) {
   shape.closePath();
   const geometry = new THREE.ExtrudeGeometry(shape, {
     depth: height - bevel * 2, bevelEnabled: true, bevelThickness: bevel,
-    bevelSize: bevel, bevelSegments: 4, steps: 1,
+    bevelSize: bevel, bevelSegments: DESK_BEVEL_SEGMENTS, steps: 1,
   });
   geometry.rotateX(-Math.PI / 2);
   geometry.translate(0, bottom + bevel, 0);
-  return geometry;
+  const smooth = toCreasedNormals(geometry, Math.PI / 3);
+  if (smooth !== geometry) geometry.dispose();
+  return smooth;
 }
 
 export function captureChair(chair) {

@@ -46,7 +46,7 @@ export function captureChair(chair) {
   });
 }
 
-// Subtract stair corridors and existing stools, then fill each remaining arc.
+// Subtract stair corridors and nearby planters, then fill each remaining arc.
 function deskIntervals(tier, obstacles) {
   const radius = tier.inner + 0.49;
   const clearance = ACCESS_HALF_ANGLE + 0.45 / radius;
@@ -81,8 +81,8 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
     const g = arcBoard(inner, outer, start, end, bottom, height, bevel);
     add(g, wood); g.dispose();
   }
-  // Nearly continuous long desks, with a stable staggered rhythm between tiers.
-  const rhythm = [1, 1.25, 0.85, 1.1];
+  // Close-spaced 1–4-person desks, staggered in a stable irregular rhythm.
+  const rhythm = [1, 4, 2, 3, 2, 4, 1, 3, 4, 2, 1, 3];
   const clearIntervals = [];
   for (let tierIndex = 0; tierIndex < MIXED_TIERS.length; tierIndex++) {
     const tier = MIXED_TIERS[tierIndex];
@@ -93,8 +93,8 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
     for (let section = 0; section < intervals.length; section++) {
       const [a, b] = intervals[section];
       const length = (b - a) * radius;
-      const count = Math.max(1, Math.round(length / 13));
-      const gap = 0.9;
+      const count = Math.max(1, Math.round(length / 5.5));
+      const gap = 0.35;
       const weights = Array.from({ length: count }, (_, i) => rhythm[(i + section + tierIndex) % rhythm.length]);
       const totalWeight = weights.reduce((sum, w) => sum + w, 0);
       let cursor = a;
@@ -103,7 +103,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
         const start = cursor, end = cursor + width / radius;
         cursor = end + gap / radius;
         const angle = (start + end) / 2;
-        const capacity = Math.max(1, Math.floor(width / 2));
+        const capacity = weight;
         const outward = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
         const center = outward.clone().multiplyScalar(radius); center.y = tier.height;
         slot++;

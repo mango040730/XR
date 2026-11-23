@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import { meshPieces, applyPieces } from './mesh-pieces.js';
 import { captureChair, buildMixedSeating } from './mixed-seating.js';
-import { PATH_Y, terraceHeight } from './space-levels.js';
-import { CENTRAL_RADIUS, TERRACE_DEPTH, PASSAGE_WIDTH, TERRACE_OUTER } from './space-layout.js';
+import { PATH_Y } from './space-levels.js';
+import { PASSAGE_WIDTH, TERRACE_OUTER } from './space-layout.js';
 
 export { TERRACE_DEPTH, PASSAGE_WIDTH, TERRACE_OUTER } from './space-layout.js';
-export const TERRACE_INNER = TERRACE_OUTER - TERRACE_DEPTH;
 
 function distance(a, b) { return Math.hypot(a.x - b.x, a.z - b.z); }
 function nearest(point, items) {
@@ -59,16 +58,19 @@ export function arrangeTerraceSeating(meshes, model) {
   }
 
   const ottomanBases = cafe.filter(part => /Sofa_recessed/.test(part.mesh.name) && Math.abs(part.bounds.min.y - 1.71) < 0.005);
-  const ottomans = ottomanBases.map(base => ({ center: base.center.clone(), parts: [], kind: 'ottoman', innerRadius: CENTRAL_RADIUS + TERRACE_DEPTH, outerRadius: TERRACE_INNER }));
+  const ottomans = ottomanBases.map(base => ({ center: base.center.clone(), parts: [] }));
   for (const part of cafe) {
     if (!/Sofa_recessed|Tangerine_ottoman|Sunflower_cushions/.test(part.mesh.name) || part.bounds.min.y < 1.7 || part.bounds.min.y > 1.8) continue;
     const ottoman = nearest(part.center, ottomans);
-    if (ottoman && distance(part.center, ottoman.center) < 1) ottoman.parts.push(part);
+    if (ottoman && distance(part.center, ottoman.center) < 1) {
+      ottoman.parts.push(part);
+      part.remove = true;
+    }
   }
   // Replace the old terrace table sets with reference-style one-sided seating.
   for (const table of tables) for (const part of table.parts) part.remove = true;
   for (const chair of chairs) for (const part of chair.parts) part.remove = true;
-  const groups = [...pots.filter(pot => pot.parts.length), ...ottomans];
+  const groups = pots.filter(pot => pot.parts.length);
   for (const group of groups) {
     const direction = group.center.clone().setY(0).normalize();
     let minProjection = Infinity;
@@ -81,7 +83,7 @@ export function arrangeTerraceSeating(meshes, model) {
     const innerRadius = group.innerRadius ?? TERRACE_OUTER + 0.35;
     const outerLimit = group.outerRadius ?? TERRACE_OUTER + 10;
     const shift = direction.multiplyScalar(innerRadius + 0.08 - minProjection);
-    shift.y = group.kind === 'ottoman' ? terraceHeight(2) - 1.71 : PATH_Y - 1.99;
+    shift.y = PATH_Y - 1.99;
     let outerRadius = 0;
     for (const part of group.parts) {
       const p = part.mesh.geometry.attributes.position;
@@ -101,7 +103,7 @@ export function arrangeTerraceSeating(meshes, model) {
       for (const i of part.vertices) bounds.expandByPoint(new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)));
     }
     const size = bounds.getSize(new THREE.Vector3());
-    return { center: bounds.getCenter(new THREE.Vector3()), height: group.kind === 'ottoman' ? terraceHeight(2) : PATH_Y, radius: Math.hypot(size.x, size.z) / 2 };
+    return { center: bounds.getCenter(new THREE.Vector3()), height: PATH_Y, radius: Math.hypot(size.x, size.z) / 2 };
   });
   // The original central dining cluster slightly overhung the first terrace's
   // lane. Move that intact cluster one metre inward to keep all three lanes clear.
@@ -113,6 +115,7 @@ export function arrangeTerraceSeating(meshes, model) {
   for (const [mesh, pieces] of byMesh) applyPieces(mesh, pieces);
   const mixed = buildMixedSeating(model, chairTemplate, obstacles);
   return {
+    removedStools: ottomans.length,
     removedChairs: chairs.filter(chair => chair.remove).length,
     retainedChairs: mixed.seats.length,
     mixed,

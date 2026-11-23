@@ -21,6 +21,12 @@ const gltf = await new GLTFLoader().parseAsync(
 gltf.scene.updateMatrixWorld(true);
 const sourceLeafGeometry = gltf.scene.getObjectByName('Planting__Forest_foliage__-1_1').geometry.clone();
 sourceLeafGeometry.computeBoundingBox();
+let sourceCentralRoundSeats = 0;
+gltf.scene.traverse(mesh => {
+  if (mesh.isMesh && /^Lounge_Pods__.*Tangerine_ottoman/.test(mesh.name)) {
+    sourceCentralRoundSeats += meshPieces(mesh).filter(p => Math.hypot(p.center.x, p.center.z) < 23.2).length;
+  }
+});
 const edited = prepareSpace(gltf.scene);
 const floors = [];
 gltf.scene.traverse(object => {
@@ -136,19 +142,39 @@ test('전체 지름을 유지하며 단 깊이를 3m로 줄여 중앙 지름을 
   }
 });
 
-test('각 단 앞쪽에 길이가 다른 긴 곡선 일체형 책상이 촘촘히 배치된다', () => {
+test('계단 사이의 둥근 스툴은 바닥 받침·쿠션까지 제거하고 중앙 좌석은 유지했다', () => {
+  assert.equal(edited.seating.removedStools, 2);
+  let central = 0;
+  gltf.scene.traverse(mesh => {
+    if (!mesh.isMesh || mesh.userData.mixedSeating) return;
+    if (/^Lounge_Pods__.*Tangerine_ottoman/.test(mesh.name)) {
+      central += meshPieces(mesh).filter(p => Math.hypot(p.center.x, p.center.z) < 23.2).length;
+    }
+    if (!/^Cafe_Furniture__.*(Sofa_recessed|Tangerine_ottoman|Sunflower_cushions)/.test(mesh.name)) return;
+    for (const part of meshPieces(mesh)) {
+      assert.ok(Math.hypot(part.center.x, part.center.z) < CENTRAL_RADIUS, '계단 영역에 둥근 스툴의 구성 부품이 남으면 안 됩니다.');
+    }
+  });
+  assert.ok(sourceCentralRoundSeats > 0);
+  assert.equal(central, sourceCentralRoundSeats, '중앙 라운지의 둥근 좌석은 유지해야 합니다.');
+});
+
+test('각 단 앞쪽에 1~4인용 곡선 일체형 책상을 모두 섞어 촘촘히 배치했다', () => {
   const mixed = edited.seating.mixed;
+  assert.ok(mixed.singleSets >= 12);
   assert.ok(mixed.sharedSets >= 36);
   assert.ok(mixed.seats.length > 200);
   const ray = new Raycaster();
   for (let tier = 0; tier < 3; tier++) {
     const sets = mixed.sets.filter(set => set.tier === tier);
+    assert.deepEqual([...new Set(sets.map(s => s.capacity))].sort(), [1, 2, 3, 4]);
     assert.ok(new Set(sets.map(s => Math.round(s.width))).size >= 4);
     assert.ok(sets.length >= 10);
     for (const set of sets) {
       assert.ok(set.integrated);
-      assert.ok(set.width >= 8 && set.width < 18);
-      assert.ok(set.capacity >= 4);
+      assert.ok(set.width >= 1.6 && set.width < 10);
+      assert.ok(set.capacity >= 1 && set.capacity <= 4);
+      assert.equal(set.type, set.capacity === 1 ? "single" : "shared");
       assert.ok(Math.abs(set.inner - MIXED_TIERS[tier].inner - 0.14) < 0.001);
       assert.equal(mixed.seats.filter(seat => seat.setId === set.id).length, set.capacity);
       for (const fraction of [0.1, 0.5, 0.9]) {
@@ -226,7 +252,7 @@ test('실제 책상 상판이 각 단 둘레의 80% 이상을 채우며 불필�
       let gap = 0;
       for (let distance = 0.08; distance < (end - start) * radius; distance += 0.15) {
         gap = hasDesktop(start + distance / radius) ? 0 : gap + 0.15;
-        assert.ok(gap <= 1.2, '계단·스툴을 제외한 책상 사이에 넓은 빈 구간이 남으면 안 됩니다.');
+        assert.ok(gap <= 0.6, '계단을 제외한 책상 사이에 넓은 빈 구간이 남으면 안 됩니다.');
       }
     }
   }

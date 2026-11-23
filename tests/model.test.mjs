@@ -264,7 +264,7 @@ test('지정한 다섯 색상과 아래 두 단 좌석만 적용되고 맨윗단
   });
 });
 
-test('아래 두 원형 단은 연그레이이고 빈 최상단은 블루레일과 같은 색이다', () => {
+test('최상단의 윗면만 블루이며 아래 두 단과 수직면은 연그레이다', () => {
   const stairs = edited.stairs[0];
   assert.ok(Array.isArray(stairs.material));
   assert.equal(stairs.geometry.groups.length, 2);
@@ -279,6 +279,14 @@ test('아래 두 원형 단은 연그레이이고 빈 최상단은 블루레일�
       const actual = stairs.material[hit.face.materialIndex].color.getHexString();
       assert.equal(actual, tier === 2 ? edited.carpet.material.color.getHexString() : 'd9dadd');
     }
+  }
+  for (const angle of [Math.PI / 4, Math.PI * 3 / 4, Math.PI * 5 / 4, Math.PI * 7 / 4]) {
+    const radius = MIXED_TIERS[2].inner - 0.1;
+    const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+    ray.set(new Vector3(radius * direction.x, PATH_Y - 0.5, radius * direction.z), direction);
+    const hit = ray.intersectObject(stairs, false)[0];
+    assert.ok(hit && hit.distance < 0.15);
+    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'd9dadd', '블루 윗면 아래의 수직 앞면은 연그레이여야 합니다.');
   }
   for (let band = 0; band < ACCESS_STEP_COUNT - 1; band++) {
     const radius = CENTRAL_RADIUS + (band + 0.5) * (PATH_INNER_RADIUS - CENTRAL_RADIUS) / ACCESS_STEP_COUNT;
@@ -514,6 +522,7 @@ test('높이가 다른 두 계단의 측면도 빈틈 없이 연결됐다', () =
         ray.set(origin, lateral);
         const hit = ray.intersectObject(edited.stairs[0], false)[0];
         assert.ok(hit && hit.distance < 0.1, '좌석 계단과 이동 계단 사이에 연결 측면이 있어야 합니다.');
+        assert.equal(hit.face.materialIndex, 0, '이동 계단 옆 수직면은 블루 카펫이 아닌 연그레이여야 합니다.');
       }
     }
   }

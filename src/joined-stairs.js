@@ -144,17 +144,24 @@ export function stairAlignedRing(inner, outer, angles) {
 export function colorJoinedStairs(stairs, { upperInner, topY, gray, railMaterial, railOuterRadius }) {
   const geometry = stairs.geometry, p = geometry.attributes.position;
   const triangles = [[], []];
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), normal = new THREE.Vector3();
   // Keep the same triangles, batching the two colors into two material groups.
   for (let i = 0; i < geometry.index.count; i += 3) {
     const ids = [geometry.index.getX(i), geometry.index.getX(i + 1), geometry.index.getX(i + 2)];
-    let x = 0, z = 0, y = 0, radius = 0;
+    let lowest = Infinity, radius = 0;
     for (const index of ids) {
-      x += p.getX(index); z += p.getZ(index); y += p.getY(index);
+      lowest = Math.min(lowest, p.getY(index));
       radius += Math.hypot(p.getX(index), p.getZ(index));
     }
+    a.fromBufferAttribute(p, ids[0]);
+    b.fromBufferAttribute(p, ids[1]).sub(a);
+    c.fromBufferAttribute(p, ids[2]).sub(a);
+    normal.crossVectors(b, c);
+    const upward = normal.y > normal.length() * 0.5;
     const upper = radius / 3 >= upperInner - 0.00001;
-    const narrow = isAccessAngle(Math.atan2(z, x));
-    const blueFace = upper && (!narrow || y / 3 >= topY - 0.021);
+    // Carpet belongs only to the upper walking surface and its rounded nose.
+    // All vertical risers, corridor side walls and the underside stay gray.
+    const blueFace = upper && lowest >= topY - 0.021 && upward;
     triangles[Number(blueFace)].push(...ids);
   }
   geometry.setIndex([...triangles[0], ...triangles[1]]);

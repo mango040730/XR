@@ -25,9 +25,11 @@ export function createDigitalWall(model, radius, floorY) {
   screen.userData.content = 'blank';
   root.add(screen);
 
-  for (const r of [radius, radius + 0.3]) {
+  // Keep the display and its backing far enough apart to avoid depth fighting
+  // when viewing the curved wall at a shallow angle from across the room.
+  for (const r of [radius + 0.12, radius + 0.3]) {
     const side = new THREE.Mesh(new THREE.CylinderGeometry(r, r, SCREEN_WALL_HEIGHT, SEGMENTS, 1, true), frame);
-    side.name = r === radius ? 'Inner_display_housing' : 'Outer_wall_back';
+    side.name = r < radius + 0.2 ? 'Inner_display_housing' : 'Outer_wall_back';
     side.position.y = floorY + SCREEN_WALL_HEIGHT / 2;
     root.add(side);
   }
@@ -54,7 +56,7 @@ export function createDigitalWall(model, radius, floorY) {
   root.traverse(object => {
     if (!object.isMesh) return;
     object.castShadow = true;
-    object.receiveShadow = true;
+    object.receiveShadow = object.userData.surface !== 'digital-screen';
   });
   model.add(root);
   // A stable, independently mapped surface is ready for future screen content.

@@ -14,6 +14,9 @@ let id = 0;
 ws.onmessage = ({ data }) => {
   const message = JSON.parse(data);
   if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails.exception?.description ?? message.params.exceptionDetails.text);
+  if (message.method === 'Runtime.consoleAPICalled' && message.params.type === 'error') {
+    errors.push(message.params.args.map(arg => arg.value ?? arg.description ?? '').join(' '));
+  }
   if (!message.id) return;
   const handlers = pending.get(message.id);
   pending.delete(message.id);
@@ -48,6 +51,7 @@ try {
     await pause(500);
   }
   await send('Page.bringToFront');
+  assert.equal(await evaluate('document.querySelectorAll("canvas").length'), 1, '공간 캔버스는 하나여야 합니다.');
   const start = await evaluate('window.spaceVR.position');
   await key('KeyW', 'w');
   const forward = await evaluate('window.spaceVR.position');
@@ -60,6 +64,11 @@ try {
   const left = await evaluate('window.spaceVR.position');
   assert.ok(left[0] < -0.2, `방향키 이동 실패: ${left}`);
   await key('KeyR', 'r', 30);
+  await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+  await pause(400);
+  const mobile = await evaluate('({width:innerWidth,height:innerHeight,canvasWidth:document.querySelector("canvas").clientWidth,canvasHeight:document.querySelector("canvas").clientHeight})');
+  assert.equal(mobile.canvasWidth, mobile.width);
+  assert.equal(mobile.canvasHeight, mobile.height);
   await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 2 });
   await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 160, y: 200, id: 1 }, { x: 240, y: 200, id: 2 }] });
   await pause(700);
@@ -68,7 +77,7 @@ try {
   const touch = await evaluate('window.spaceVR.position');
   assert.ok(start[2] - touch[2] > 0.2, `두 손가락 전진 실패: ${touch}`);
   assert.deepEqual(errors, [], '브라우저 실행 오류가 없어야 합니다.');
-  console.log(JSON.stringify({ url, ready: true, start, forward, backward, left, touch, errors }, null, 2));
+  console.log(JSON.stringify({ url, ready: true, start, forward, backward, left, touch, mobile, errors }, null, 2));
   const screenshot = await send('Page.captureScreenshot', { format: 'png' });
   await writeFile('/private/tmp/gonggan-movement-browser.png', Buffer.from(screenshot.data, 'base64'));
 } finally { ws.close(); }

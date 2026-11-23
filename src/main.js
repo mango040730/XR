@@ -4,20 +4,22 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { acceleratedRaycast } from 'three-mesh-bvh';
 import { prepareSpace, isWalkable, WALK_RADIUS } from './prepare-space.js';
 import { collisionGeometry } from './collision.js';
+import { createStudioRenderer } from './studio-renderer.js';
 
 // The document intentionally contains only the rendering canvas: no HUD or VR button.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#cbd7dc');
-scene.fog = new THREE.Fog('#cbd7dc', 85, 180);
+scene.background = new THREE.Color('#d8d3c9');
+scene.fog = new THREE.Fog('#d8d3c9', 85, 180);
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.02;
+renderer.toneMappingExposure = 0.9;
+renderer.info.autoReset = false;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.VSMShadowMap;
 renderer.xr.enabled = true;
 renderer.xr.setReferenceSpaceType('local-floor');
 renderer.xr.setFramebufferScaleFactor(1);
@@ -37,20 +39,22 @@ const pmrem = new THREE.PMREMGenerator(renderer);
 const room = new RoomEnvironment();
 const environment = pmrem.fromScene(room, 0.04);
 scene.environment = environment.texture;
-scene.environmentIntensity = 0.8;
+scene.environmentIntensity = 0.45;
 room.dispose();
 pmrem.dispose();
-scene.add(new THREE.HemisphereLight('#fff1df', '#6b7895', 0.85));
-const sun = new THREE.DirectionalLight('#ffe7cd', 3.0);
+scene.add(new THREE.HemisphereLight('#fff2de', '#737b83', 0.6));
+const sun = new THREE.DirectionalLight('#ffe7cc', 2.6);
 sun.position.set(-22, 38, 20);
 sun.castShadow = true;
 sun.shadow.mapSize.set(4096, 4096);
 Object.assign(sun.shadow.camera, { left: -62, right: 62, top: 62, bottom: -62, near: 1, far: 130 });
 sun.shadow.normalBias = 0.02;
+sun.shadow.radius = 4;
+sun.shadow.blurSamples = 8;
 sun.shadow.bias = -0.00008;
 sun.shadow.camera.updateProjectionMatrix();
 scene.add(sun);
-const fill = new THREE.DirectionalLight('#dde7ff', 0.55);
+const fill = new THREE.DirectionalLight('#e5e9ed', 0.4);
 fill.position.set(25, 14, -20);
 scene.add(fill);
 const ground = new THREE.Mesh(
@@ -61,6 +65,7 @@ ground.rotation.x = -Math.PI / 2;
 ground.position.y = -0.825;
 ground.receiveShadow = true;
 scene.add(ground);
+const studio = createStudioRenderer(renderer, scene, camera);
 
 const ray = new THREE.Raycaster();
 ray.firstHitOnly = true;
@@ -146,7 +151,7 @@ new GLTFLoader().load(`${import.meta.env.BASE_URL}models/space.glb`, gltf => {
     if (!object.isMesh) return;
     meshes.push(object);
     object.castShadow = true;
-    object.receiveShadow = true;
+    object.receiveShadow = object.userData.surface !== 'digital-screen';
     if (isWalkable(object)) floors.push(object);
   });
   collider = collisionGeometry(meshes);
@@ -269,6 +274,7 @@ window.addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  studio.resize(innerWidth, innerHeight);
 });
 
 function xrInput(delta) {
@@ -315,5 +321,8 @@ renderer.setAnimationLoop(time => {
       moveRelative(x, z, delta, keys.has('ShiftLeft') || keys.has('ShiftRight') ? 4 : 2.5);
     }
   }
-  renderer.render(scene, camera);
+  renderer.info.reset();
+  studio.render();
 });
+
+if (import.meta.env.DEV) window.__spaceQA = { scene, camera, rig, renderer, studio };

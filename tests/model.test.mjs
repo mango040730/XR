@@ -14,6 +14,7 @@ import { TOTAL_RISE, PREVIOUS_TOTAL_RISE, ACCESS_STEP_RISE, ACCESS_STEP_COUNT, A
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from '../src/joined-stairs.js';
 import { CENTRAL_STEP_RISE, centralBoundary, centralIsRaised } from '../src/central-room.js';
 import { collisionGeometry } from '../src/collision.js';
+import { SPACE_COLORS } from '../src/space-colors.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, CENTRAL_RADIUS } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -41,6 +42,7 @@ gltf.scene.traverse(mesh => {
 });
 const sourceUpholstery = expectedLiftedGeometry(gltf.scene.getObjectByName('Lounge_Pods__Coral_cushion_variation__0_0'));
 sourceUpholstery.computeBoundingBox();
+const sourceSeatTriangles = gltf.scene.getObjectByName('Lounge_Pods__Terracotta_coral_upholstery__0_0').geometry.index.count / 3;
 const edited = prepareSpace(gltf.scene);
 const floors = [];
 gltf.scene.traverse(object => {
@@ -515,6 +517,20 @@ test('도장·새틴·도자기·금속의 광택을 구분하고 스크린과 �
   assert.equal(ceramic.metalness, 0);
   assert.equal(edited.carpet.material.sheen, 1);
   assert.equal(edited.digitalWall.screen.material.clearcoat, 0.8);
+});
+
+test('좌판은 실제 곡면 정점과 밀착된 입체 마감선을 가진다', () => {
+  const cushions = gltf.scene.getObjectByName('Lounge_Pods__Terracotta_coral_upholstery__0_0');
+  assert.ok(cushions.geometry.index.count / 3 > sourceSeatTriangles * 2.5, '큰 평면 좌판과 등받이를 실제 곡면으로 나눠야 합니다.');
+  const welting = gltf.scene.getObjectByName('Sofa_seat_tailored_welting');
+  assert.equal(edited.clay.welting.seats, 55);
+  assert.equal(welting.material.color.getHexString(), SPACE_COLORS.coral.slice(1).toLowerCase());
+  computeBoundsTree.call(cushions.geometry);
+  const p = welting.geometry.attributes.position;
+  for (let i = 0; i < p.count; i += 97) {
+    const hit = cushions.geometry.boundsTree.closestPointToPoint(new Vector3().fromBufferAttribute(p, i));
+    assert.ok(hit.distance < 0.035, '마감선은 실제 쿠션 표면에 붙어 있어야 합니다.');
+  }
 });
 
 test('곡면 상세를 높여도 삼각형 예산과 공간 외곽은 보존된다', () => {

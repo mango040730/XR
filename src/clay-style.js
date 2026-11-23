@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { meshPieces } from './mesh-pieces.js';
 import { SPACE_COLORS } from './space-colors.js';
+import { isUpholstery, seatOutline, crownCushion, addSeatWelting } from './upholstery-detail.js';
 
 export const CLAY_TRIANGLE_BUDGET = 900000;
 const PROP = /^(Planting|Cafe_Furniture|Lounge_Pods|Luminaires)__/;
@@ -9,8 +10,8 @@ const palette = [
   [/Cobalt fabric/, '#163e8c'], [/Sunflower/, '#ffce32'], [/Tangerine/, '#ff891c'],
   [/Honey yellow/, '#ffc553'], [/Golden oak/, '#f2b44e'], [/Sofa recessed/, '#a78d74'],
   [/River pebble warm/, '#b6a58d'], [/River pebble grey/, '#92978c'],
-  [/Forest foliage/, '#596b1f'], [/Sage foliage/, '#829238'], [/Fresh yellow green/, '#b4b72c'],
-  [/Plant stems/, '#77802b'], [/Planter dark soil/, '#63502f'],
+  [/Forest foliage/, '#405843'], [/Sage foliage/, '#78866a'], [/Fresh yellow green/, '#a7ad6b'],
+  [/Plant stems/, '#5e704b'], [/Planter dark soil/, '#40372e'],
   [/Porcelain and sign/, SPACE_COLORS.sculpture], [/Cream porcelain/, SPACE_COLORS.floor], [/Warm grey terrace/, SPACE_COLORS.sculpture],
   [/Opal lamp/, '#fff0d5'],
 ];
@@ -22,7 +23,14 @@ function normals(vertices, faces) {
     const a = faces[i], b = faces[i + 1], c = faces[i + 2];
     ab.subVectors(vertices[b], vertices[a]); ac.subVectors(vertices[c], vertices[a]);
     normal.crossVectors(ab, ac);
-    out[a].add(normal); out[b].add(normal); out[c].add(normal);
+    // Angle weighting prevents large cap triangles from flattening the small
+    // bevel rings, preserving a clean highlight around rounded ceramic edges.
+    normal.normalize();
+    for (const [id, next, previous] of [[a, b, c], [b, c, a], [c, a, b]]) {
+      ab.subVectors(vertices[next], vertices[id]); ac.subVectors(vertices[previous], vertices[id]);
+      const angle = ab.lengthSq() && ac.lengthSq() ? ab.angleTo(ac) : 0;
+      out[id].addScaledVector(normal, angle);
+    }
   }
   return out.map(n => n.normalize());
 }
@@ -40,7 +48,7 @@ function weldedPiece(piece) {
 }
 
 function softenUpholstery(piece) {
-  if (!/^Lounge_Pods__/.test(piece.mesh.name) || !/upholstery|cushion|fabric|ottoman/.test(piece.mesh.material.name)) return false;
+  if (!isUpholstery(piece)) return false;
   const original = piece.vertices.map(v => v.clone());
   const neighbours = piece.vertices.map(() => new Set());
   for (let i = 0; i < piece.faces.length; i += 3) {
@@ -60,6 +68,8 @@ function softenUpholstery(piece) {
     });
   }
   fitBounds(piece);
+  crownCushion(piece);
+  fitBounds(piece);
   return true;
 }
 
@@ -68,14 +78,14 @@ function surfaceFinish(name) {
   if (/Terrace chair .* seat/.test(name)) return { roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.23 };
   if (/Planter dark soil/.test(name)) return { roughness: 0.95, specularIntensity: 0.15 };
   if (/Sofa recessed/.test(name)) return { color: '#bfc5cb', roughness: 0.24, metalness: 0.8, clearcoat: 0.25, envMapIntensity: 1 };
-  if (/foliage|Plant stems/.test(name)) return { roughness: 0.4, clearcoat: 0.2, clearcoatRoughness: 0.3 };
-  if (/River pebble/.test(name)) return { roughness: 0.62, specularIntensity: 0.35, clearcoat: 0.06 };
+  if (/foliage|Plant stems/.test(name)) return { roughness: 0.56, clearcoat: 0.1, clearcoatRoughness: 0.4 };
+  if (/River pebble/.test(name)) return { roughness: 0.82, specularIntensity: 0.28, clearcoat: 0.02 };
   if (/Golden oak/.test(name)) return { roughness: 0.28, clearcoat: 0.45, clearcoatRoughness: 0.2, envMapIntensity: 0.8 };
   if (/Honey yellow table/.test(name)) return { roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.23 };
-  if (/upholstery|cushion|fabric|ottoman/.test(name)) return { roughness: 0.43, specularIntensity: 0.5, clearcoat: 0.08, sheen: 0.3, sheenRoughness: 0.65 };
+  if (/upholstery|cushion|fabric|ottoman/.test(name)) return { roughness: 0.6, specularIntensity: 0.38, clearcoat: 0.025, sheen: 0.42, sheenRoughness: 0.8 };
   if (/Warm grey terrace/.test(name)) return { roughness: 0.65, specularIntensity: 0.35, clearcoat: 0.04 };
   if (/Cream porcelain/.test(name)) return { roughness: 0.52, specularIntensity: 0.45, clearcoat: 0.12 };
-  if (/ivory|Porcelain|Opal lamp/.test(name)) return { roughness: 0.3, clearcoat: 0.35, clearcoatRoughness: 0.2 };
+  if (/ivory|Porcelain|Opal lamp/.test(name)) return { roughness: 0.37, clearcoat: 0.28, clearcoatRoughness: 0.3, specularIntensity: 0.45 };
   return {};
 }
 
@@ -140,25 +150,30 @@ export function applyClayStyle(model) {
   model.traverse(mesh => { if (mesh.isMesh) triangles += (mesh.geometry.index?.count ?? mesh.geometry.attributes.position.count) / 3; });
   const originalTriangles = triangles;
   const pieces = [...geometryByMesh.values()].flat();
-  let softenedPieces = 0;
-  for (const piece of pieces) if (softenUpholstery(piece)) softenedPieces++;
-  // Preserve fine leaf silhouettes before spending the remaining geometry
-  // budget on furniture, whose new bevels are already densely modelled.
-  const priority = piece => /Forest_foliage/.test(piece.mesh.name) ? 0 : /foliage|Plant_stems/.test(piece.mesh.name) ? 1 : 2;
+  for (const piece of pieces) piece.seatOutline = seatOutline(piece);
+  const weltingReserve = pieces.filter(p => p.seatOutline).length * 32 * 5 * 2;
+  const refinementBudget = CLAY_TRIANGLE_BUDGET - weltingReserve;
+  // Spend geometry on upholstered silhouettes first, then leaves. Large flat
+  // cushion faces now gain curved intermediate vertices instead of only normals.
+  const priority = piece => isUpholstery(piece) ? 0 : /Forest_foliage/.test(piece.mesh.name) ? 1 : /foliage|Plant_stems/.test(piece.mesh.name) ? 2 : 3;
   const refinementOrder = [...pieces].sort((a, b) => priority(a) - priority(b));
   let refinedPieces = 0;
   for (const piece of refinementOrder) {
     const count = piece.faces.length / 3;
-    if (count > 256 || triangles + count * 3 > CLAY_TRIANGLE_BUDGET) continue;
+    if (count > (isUpholstery(piece) ? 512 : 256) || triangles + count * 3 > refinementBudget) continue;
     refine(piece, /foliage|Plant_stems/.test(piece.mesh.name) ? 0.035 : 0.018);
     triangles += count * 3; refinedPieces++;
   }
   for (const piece of pieces) {
     const count = piece.faces.length / 3;
-    if (!/foliage|Plant_stems/.test(piece.mesh.name) || count > 512 || triangles + count * 3 > CLAY_TRIANGLE_BUDGET) continue;
+    if (!/foliage|Plant_stems/.test(piece.mesh.name) || count > 512 || triangles + count * 3 > refinementBudget) continue;
     refine(piece, 0.018); triangles += count * 3;
   }
+  let softenedPieces = 0;
+  for (const piece of pieces) if (softenUpholstery(piece)) softenedPieces++;
   for (const [mesh, geometryPieces] of geometryByMesh) buildGeometry(mesh, geometryPieces);
+  const welting = addSeatWelting(model, pieces);
+  triangles += welting.triangles;
 
   const materials = new Map();
   model.traverse(mesh => {
@@ -194,5 +209,5 @@ export function applyClayStyle(model) {
     mesh.material.color.set('#ffffff');
     mesh.material.vertexColors = true;
   });
-  return { originalTriangles, triangles, refinedPieces, softenedPieces, beforeBounds, afterBounds: new THREE.Box3().setFromObject(model) };
+  return { originalTriangles, triangles, refinedPieces, softenedPieces, welting, beforeBounds, afterBounds: new THREE.Box3().setFromObject(model) };
 }

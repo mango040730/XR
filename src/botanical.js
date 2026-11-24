@@ -36,7 +36,7 @@ function tube(points, radius, color, segments = 12, radial = 7, taper = 1) {
 
 // A softly rounded, plump clay leaf, retaining the natural midrib, petiole and
 // branching direction. The margin and tips flow into the thicker leaf body.
-function leafBlade(base, direction, length, width, green, curl) {
+export function leafBlade(base, direction, length, width, green, curl) {
   const tangent = direction.clone().normalize();
   const across = new THREE.Vector3(tangent.z, 0, -tangent.x).normalize();
   const normal = tangent.clone().cross(across).normalize();

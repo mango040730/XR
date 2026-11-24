@@ -58,14 +58,20 @@ export function rebuildCentralRoom(model) {
     applyPieces(mesh, pieces);
   }
 
+  const platform = createCentralPlatform(model);
+  return { platform, rise: CENTRAL_STEP_RISE, removedDividers, raisedPieces, removedFloatingSeats: floatingSeats.length, removedFloatingSeatParts };
+}
+
+export function createCentralPlatform(model, { radius = CENTRAL_RADIUS, scale = 1 } = {}) {
+  const boundary = u => centralBoundary(u / scale) * scale;
   // A filled rear half-room, including the curved vertical riser. No separate
   // strip or wall stands above the floor. The front remains at FLOOR_Y.
-  const R = CENTRAL_RADIUS;
+  const R = radius;
   function root(sign) {
     let lo = -R, hi = R;
     for (let i = 0; i < 60; i++) {
       const u = (lo + hi) / 2;
-      const value = centralBoundary(u) - sign * Math.sqrt(Math.max(0, R * R - u * u));
+      const value = boundary(u) - sign * Math.sqrt(Math.max(0, R * R - u * u));
       if (value > 0) hi = u; else lo = u;
     }
     return (lo + hi) / 2;
@@ -75,10 +81,10 @@ export function rebuildCentralRoom(model) {
   const point = (u, s) => new THREE.Vector2((s + u) / Math.SQRT2, (u - s) / Math.SQRT2);
   for (let i = 0; i <= 384; i++) {
     const u = THREE.MathUtils.lerp(left, right, i / 384);
-    points.push(point(u, centralBoundary(u)));
+    points.push(point(u, boundary(u)));
   }
-  const start = Math.atan2(centralBoundary(right), right);
-  let end = Math.atan2(centralBoundary(left), left);
+  const start = Math.atan2(boundary(right), right);
+  let end = Math.atan2(boundary(left), left);
   while (end >= start) end -= Math.PI * 2;
   for (let i = 1; i < 384; i++) {
     const angle = THREE.MathUtils.lerp(start, end, i / 384);
@@ -95,5 +101,5 @@ export function rebuildCentralRoom(model) {
   platform.userData.walkable = true;
   platform.castShadow = platform.receiveShadow = true;
   model.add(platform);
-  return { platform, rise: CENTRAL_STEP_RISE, removedDividers, raisedPieces, removedFloatingSeats: floatingSeats.length, removedFloatingSeatParts };
+  return platform;
 }

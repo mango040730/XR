@@ -6,7 +6,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { TERRACE_OUTER } from './space-layout.js';
 import { PATH_Y } from './space-levels.js';
 
-export function createStudioRenderer(renderer, scene, camera) {
+export function createStudioRenderer(renderer, scene, camera, { displayRadius = TERRACE_OUTER + 9.85, floorY = PATH_Y } = {}) {
   const target = new THREE.WebGLRenderTarget(1, 1, {
     type: THREE.HalfFloatType, samples: Math.min(4, renderer.capabilities.maxSamples),
   });
@@ -20,8 +20,8 @@ export function createStudioRenderer(renderer, scene, camera) {
   contact.normalMaterial.side = THREE.DoubleSide;
   // The emissive display is not an ambient-lit furniture surface. Excluding
   // its distant curved face also avoids depth-precision streaks in GTAO.
-  contact.gtaoMaterial.defines.DISPLAY_RADIUS = (TERRACE_OUTER + 9.85).toFixed(3);
-  contact.gtaoMaterial.defines.DISPLAY_FLOOR = PATH_Y.toFixed(5);
+  contact.gtaoMaterial.defines.DISPLAY_RADIUS = displayRadius.toFixed(3);
+  contact.gtaoMaterial.defines.DISPLAY_FLOOR = floorY.toFixed(5);
   contact.gtaoMaterial.fragmentShader = contact.gtaoMaterial.fragmentShader.replace(
     'vec3 viewPos = getViewPosition(vUv, depth);',
     `vec3 viewPos = getViewPosition(vUv, depth);

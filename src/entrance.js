@@ -10,19 +10,23 @@ export const ENTRY_RADIUS = TERRACE_OUTER + 10;
 export const ENTRY_OUTER_Z = ENTRY_RADIUS + 2.8;
 export const ENTRY_POSITION = [0, PATH_Y + 0.025, ENTRY_RADIUS + 1.1];
 export const ENTRY_PITCH = -0.12;
+export function entranceConfig(radius, floorY) {
+  return { position: [0, floorY + 0.025, radius + 1.1], outerZ: radius + 2.8, pitch: ENTRY_PITCH };
+}
+const DEFAULT_ENTRY = { position: ENTRY_POSITION, outerZ: ENTRY_OUTER_Z, pitch: ENTRY_PITCH };
 
-export function resetToEntrance(rig, camera, immersive = false) {
-  rig.position.set(...ENTRY_POSITION);
+export function resetToEntrance(rig, camera, immersive = false, entry = DEFAULT_ENTRY) {
+  rig.position.set(...entry.position);
   rig.rotation.set(0, 0, 0);
-  camera.rotation.set(immersive ? 0 : ENTRY_PITCH, 0, 0);
+  camera.rotation.set(immersive ? 0 : entry.pitch, 0, 0);
   if (!immersive) camera.position.set(0, 1.65, 0);
 }
 
 // Expand the walking limit only through this entrance, with a shoulder margin
 // inside its jambs and a safe stopping distance before the landing's outer edge.
-export function withinWalkBoundary(x, z, circleRadius) {
+export function withinWalkBoundary(x, z, circleRadius, entry = DEFAULT_ENTRY) {
   return Math.hypot(x, z) <= circleRadius
-    || (Math.abs(x) <= ENTRY_WIDTH / 2 - 0.35 && z >= circleRadius - 0.5 && z <= ENTRY_OUTER_Z - 0.35);
+    || (Math.abs(x) <= ENTRY_WIDTH / 2 - 0.35 && z >= circleRadius - 0.5 && z <= entry.outerZ - 0.35);
 }
 
 // Three curved patches share the original full-circle UV coordinates. The
@@ -58,6 +62,7 @@ export function wallWithOpening(radius, bottom, top, segments = 512) {
 }
 
 export function createEntrance(root, radius, floorY, carpetMaterial, carpetGeometry) {
+  const outerZ = entranceConfig(radius, floorY).outerZ;
   const frameMaterial = new THREE.MeshPhysicalMaterial({
     name: 'Entrance ivory ceramic', color: SPACE_COLORS.sculpture, roughness: 0.42, clearcoat: 0.2,
   });
@@ -95,7 +100,7 @@ export function createEntrance(root, radius, floorY, carpetMaterial, carpetGeome
   for (const x of [-halfWidth, ...rim.filter(p => p.x > -halfWidth && p.x < halfWidth).map(p => p.x), halfWidth]) {
     points.push(new THREE.Vector2(x, -rimZ(x)));
   }
-  points.push(new THREE.Vector2(halfWidth, -ENTRY_OUTER_Z), new THREE.Vector2(-halfWidth, -ENTRY_OUTER_Z));
+  points.push(new THREE.Vector2(halfWidth, -outerZ), new THREE.Vector2(-halfWidth, -outerZ));
   const geometry = new THREE.ExtrudeGeometry(new THREE.Shape(points), { depth: 0.3, bevelEnabled: false, steps: 1 });
   geometry.rotateX(-Math.PI / 2); geometry.translate(0, floorY - 0.3, 0);
   const p = geometry.attributes.position, uv = geometry.attributes.uv;

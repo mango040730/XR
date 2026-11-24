@@ -15,7 +15,8 @@ export function isAccessAngle(angle) {
 
 // Both kinds of stairs share this one solid surface. Exact angular boundaries
 // and filled side faces replace the source model's separate, gapped objects.
-export function createJoinedStairs(model, { inner, outer, floorY, topY, material }) {
+export function createJoinedStairs(model, { inner, outer, floorY, topY, material, stepCount = ACCESS_STEP_COUNT }) {
+  const stepsPerTier = stepCount / 3;
   const angles = [0, FULL_CIRCLE];
   // Put cardinal walking lines inside cells, rather than on triangle edges.
   for (let i = 0; i < SEGMENTS; i++) angles.push((i + 0.5) * FULL_CIRCLE / SEGMENTS);
@@ -27,7 +28,7 @@ export function createJoinedStairs(model, { inner, outer, floorY, topY, material
   const keys = angles.filter((a, i) => i === 0 || a - angles[i - 1] > 1e-9);
   const count = keys.length - 1;
   const access = Array.from({ length: count }, (_, i) => isAccessAngle((keys[i] + keys[i + 1]) / 2));
-  const bandDepth = (outer - inner) / ACCESS_STEP_COUNT;
+  const bandDepth = (outer - inner) / stepCount;
   const positions = [], indices = [], cache = new Map();
   function vertex(radius, angle, height) {
     const x = Math.round(radius * Math.cos(angle) * 1e7) / 1e7;
@@ -47,8 +48,8 @@ export function createJoinedStairs(model, { inner, outer, floorY, topY, material
   }
   function height(band, narrow) {
     if (band < 0) return floorY;
-    const level = narrow ? band + 1 : Math.ceil((band + 1) / ACCESS_STEPS_PER_TIER) * ACCESS_STEPS_PER_TIER;
-    return floorY + (topY - floorY) * level / ACCESS_STEP_COUNT;
+    const level = narrow ? band + 1 : Math.ceil((band + 1) / stepsPerTier) * stepsPerTier;
+    return floorY + (topY - floorY) * level / stepCount;
   }
   function profile(band, narrow) {
     const r0 = inner + band * bandDepth, h = height(band, narrow), previous = height(band - 1, narrow);
@@ -62,7 +63,7 @@ export function createJoinedStairs(model, { inner, outer, floorY, topY, material
     result.push([r0 + bandDepth, h]);
     return result;
   }
-  for (let band = 0; band < ACCESS_STEP_COUNT; band++) {
+  for (let band = 0; band < stepCount; band++) {
     const profiles = [profile(band, false), profile(band, true)];
     for (let i = 0; i < count; i++) {
       const a0 = keys[i], a1 = keys[i + 1], narrow = access[i], p = profiles[Number(narrow)];
@@ -115,6 +116,7 @@ export function createJoinedStairs(model, { inner, outer, floorY, topY, material
   stairs.name = 'Terraces__Joined_circular_and_access_stairs';
   stairs.userData.walkable = true;
   stairs.userData.joinedStairs = true;
+  stairs.userData.stepCount = stepCount;
   stairs.userData.boundaryAngles = keys;
   stairs.castShadow = stairs.receiveShadow = true;
   model.add(stairs);

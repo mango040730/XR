@@ -2,11 +2,12 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { acceleratedRaycast } from 'three-mesh-bvh';
-import { prepareSpace, isWalkable, WALK_RADIUS } from './prepare-space.js';
+import { isWalkable } from './prepare-space.js';
 import { collisionGeometry } from './collision.js';
 import { createStudioRenderer } from './studio-renderer.js';
-import { CENTRAL_FURNITURE_LAYOUT } from './central-furniture.js';
-import { resetToEntrance, withinWalkBoundary, ENTRY_POSITION } from './entrance.js';
+import { prepareGatheringSpace } from './compact-space.js';
+import { GATHERING_LAYOUT, GATHERING_ENTRY } from './gathering-layout.js';
+import { resetToEntrance, withinWalkBoundary } from './entrance.js';
 
 // The document intentionally contains only the rendering canvas: no HUD or VR button.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -32,7 +33,7 @@ document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(68, innerWidth / innerHeight, 0.06, 240);
 camera.rotation.order = 'YXZ';
 const rig = new THREE.Group();
-resetToEntrance(rig, camera);
+resetToEntrance(rig, camera, false, GATHERING_ENTRY);
 scene.add(rig);
 rig.add(camera);
 
@@ -48,7 +49,7 @@ const sun = new THREE.DirectionalLight('#ffe7cc', 2.6);
 sun.position.set(-22, 38, 20);
 sun.castShadow = true;
 sun.shadow.mapSize.set(4096, 4096);
-Object.assign(sun.shadow.camera, { left: -62, right: 62, top: 62, bottom: -62, near: 1, far: 130 });
+Object.assign(sun.shadow.camera, { left: -32, right: 32, top: 32, bottom: -32, near: 1, far: 130 });
 sun.shadow.normalBias = 0.02;
 sun.shadow.radius = 4;
 sun.shadow.blurSamples = 8;
@@ -66,7 +67,7 @@ ground.rotation.x = -Math.PI / 2;
 ground.position.y = -0.825;
 ground.receiveShadow = true;
 scene.add(ground);
-const studio = createStudioRenderer(renderer, scene, camera);
+const studio = createStudioRenderer(renderer, scene, camera, { displayRadius: GATHERING_LAYOUT.outerRadius - 0.15, floorY: GATHERING_LAYOUT.pathY });
 
 const ray = new THREE.Raycaster();
 ray.firstHitOnly = true;
@@ -97,7 +98,7 @@ function tryMove(dx, dz, delta) {
   if (!ready || Math.abs(dx) + Math.abs(dz) < 0.00001) return;
   camera.getWorldPosition(head);
   const x = head.x, z = head.z;
-  if (!withinWalkBoundary(x + dx, z + dz, WALK_RADIUS)) return;
+  if (!withinWalkBoundary(x + dx, z + dz, GATHERING_LAYOUT.walkRadius, GATHERING_ENTRY)) return;
   const height = floorHeight(x + dx, z + dz, rig.position.y);
   if (height === null || height - rig.position.y > 0.34) return;
   direction.set(dx, 0, dz);
@@ -135,18 +136,14 @@ function moveRelative(x, z, delta, speed = 2.5) {
 }
 
 function resetPosition() {
-  resetToEntrance(rig, camera, renderer.xr.isPresenting);
+  resetToEntrance(rig, camera, renderer.xr.isPresenting, GATHERING_ENTRY);
 }
 
 async function loadSpace() {
   const loader = new GLTFLoader();
-  const [gltf, ...furnitureFiles] = await Promise.all([
-    loader.loadAsync(`${import.meta.env.BASE_URL}models/space.glb`),
-    ...CENTRAL_FURNITURE_LAYOUT.map(({ id }) => loader.loadAsync(`${import.meta.env.BASE_URL}models/furniture-v2/${id}.glb`)),
-  ]);
-  const centralFurniture = new Map(CENTRAL_FURNITURE_LAYOUT.map(({ id }, i) => [id, furnitureFiles[i].scene]));
+  const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/space.glb`);
   const model = gltf.scene;
-  prepareSpace(model, { centralFurniture });
+  prepareGatheringSpace(model);
   scene.add(model);
   model.updateMatrixWorld(true);
   const meshes = [], floors = [];
@@ -159,7 +156,7 @@ async function loadSpace() {
   });
   collider = collisionGeometry(meshes);
   floor = collisionGeometry(floors);
-  const initialFloor = floorHeight(ENTRY_POSITION[0], ENTRY_POSITION[2], ENTRY_POSITION[1], 2);
+  const initialFloor = floorHeight(GATHERING_ENTRY.position[0], GATHERING_ENTRY.position[2], GATHERING_ENTRY.position[1], 2);
   if (initialFloor !== null) rig.position.y = initialFloor;
   ready = true;
   document.documentElement.dataset.scene = 'ready';
@@ -217,7 +214,7 @@ controllers.forEach(controller => {
     if (!destination || Math.abs(destination.face.normal.y) < 0.7) return;
     const obstruction = ray.intersectObject(collider, false)[0];
     if (obstruction && obstruction.distance < destination.distance - 0.07) return;
-    if (!withinWalkBoundary(destination.point.x, destination.point.z, WALK_RADIUS)) return;
+    if (!withinWalkBoundary(destination.point.x, destination.point.z, GATHERING_LAYOUT.walkRadius, GATHERING_ENTRY)) return;
     // Ensure the landing spot has enough clear space for a standing viewer.
     for (const offset of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {
       origin.copy(destination.point).addScaledVector(up, 0.9);

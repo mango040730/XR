@@ -73,7 +73,7 @@ function deskIntervals(tier, obstacles) {
   return intervals.filter(([start, end]) => (end - start) * radius >= 2);
 }
 
-export function buildMixedSeating(model, chairTemplate, obstacles) {
+export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22 } = {}) {
   const root = new THREE.Group(); root.name = 'Terrace_integrated_seating';
   const wood = createDeskWoodMaterial();
   const chairMaterials = new Map();
@@ -102,7 +102,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
   const rhythm = [1, 4, 2, 3, 2, 4, 1, 3, 4, 2, 1, 3];
   const clearIntervals = [];
   for (let tierIndex = 0; tierIndex < SEATED_TIER_COUNT; tierIndex++) {
-    const tier = MIXED_TIERS[tierIndex];
+    const tier = tiers[tierIndex];
     const radius = tier.inner + 0.49;
     const intervals = deskIntervals(tier, obstacles);
     clearIntervals.push(intervals);
@@ -136,7 +136,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles) {
           const chairAngle = angle + (chair - (capacity - 1) / 2) * (width / capacity) / radius;
           const direction = new THREE.Vector3(Math.cos(chairAngle), 0, Math.sin(chairAngle));
           const along = new THREE.Vector3(direction.z, 0, -direction.x);
-          const position = direction.clone().multiplyScalar(tier.inner + 1.22); position.y = tier.height;
+          const position = direction.clone().multiplyScalar(tier.inner + chairOffset); position.y = tier.height;
           const matrix = new THREE.Matrix4().makeBasis(along, new THREE.Vector3(0, 1, 0), direction);
           matrix.setPosition(position);
           for (const part of chairTemplate) add(part.geometry, chairMaterials.get(part.material), matrix);

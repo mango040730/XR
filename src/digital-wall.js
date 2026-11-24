@@ -4,7 +4,7 @@ import { ENTRY_WIDTH, wallWithOpening, createEntrance } from './entrance.js';
 export const SCREEN_WALL_HEIGHT = 6.8;
 const SEGMENTS = 512;
 
-export function createDigitalWall(model, radius, floorY, carpet) {
+export function createDigitalWall(model, radius, floorY, carpet, height = SCREEN_WALL_HEIGHT) {
   const root = new THREE.Group();
   root.name = 'Full_circle_digital_wall';
   const frame = new THREE.MeshStandardMaterial({
@@ -17,7 +17,7 @@ export function createDigitalWall(model, radius, floorY, carpet) {
     emissive: '#19386f', emissiveIntensity: 0.28, side: THREE.DoubleSide,
   });
   const screen = new THREE.Mesh(
-    wallWithOpening(radius - 0.01, 0.12, SCREEN_WALL_HEIGHT - 0.12, SEGMENTS),
+    wallWithOpening(radius - 0.01, 0.12, height - 0.12, SEGMENTS),
     display,
   );
   screen.name = 'Digital_screen_360';
@@ -29,12 +29,12 @@ export function createDigitalWall(model, radius, floorY, carpet) {
   // Keep the display and its backing far enough apart to avoid depth fighting
   // when viewing the curved wall at a shallow angle from across the room.
   for (const r of [radius + 0.12, radius + 0.3]) {
-    const side = new THREE.Mesh(wallWithOpening(r, 0, SCREEN_WALL_HEIGHT, SEGMENTS), frame);
+    const side = new THREE.Mesh(wallWithOpening(r, 0, height, SEGMENTS), frame);
     side.name = r < radius + 0.2 ? 'Inner_display_housing' : 'Outer_wall_back';
     side.position.y = floorY;
     root.add(side);
   }
-  for (const y of [floorY, floorY + SCREEN_WALL_HEIGHT]) {
+  for (const y of [floorY, floorY + height]) {
     const halfAngle = y === floorY ? Math.asin(ENTRY_WIDTH / 2 / radius) : 0;
     const geometry = new THREE.RingGeometry(radius, radius + 0.3, SEGMENTS, 1, Math.PI * 1.5 + halfAngle, Math.PI * 2 - halfAngle * 2);
     geometry.rotateX(-Math.PI / 2);
@@ -47,7 +47,7 @@ export function createDigitalWall(model, radius, floorY, carpet) {
     name: 'Slim screen bezel', color: '#ffe1ae', roughness: 0.35, metalness: 0.4,
     emissive: '#ffb461', emissiveIntensity: 0.15,
   });
-  for (const y of [floorY + 0.12, floorY + SCREEN_WALL_HEIGHT - 0.12]) {
+  for (const y of [floorY + 0.12, floorY + height - 0.12]) {
     let geometry;
     if (y < floorY + 1) {
       const halfAngle = Math.asin(ENTRY_WIDTH / 2 / (radius - 0.01));
@@ -76,5 +76,5 @@ export function createDigitalWall(model, radius, floorY, carpet) {
   model.add(root);
   // A stable, independently mapped surface is ready for future screen content.
   // This change intentionally supplies no graphics, text, controls or behavior.
-  return { root, screen, entrance, radius: radius - 0.01, height: SCREEN_WALL_HEIGHT };
+  return { root, screen, entrance, radius: radius - 0.01, height };
 }

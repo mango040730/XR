@@ -2,7 +2,8 @@
 // No browser dependencies or application-only testing hooks are required.
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
-import { ENTRY_POSITION, ENTRY_RADIUS } from '../src/entrance.js';
+import { GATHERING_ENTRY, GATHERING_LAYOUT } from '../src/gathering-layout.js';
+const ENTRY_POSITION = GATHERING_ENTRY.position, ENTRY_RADIUS = GATHERING_LAYOUT.outerRadius;
 
 const url = process.argv[2] ?? 'http://127.0.0.1:4173/';
 const targets = await (await fetch('http://127.0.0.1:9223/json/list')).json();

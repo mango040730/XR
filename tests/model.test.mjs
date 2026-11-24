@@ -704,7 +704,7 @@ test('중앙 소파와 화분의 바닥 접점은 곡선 단차를 가로지르�
 });
 
 
-test('식물은 얇고 뾰족한 잎몸·잎맥·잎자루와 분지된 가지로 구성된다', () => {
+test('식물은 도톰한 클레이 잎·잎맥·잎자루와 자연스러운 가지로 구성된다', () => {
   const botanical = edited.botanical, mesh = gltf.scene.getObjectByName('Botanical_leaves');
   assert.equal(botanical.plots.length, 11);
   assert.equal(botanical.trees, 34);
@@ -716,10 +716,28 @@ test('식물은 얇고 뾰족한 잎몸·잎맥·잎자루와 분지된 가지�
     assert.ok(point('base').distanceTo(leaf.base) < 0.00001);
     assert.ok(point('tip').distanceTo(leaf.tip) < 0.00001);
     const thickness = point('upper').distanceTo(point('lower'));
-    assert.ok(thickness > 0.00001 && thickness < 0.01, '잎은 두꺼운 타원체가 아니라 얇은 잎몸이어야 합니다.');
+    assert.ok(thickness > 0.003 && thickness < 0.08, '잎몸은 도톰한 클레이 볼륨을 가져야 합니다.');
+    assert.equal(leaf.profile, 'rounded-clay-blade');
+    assert.ok(point('tipLeft').distanceTo(point('tipRight')) / point('middleLeft').distanceTo(point('middleRight')) > 0.25, '끝부분이 날카로운 종이 형태로 좁아지면 안 됩니다.');
     assert.ok(point('base').distanceTo(point('tip')) > leaf.width);
   }
-  assert.ok(gltf.scene.getObjectByName('Botanical_branches').geometry.index.count > 100000, '가지·잎자루·잎맥이 실제 입체 메시여야 합니다.');
+  assert.ok(gltf.scene.getObjectByName('Botanical_branches').geometry.index.count > 100000, '가지·잎자루가 실제 입체 메시여야 합니다.');
+});
+
+test('모든 화분의 실제 흙 영역을 둥근 자갈로 촘촘히 채웠다', () => {
+  const bedding = edited.planterStones;
+  assert.equal(bedding.plots.length, edited.botanical.plots.length);
+  assert.ok(bedding.stones.length > 600);
+  assert.ok(bedding.mesh.geometry.index.count > 1000000);
+  for (const plot of bedding.plots) {
+    assert.ok(plot.stones >= 20, '탁상 화분도 자갈을 채워야 합니다.');
+    assert.ok(plot.coverage >= 0.9, `흙이 많이 드러나면 안 됩니다: ${plot.coverage}`);
+  }
+  for (const stone of bedding.stones.filter((_, i) => i % 17 === 0)) {
+    const plot = bedding.plots[stone.plot];
+    assert.ok(plot.bounds.containsPoint(new Vector3(stone.x, plot.soilY, stone.z)));
+    assert.ok(stone.y - stone.ry < plot.soilY && stone.y + stone.ry > plot.soilY, '돌은 흙에 살짝 묻혀 있어야 합니다.');
+  }
 });
 
 test('식물 뿌리는 기존 화분 흙에 닿고 수관은 기존 식재 영역 안에 있다', () => {

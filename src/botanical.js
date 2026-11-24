@@ -34,8 +34,8 @@ function tube(points, radius, color, segments = 12, radial = 7, taper = 1) {
   return { curve, geometry: tint(geometry, color) };
 }
 
-// A pointed, thin leaf blade with a curved midrib and cupped cross section.
-// Both surfaces meet at the margin; it is not a scaled sphere or a flat card.
+// A softly rounded, plump clay leaf, retaining the natural midrib, petiole and
+// branching direction. The margin and tips flow into the thicker leaf body.
 function leafBlade(base, direction, length, width, green, curl) {
   const tangent = direction.clone().normalize();
   const across = new THREE.Vector3(tangent.z, 0, -tangent.x).normalize();
@@ -45,14 +45,12 @@ function leafBlade(base, direction, length, width, green, curl) {
       .addScaledVector(normal, length * (0.12 * Math.sin(Math.PI * t) - curl * t * t));
   }
   function point(t, v, side) {
-    const profile = Math.pow(Math.sin(Math.PI * t), 0.72) * (1 - 0.25 * t);
-    const ridge = width * 0.075 * Math.sin(Math.PI * t) * (1 - v * v);
-    const cup = width * 0.09 * v * v * Math.sin(Math.PI * t);
-    const secondary = Math.exp(-Math.pow(Math.sin((t - Math.abs(v) * 0.14) * Math.PI * 6), 2) * 35)
-      * width * 0.003 * Math.abs(v) * (1 - Math.abs(v)) * Math.sin(Math.PI * t);
-    const thickness = width * 0.006 * Math.sin(Math.PI * t) * Math.sqrt(Math.max(0, 1 - v * v));
+    const profile = Math.pow(Math.sin(Math.PI * t), 0.52) * (1 - 0.12 * t);
+    const ridge = width * Math.sin(Math.PI * t) * (0.06 * (1 - v * v) + 0.015 * Math.exp(-v * v * 15));
+    const cup = width * 0.025 * v * v * Math.sin(Math.PI * t);
+    const thickness = width * 0.09 * Math.sin(Math.PI * t) * Math.sqrt(Math.max(0, 1 - v * v));
     return center(t).addScaledVector(across, v * width * 0.5 * profile)
-      .addScaledVector(normal, ridge + cup + secondary + side * thickness);
+      .addScaledVector(normal, ridge + cup + side * thickness);
   }
   const positions = [], colors = [], indices = [], weld = new Map(), grids = [];
   const underside = green.clone().lerp(new THREE.Color('#a7b986'), 0.18);
@@ -85,14 +83,10 @@ function leafBlade(base, direction, length, width, green, curl) {
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geometry.setIndex(indices); geometry.computeVertexNormals();
-  const veinPoints = Array.from({ length: 9 }, (_, i) => {
-    const t = 0.04 + i / 8 * 0.89;
-    return point(t, 0, 1).addScaledVector(normal, width * 0.003);
-  });
-  const vein = tube(veinPoints, length * 0.0016, green.clone().lerp(new THREE.Color('#93ab6b'), 0.24), 10, 4);
   const middle = LEAF_ROWS / 2, column = LEAF_COLUMNS / 2;
-  const sample = { upper: grids[0][middle][column], lower: grids[1][middle][column], base: grids[0][0][column], tip: grids[0][LEAF_ROWS][column] };
-  return { geometry, vein: vein.geometry, tip: center(1), profile: 'pointed-cupped-blade', sample };
+  const sample = { upper: grids[0][middle][column], lower: grids[1][middle][column], base: grids[0][0][column], tip: grids[0][LEAF_ROWS][column],
+    middleLeft: grids[0][middle][0], middleRight: grids[0][middle][LEAF_COLUMNS], tipLeft: grids[0][LEAF_ROWS - 1][0], tipRight: grids[0][LEAF_ROWS - 1][LEAF_COLUMNS] };
+  return { geometry, tip: center(1), profile: 'rounded-clay-blade', sample };
 }
 
 export function rebuildBotanicals(model) {
@@ -139,9 +133,9 @@ export function rebuildBotanicals(model) {
       const palette = kind === 'shoot' ? [GREENS[2], GREENS[3]] : kind === 'underplant' ? [GREENS[1], GREENS[2]] : [GREENS[0], GREENS[1], GREENS[1], GREENS[2]];
       const green = new THREE.Color(palette[Math.floor(rand() * palette.length)]);
       const leaf = leafBlade(base, direction, length, width, green, 0.04 + rand() * 0.14);
-      leafParts.push(leaf.geometry); branchParts.push(leaf.vein);
+      leafParts.push(leaf.geometry);
       if (socket) {
-        branchParts.push(tube([socket, socket.clone().lerp(base, 0.5).addScaledVector(UP, length * 0.025), base], length * 0.008, young, 6, 5, 0.55).geometry);
+        branchParts.push(tube([socket, socket.clone().lerp(base, 0.5).addScaledVector(UP, length * 0.025), base], length * 0.012, young, 6, 6, 0.55).geometry);
       }
       leaves.push({ plot: plotIndex, kind, profile: leaf.profile, length, width, base: base.clone(), tip: leaf.tip.clone(), petiole: Boolean(socket), sample: leaf.sample });
     }
@@ -163,7 +157,7 @@ export function rebuildBotanicals(model) {
         const trunkPoints = [base, base.clone().add(new THREE.Vector3(Math.cos(angle) * lean * 0.25, height * 0.32, Math.sin(angle) * lean * 0.25)),
           base.clone().add(new THREE.Vector3(Math.cos(angle) * lean, height * 0.72, Math.sin(angle) * lean)),
           base.clone().add(new THREE.Vector3(Math.cos(angle + 0.3) * lean, height * 0.94, Math.sin(angle + 0.3) * lean))];
-        const trunk = tube(trunkPoints, Math.max(0.012, height * 0.014), wood, 20, 9, 0.22);
+        const trunk = tube(trunkPoints, Math.max(0.016, height * 0.019), wood, 20, 12, 0.22);
         branchParts.push(trunk.geometry); trees++;
         const spread = Math.min(0.8, Math.min(source.size.y * 0.32, Math.min(group.soil.size.x, group.soil.size.z) * 0.34));
         for (let branchIndex = 0; branchIndex < 6; branchIndex++) {
@@ -173,7 +167,7 @@ export function rebuildBotanicals(model) {
           const start = trunk.curve.getPointAt(level);
           const reach = spread * (0.6 + rand() * 0.4) * (1 - branchIndex * 0.065);
           const end = start.clone().addScaledVector(out, reach).addScaledVector(UP, height * (0.10 + rand() * 0.06));
-          const branch = tube([start, start.clone().addScaledVector(out, reach * 0.35).addScaledVector(UP, height * 0.09), end], height * 0.0055, wood, 10, 6, 0.25);
+          const branch = tube([start, start.clone().addScaledVector(out, reach * 0.35).addScaledVector(UP, height * 0.09), end], height * 0.007, wood, 10, 8, 0.25);
           branchParts.push(branch.geometry);
           for (let i = 0; i < 3; i++) {
             const t = 0.38 + i * 0.27, socket = branch.curve.getPointAt(t);
@@ -221,7 +215,7 @@ export function rebuildBotanicals(model) {
   });
   const materials = {
     leaves: new THREE.MeshPhysicalMaterial({ name: 'Living botanical leaf blades', color: '#ffffff', vertexColors: true,
-      roughness: 0.54, specularIntensity: 0.35, clearcoat: 0.07, clearcoatRoughness: 0.5, sheen: 0.1, sheenRoughness: 0.85 }),
+      roughness: 0.68, specularIntensity: 0.32, clearcoat: 0.12, clearcoatRoughness: 0.6, sheen: 0.18, sheenRoughness: 0.85 }),
     branches: new THREE.MeshPhysicalMaterial({ name: 'Botanical wood petioles and veins', color: '#ffffff', vertexColors: true,
       roughness: 0.74, specularIntensity: 0.28, clearcoat: 0 }),
   };

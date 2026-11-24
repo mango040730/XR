@@ -5,6 +5,7 @@ import { acceleratedRaycast } from 'three-mesh-bvh';
 import { prepareSpace, isWalkable, WALK_RADIUS } from './prepare-space.js';
 import { collisionGeometry } from './collision.js';
 import { createStudioRenderer } from './studio-renderer.js';
+import { CENTRAL_FURNITURE_LAYOUT } from './central-furniture.js';
 
 // The document intentionally contains only the rendering canvas: no HUD or VR button.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -141,9 +142,15 @@ function resetPosition() {
   if (!renderer.xr.isPresenting) camera.position.set(0, 1.65, 0);
 }
 
-new GLTFLoader().load(`${import.meta.env.BASE_URL}models/space.glb`, gltf => {
+async function loadSpace() {
+  const loader = new GLTFLoader();
+  const [gltf, ...furnitureFiles] = await Promise.all([
+    loader.loadAsync(`${import.meta.env.BASE_URL}models/space.glb`),
+    ...CENTRAL_FURNITURE_LAYOUT.map(({ id }) => loader.loadAsync(`${import.meta.env.BASE_URL}models/furniture-v2/${id}.glb`)),
+  ]);
+  const centralFurniture = new Map(CENTRAL_FURNITURE_LAYOUT.map(({ id }, i) => [id, furnitureFiles[i].scene]));
   const model = gltf.scene;
-  prepareSpace(model);
+  prepareSpace(model, { centralFurniture });
   scene.add(model);
   model.updateMatrixWorld(true);
   const meshes = [], floors = [];
@@ -163,7 +170,8 @@ new GLTFLoader().load(`${import.meta.env.BASE_URL}models/space.glb`, gltf => {
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
   window.dispatchEvent(new Event('space-ready'));
-}, undefined, error => {
+}
+void loadSpace().catch(error => {
   document.documentElement.dataset.scene = 'error';
   console.error('공간 모델을 불러오지 못했습니다.', error);
 });

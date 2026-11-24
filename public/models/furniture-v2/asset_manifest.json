@@ -1,0 +1,220 @@
+{
+  "assets": [
+    {
+      "id": "01_tiered_forum",
+      "title_ko": "01 · 계단형 원형 라운지",
+      "reference_position": "좌측 뒤: 3단 곡선 좌석에 코랄 쿠션, 모든 둥근 스툴/오토만 제외",
+      "dimensions_xyz_m": [
+        8.12,
+        9.227,
+        2.011
+      ],
+      "bounds_min": [
+        -4.059945583343506,
+        -4.057880878448486,
+        0.0
+      ],
+      "bounds_max": [
+        4.059687614440918,
+        5.16934061050415,
+        2.011082649230957
+      ],
+      "triangles": 126362,
+      "meshes": 15,
+      "bytes": 3040724,
+      "pivot": "centre, ground level",
+      "units": "metres",
+      "revision": "v2",
+      "functional_design": {
+        "loose_round_seats": 0,
+        "coral_cushioned_tiers": 3,
+        "cushion_top_heights_m": [
+          0.455,
+          0.765,
+          1.075
+        ]
+      }
+    },
+    {
+      "id": "02_grand_curve_lounge",
+      "title_ko": "02 · 대형 곡선 소파 라운지",
+      "reference_position": "좌측 앞: 긴 곡선 소파, 오렌지 오토만과 식재. 화분 옆 짧은 소파 제외",
+      "dimensions_xyz_m": [
+        9.352,
+        5.894,
+        1.91
+      ],
+      "bounds_min": [
+        -5.282399654388428,
+        -4.070000171661377,
+        0.0
+      ],
+      "bounds_max": [
+        4.069525718688965,
+        1.8241362571716309,
+        1.9101014137268066
+      ],
+      "triangles": 80822,
+      "meshes": 21,
+      "bytes": 1887448,
+      "pivot": "centre, ground level",
+      "units": "metres",
+      "revision": "v2",
+      "functional_design": {
+        "short_sofa_by_planter": false,
+        "main_sofa_retained": true
+      }
+    },
+    {
+      "id": "03_reading_nook",
+      "title_ko": "03 · 넓어진 원형 휴식 소파",
+      "reference_position": "좌측 중간: 원형 소파를 넓혀 내부 여유 지름 1.84m 확보, 사이드 테이블과 식재",
+      "dimensions_xyz_m": [
+        4.705,
+        4.657,
+        1.771
+      ],
+      "bounds_min": [
+        -2.1247856616973877,
+        -1.9694831371307373,
+        0.0
+      ],
+      "bounds_max": [
+        2.5799999237060547,
+        2.687056541442871,
+        1.7711224555969238
+      ],
+      "triangles": 63234,
+      "meshes": 17,
+      "bytes": 1498004,
+      "pivot": "centre, ground level",
+      "units": "metres",
+      "revision": "v2",
+      "functional_design": {
+        "sofa_outer_diameter_m": 3.92,
+        "clear_inner_diameter_m": 1.84,
+        "seat_height_m": 0.47,
+        "seat_depth_m": 0.798
+      }
+    },
+    {
+      "id": "04_round_meeting",
+      "title_ko": "04 · 원형 미팅 파티션",
+      "reference_position": "우측 뒤: 기존 곡선/높이 1.03m의 파티션, 원형 테이블과 독립 의자 6개",
+      "dimensions_xyz_m": [
+        5.826,
+        4.751,
+        1.297
+      ],
+      "bounds_min": [
+        -2.912820339202881,
+        -1.8380000591278076,
+        0.0
+      ],
+      "bounds_max": [
+        2.9129507541656494,
+        2.9134984016418457,
+        1.2965011596679688
+      ],
+      "triangles": 41412,
+      "meshes": 29,
+      "bytes": 1154396,
+      "pivot": "centre, ground level",
+      "units": "metres",
+      "revision": "v2",
+      "functional_design": {
+        "function": "partition",
+        "partition_height_m": 1.03,
+        "prior_height_m": 1.03,
+        "seating_ledge": false,
+        "independent_chairs": 6
+      }
+    },
+    {
+      "id": "05_s_curve_meeting",
+      "title_ko": "05 · S형 미팅 파티션",
+      "reference_position": "중앙: 기존 곡선 및 높이 1.03m/1.02m를 유지한 파티션, 원형 테이블과 의자 6개",
+      "dimensions_xyz_m": [
+        6.834,
+        6.845,
+        1.958
+      ],
+      "bounds_min": [
+        -3.324528455734253,
+        -3.539940118789673,
+        0.0
+      ],
+      "bounds_max": [
+        3.509639024734497,
+        3.3048765659332275,
+        1.9578399658203125
+      ],
+      "triangles": 87566,
+      "meshes": 41,
+      "bytes": 2163888,
+      "pivot": "centre, ground level",
+      "units": "metres",
+      "revision": "v2",
+      "functional_design": {
+        "function": "partition",
+        "partition_heights_m": [
+          1.03,
+          1.02
+        ],
+        "prior_heights_m": [
+          1.03,
+          1.02
+        ],
+        "seating_ledge": false,
+        "independent_chairs": 6
+      }
+    },
+    {
+      "id": "06_conversation_nook",
+      "title_ko": "06 · 원형 테이블 소파 라운지",
+      "reference_position": "우측 중간: 더 큰 원형 소파와 중앙 머스터드 원형 테이블",
+      "dimensions_xyz_m": [
+        4.938,
+        5.72,
+        1.935
+      ],
+      "bounds_min": [
+        -2.4690370559692383,
+        -2.469998359680176,
+        0.0
+      ],
+      "bounds_max": [
+        2.4692625999450684,
+        3.249739170074463,
+        1.9347875118255615
+      ],
+      "triangles": 79598,
+      "meshes": 24,
+      "bytes": 1877724,
+      "pivot": "centre, ground level",
+      "units": "metres",
+      "revision": "v2",
+      "functional_design": {
+        "sofa_outer_diameter_m": 4.92,
+        "clear_inner_diameter_m": 2.84,
+        "seat_height_m": 0.47,
+        "seat_depth_m": 0.798,
+        "table_diameter_m": 1.48,
+        "seat_to_table_clearance_m": 0.68,
+        "independent_chairs": 0
+      }
+    }
+  ],
+  "excluded": "front long table and adjacent bean bench marked with red X",
+  "palette_srgb": {
+    "navy": "172C5D",
+    "royal": "1A3880",
+    "mid": "264386",
+    "coral": "ED715D",
+    "orange": "FE7D1A",
+    "yellow": "E99804",
+    "ivory": "FDE8DC",
+    "beige": "F4CFB8",
+    "taupe": "C9A390"
+  }
+}

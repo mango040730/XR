@@ -135,13 +135,13 @@ test('중앙 모델의 곡면을 높여도 전체 삼각형 예산을 넘지 않
   assert.ok(meshes.length < 200, '돌과 잎을 개별 드로 호출로 남기지 않아야 합니다.');
 });
 
-test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 데이지를 적용했다', () => {
+test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 혼합 화단을 적용했다', () => {
   const roots = [...edited.furniture.groups.map(g => g.root), edited.furniture.frontPlanter, ...edited.outerPlants];
-  const plants = roots.flatMap(root => root.userData.daisyPlants ?? []);
+  const plants = roots.flatMap(root => root.userData.flowerBeds ?? []);
   assert.equal(plants.length, 13);
-  assert.equal(plants.reduce((sum, p) => sum + p.flowers.length, 0), 95);
+  assert.equal(plants.reduce((sum, p) => sum + p.flowers.length, 0), 125);
   for (const root of roots) {
     const finishes = new Set(); root.traverse(m => { if (m.isMesh) finishes.add(m.material.name); });
-    assert.ok(finishes.has('Clay daisy ivory petals') && finishes.has('Clay daisy lemon centres'));
+    assert.ok(finishes.has('Clay pastel garden flowers') && finishes.has('Clay garden yellow centres'));
   }
 });

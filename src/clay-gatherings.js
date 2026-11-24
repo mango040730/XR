@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries, toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
-import { createClayDaisies } from './clay-daisies.js';
+import { createClayFlowerBed } from './clay-flower-bed.js';
 import { SPACE_COLORS as C } from './space-colors.js';
 import { GATHERING_ZONES, gatheringFloorY } from './gathering-layout.js';
 
@@ -102,7 +102,7 @@ export function planter(root, width, depth, x = 0, z = 0, y = 0, treeHeight = 1.
       pebble.scale.set(radius, radius * (0.57 + rand() * 0.25), radius * (0.75 + rand() * 0.2)); pebble.rotation.y = rand() * TAU;
     }
   }
-  createClayDaisies(root, { width, depth, x, z, soilY: y + h - 0.02, height: treeHeight, roots, materials,
+  createClayFlowerBed(root, { width, depth, x, z, soilY: y + h - 0.02, height: treeHeight, roots, materials,
     seed: 1771 + Math.round((x + z + y) * 497) });
 }
 

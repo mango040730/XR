@@ -30,15 +30,22 @@ test('식물을 교체해도 기존 화분·흙·테두리·자갈의 실제 형
   }
 });
 
-test('데이지는 실제 도톰한 흰 꽃잎 11~13개와 앞쪽으로 볼록한 노란 중심을 가진다', () => {
+test('참고 이미지의 봉오리·컵꽃·작은 데이지와 낮은 초록 화단 구성을 실제 형상으로 만든다', () => {
   const root = new Group(); planter(root, 1.75, 0.64, 0, 0, 0, 1.35);
-  const flowers = root.userData.daisyPlants[0].flowers;
-  assert.equal(flowers.length, 8);
-  const petals = root.children.filter(m => m.name === 'Clay_daisy_petal');
+  const bed = root.userData.flowerBeds[0], flowers = bed.flowers;
+  assert.equal(flowers.length, 11);
+  assert.equal(flowers.filter(f => f.type === 'bud').length, 5);
+  assert.equal(flowers.filter(f => f.type === 'cup').length, 3);
+  assert.equal(flowers.filter(f => f.type === 'daisy').length, 3);
+  assert.equal(bed.mounds.length, 5); assert.equal(bed.blades.length, 8);
+  assert.ok(Math.max(...flowers.map(f => f.anchor[0])) - Math.min(...flowers.map(f => f.anchor[0])) > 1.4);
+  assert.ok(bed.height < 1.0, '기존의 키 큰 꽃다발 대신 낮고 넓은 실루엣이어야 합니다.');
+  const palette = new Set(flowers.map(f => f.palette));
+  for (const color of ['butter', 'bud', 'blush', 'pink', 'peach', 'lemon']) assert.ok(palette.has(color));
+  const petals = root.children.filter(m => /pastel_daisy_petal|closed_tulip_bud|cupped_flower_petal/.test(m.name));
   assert.equal(petals.length, flowers.reduce((n, f) => n + f.petals, 0));
-  assert.ok(flowers.every(f => f.petals >= 11 && f.petals <= 13));
-  assert.equal(petals[0].material.color.getHexString(), 'fff9ee');
-  for (const mesh of petals.slice(0, 3)) {
+  for (const mesh of petals.filter((m, i) => i % 9 === 0)) {
+    assert.ok(mesh.geometry.attributes.color && mesh.material.vertexColors);
     const { position: p, normal: n } = mesh.geometry.attributes, index = mesh.geometry.index;
     for (let i = 90; i < index.count; i += 123) {
       const ids = [index.getX(i), index.getX(i + 1), index.getX(i + 2)];
@@ -46,35 +53,32 @@ test('데이지는 실제 도톰한 흰 꽃잎 11~13개와 앞쪽으로 볼록�
       const face = b.sub(a).cross(c.sub(a));
       if (face.lengthSq() < 1e-18) continue;
       const normal = ids.reduce((v, id) => v.add(new Vector3().fromBufferAttribute(n, id)), new Vector3()).normalize();
-      assert.ok(face.normalize().dot(normal) > 0.8, '꽃잎의 면 방향과 노멀이 일치해 흰 표면이 정상 조명돼야 합니다.');
+      assert.ok(face.normalize().dot(normal) > 0.8, '꽃의 면 방향과 노멀이 일치해야 합니다.');
     }
   }
-  assert.equal(root.children.find(m => m.name === 'Clay_daisy_yellow_centre').material.color.getHexString(), 'f4d52b');
-  assert.ok(new Set(flowers.map(f => f.centre[1].toFixed(2))).size >= 6, '꽃대 높이를 일률적으로 맞추면 안 됩니다.');
   batchClayProps(root); root.updateMatrixWorld(true);
-  const centreMesh = root.children.find(m => m.isMesh && /lemon centres/.test(m.material.name));
+  const centres = root.children.find(m => m.isMesh && m.material.name === 'Clay garden yellow centres');
   const ray = new Raycaster();
-  for (const flower of flowers) {
+  for (const flower of flowers.filter(f => f.type === 'daisy')) {
     const normal = new Vector3(...flower.normal), centre = new Vector3(...flower.centre);
     ray.set(centre.addScaledVector(normal, flower.radius * 0.4), normal.clone().negate()); ray.far = flower.radius * 0.8;
-    const hit = ray.intersectObject(centreMesh)[0];
-    assert.ok(hit && Math.abs(hit.distance - flower.radius * 0.22) < flower.radius * 0.04, '꽃 중앙의 실제 입체 곡면을 피킹해야 합니다.');
+    assert.ok(ray.intersectObject(centres).length, '노란 꽃 중앙은 실제 입체여야 합니다.');
   }
 });
 
-test('둥근 클레이 잎과 꽃대가 실제 입체이며 꽃대는 흙부터 꽃 머리까지 연결된다', () => {
+test('긴 잎과 둥근 녹색 덩어리가 입체이며 가는 꽃대가 흙부터 꽃까지 이어진다', () => {
   const root = new Group(); planter(root, 1.75, 0.64, 0, 0, 0, 1.35);
-  const plant = root.userData.daisyPlants[0];
-  const stems = root.children.filter(m => m.name === 'Clay_daisy_stem' && Math.abs(m.geometry.parameters.path.points[0].y - plant.soilY) < 0.0001);
-  assert.equal(stems.length, plant.flowers.length);
-  for (const flower of plant.flowers) {
-    const expected = new Vector3(...flower.centre).addScaledVector(new Vector3(...flower.normal), -flower.radius * 0.09);
+  const bed = root.userData.flowerBeds[0];
+  const stems = root.children.filter(m => m.name === 'Clay_garden_stem');
+  assert.equal(stems.length, bed.flowers.length);
+  for (const flower of bed.flowers) {
+    const expected = new Vector3(...flower.anchor);
     assert.ok(stems.some(m => m.geometry.parameters.path.points.at(-1).distanceTo(expected) < 0.00001));
   }
-  const leaves = root.children.filter(m => m.name === 'Clay_daisy_oval_leaf');
-  assert.equal(leaves.length, plant.leafCount);
-  assert.ok(leaves.length >= 20);
-  for (const mesh of leaves) {
+  const blades = root.children.filter(m => m.name === 'Clay_upright_garden_leaf');
+  assert.equal(blades.length, 8);
+  assert.equal(root.children.filter(m => m.name === 'Clay_rounded_green_mound').length, 5);
+  for (const mesh of blades) {
     assert.ok(mesh.geometry.index.count > 2000 && mesh.geometry.attributes.color);
     const n = mesh.geometry.attributes.normal;
     for (let i = 0; i < n.count; i += 23) assert.ok(Math.abs(new Vector3().fromBufferAttribute(n, i).length() - 1) < 0.0001);

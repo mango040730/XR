@@ -9,6 +9,7 @@ import { SPACE_COLORS } from './space-colors.js';
 import { rebuildCentralRoom } from './central-room.js';
 import { rebuildBotanicals } from './botanical.js';
 import { fillPlanterStones } from './planter-stones.js';
+import { spaceLoungeJunction } from './lounge-spacing.js';
 
 export { FLOOR_Y, PATH_Y } from './space-levels.js';
 export const PATH_INNER_RADIUS = TERRACE_OUTER;
@@ -88,6 +89,7 @@ export function prepareSpace(model) {
   foundation.position.y = -0.4;
   model.add(foundation);
   const digitalWall = createDigitalWall(model, PATH_OUTER_RADIUS, PATH_Y);
+  const loungeSpacing = spaceLoungeJunction(model);
   const central = rebuildCentralRoom(model);
   const botanical = rebuildBotanicals(model);
   const planterStones = fillPlanterStones(model, botanical);
@@ -99,5 +101,5 @@ export function prepareSpace(model) {
     gray: SPACE_COLORS.stairs, railMaterial: carpet.material, railOuterRadius: PATH_OUTER_RADIUS,
   });
   model.updateMatrixWorld(true);
-  return { carpet, interior, stairs, seating, digitalWall, central, botanical, planterStones, clay, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
+  return { carpet, interior, stairs, seating, digitalWall, central, loungeSpacing, botanical, planterStones, clay, floorY: FLOOR_Y, pathY: PATH_Y, pathWidth: PATH_WIDTH };
 }

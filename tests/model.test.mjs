@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Box3, Color, Raycaster, Vector3 } from 'three';
+import { Box3, Color, Matrix4, Raycaster, Vector3 } from 'three';
 import { acceleratedRaycast, computeBoundsTree } from 'three-mesh-bvh';
 import { meshPieces } from '../src/mesh-pieces.js';
 import { TERRACE_DEPTH, PASSAGE_WIDTH } from '../src/terrace-seating.js';
@@ -508,17 +508,51 @@ test('도장·새틴·도자기·금속의 광택을 구분하고 스크린과 �
 });
 
 test('좌판은 실제 곡면 정점과 밀착된 입체 마감선을 가진다', () => {
-  const cushions = gltf.scene.getObjectByName('Lounge_Pods__Terracotta_coral_upholstery__0_0');
-  assert.ok(cushions.geometry.index.count / 3 > sourceSeatTriangles * 2.5, '큰 평면 좌판과 등받이를 실제 곡면으로 나눠야 합니다.');
+  const cushions = [];
+  gltf.scene.traverse(mesh => {
+    if (mesh.isMesh && /^Lounge_Pods__Terracotta_coral_upholstery__0_0/.test(mesh.name)) cushions.push(mesh);
+  });
+  assert.ok(cushions.reduce((n, m) => n + m.geometry.index.count / 3, 0) > sourceSeatTriangles * 2.5, '큰 평면 좌판과 등받이를 실제 곡면으로 나눠야 합니다.');
   const welting = gltf.scene.getObjectByName('Sofa_seat_tailored_welting');
   assert.equal(edited.clay.welting.seats, 55);
   assert.equal(welting.material.color.getHexString(), SPACE_COLORS.coral.slice(1).toLowerCase());
-  computeBoundsTree.call(cushions.geometry);
+  for (const mesh of cushions) computeBoundsTree.call(mesh.geometry);
   const p = welting.geometry.attributes.position;
   for (let i = 0; i < p.count; i += 97) {
-    const hit = cushions.geometry.boundsTree.closestPointToPoint(new Vector3().fromBufferAttribute(p, i));
-    assert.ok(hit.distance < 0.035, '마감선은 실제 쿠션 표면에 붙어 있어야 합니다.');
+    const point = new Vector3().fromBufferAttribute(p, i);
+    const distance = Math.min(...cushions.map(mesh => mesh.geometry.boundsTree.closestPointToPoint(point).distance));
+    assert.ok(distance < 0.035, '마감선은 실제 쿠션 표면에 붙어 있어야 합니다.');
   }
+});
+
+test('왼쪽 소파 연결부와 화분이 서로 관통하지 않는다', () => {
+  assert.equal(edited.loungeSpacing.removedArmrests, 2);
+  assert.ok(edited.loungeSpacing.sofaParts > 10, '좌판뿐 아니라 등받이·하부 프레임도 함께 옮겨야 합니다.');
+  const moved = [], others = [];
+  gltf.scene.traverse(mesh => {
+    if (!mesh.isMesh || !/^Lounge_Pods__/.test(mesh.name)) return;
+    (mesh.userData.spacedLounge ? moved : others).push(mesh);
+  });
+  assert.ok(moved.length >= 4);
+  for (const mesh of moved) {
+    computeBoundsTree.call(mesh.geometry);
+    for (const other of others) {
+      const matrix = new Matrix4().copy(mesh.matrixWorld).invert().multiply(other.matrixWorld);
+      assert.equal(mesh.geometry.boundsTree.intersectsGeometry(other.geometry, matrix), false,
+        `옆 소파에 파고드는 부품이 없어야 합니다: ${mesh.name} / ${other.name}`);
+    }
+  }
+  const pot = gltf.scene.getObjectByName('Planting__Warm_ivory_•_matte_ceramic__-2_-1');
+  const bounds = new Box3().setFromObject(pot);
+  for (const mesh of [...moved, ...others]) {
+    // Original material batches span multiple sofas; inspect each connected
+    // component instead of the empty space inside their combined bounding box.
+    for (const piece of meshPieces(mesh)) {
+      assert.equal(bounds.intersectsBox(piece.bounds.clone().applyMatrix4(mesh.matrixWorld)), false,
+        `화분과 소파 부품 사이에 여유가 필요합니다: ${mesh.name}`);
+    }
+  }
+  assert.ok(bounds.max.x < -17.6);
 });
 
 test('곡면 상세를 높여도 삼각형 예산과 공간 외곽은 보존된다', () => {

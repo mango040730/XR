@@ -14,22 +14,25 @@ const POCKETS = [
     { angle: 48, seats: [2, 1], gap: 1.05, mode: 'cluster' },
     { angle: 104, seats: [1], mode: 'isolated' },
     { angle: 134, seats: [3], mode: 'gathering' },
-    { angle: 198, seats: [1, 2, 1], gap: 1.05, mode: 'cluster' },
+    { angle: 200, seats: [1, 2, 1], gap: 1.05, mode: 'cluster' },
     { angle: 284, seats: [4], mode: 'gathering' },
     { angle: 331, seats: [2], mode: 'isolated' },
   ],
 ];
 
+export const LOUNGE_TABLE_LENGTHS = [1.45, 2.35, 3.15, 3.95];
+
 export function terraceLoungePlan(tiers) {
   return POCKETS.map((pockets, tier) => pockets.flatMap((pocket, pocketIndex) => {
     const radius = tiers[tier].inner + 0.49;
-    const widths = pocket.seats.map(capacity => 0.45 + capacity * 0.70);
+    const seatSpans = pocket.seats.map(capacity => 0.45 + capacity * 0.70);
+    const widths = pocket.seats.map(capacity => LOUNGE_TABLE_LENGTHS[capacity - 1]);
     const span = widths.reduce((a, b) => a + b, 0) + (pocket.gap ?? 0) * (widths.length - 1);
     let cursor = pocket.angle * Math.PI / 180 - span / (2 * radius);
     return widths.map((width, index) => {
       const start = cursor, end = start + width / radius;
       cursor = end + (pocket.gap ?? 0) / radius;
-      return { start, end, capacity: pocket.seats[index], cluster: `tier-${tier + 1}-pocket-${pocketIndex + 1}`, mode: pocket.mode };
+      return { start, end, capacity: pocket.seats[index], seatSpan: seatSpans[index], cluster: `tier-${tier + 1}-pocket-${pocketIndex + 1}`, mode: pocket.mode };
     });
   }));
 }

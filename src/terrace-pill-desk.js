@@ -3,6 +3,8 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SPACE_COLORS } from './space-colors.js';
 
+export const PILL_LEG_INSET = 0.24;
+
 export function createGlossDeskMaterial() {
   const material = new THREE.MeshPhysicalMaterial({ name: 'Terrace golden gloss lacquer', color: SPACE_COLORS.terraceFurniture,
     roughness: 0.19, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.12, specularIntensity: 0.65, envMapIntensity: 0.85 });
@@ -72,7 +74,7 @@ export function createPillDeskParts({ inner, start, end, floorY }) {
   const radius = inner + 0.49, angle = (start + end) / 2, length = (end - start) * radius;
   const top = capsuleTop(length, radius, angle, floorY);
   const legs = [];
-  const inset = Math.max(0.32, length * 0.13);
+  const inset = PILL_LEG_INSET;
   for (const sign of [-1, 1]) {
     const a = angle + sign * (length / 2 - inset) / radius;
     const geometry = new RoundedBoxGeometry(0.16, 0.725, 0.52, 8, 0.075);

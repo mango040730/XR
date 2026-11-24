@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { PILL_LEG_INSET } from './terrace-pill-desk.js';
 
 export const SMOKED_WOOD_COLOR = '#615D59';
 export const WOOD_PHOTO_PATH = 'textures/wood-table-001-diffuse-2k.jpg';
@@ -84,7 +85,7 @@ export function mapSmokedWood(geometry, { inner, start, end, floorY }, partIndex
   const radius = inner + 0.49, middle = (start + end) / 2, length = (end - start) * radius;
   const crop = offset(start * 13.7 + floorY * 2.9 + partIndex * 19.3);
   const angle = partIndex === 0 ? middle + crop.turn
-    : middle + (partIndex === 1 ? -1 : 1) * (length / 2 - Math.max(0.32, length * 0.13)) / radius;
+    : middle + (partIndex === 1 ? -1 : 1) * (length / 2 - PILL_LEG_INSET) / radius;
   const s = Math.sin(angle), c = Math.cos(angle), p = geometry.attributes.position, n = geometry.attributes.normal;
   const coordinates = [], normals = [];
   for (let i = 0; i < p.count; i++) {

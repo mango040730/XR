@@ -11,7 +11,8 @@ import { collisionGeometry } from '../src/collision.js';
 import { withinWalkBoundary } from '../src/entrance.js';
 import { isWalkable } from '../src/prepare-space.js';
 import { createTubeChairTemplate, TUBE_CUSHION_COLOR } from '../src/terrace-tube-chair.js';
-import { createPillDeskParts } from '../src/terrace-pill-desk.js';
+import { createPillDeskParts, PILL_LEG_INSET } from '../src/terrace-pill-desk.js';
+import { LOUNGE_TABLE_LENGTHS } from '../src/terrace-lounge-layout.js';
 import { SMOKED_WOOD_COLOR, WOOD_PHOTO_PATH } from '../src/terrace-smoked-wood.js';
 import { appearanceSnapshot } from './helpers/appearance-snapshot.mjs';
 
@@ -229,7 +230,8 @@ test('1·2인 중심의 작은 모임·독립석·넓은 여백을 두 층에 �
   assert.equal(sets.reduce((n, s) => n + s.capacity, 0), 37);
   for (const set of sets) {
     assert.equal(set.layout, 'lounge');
-    assert.ok(Math.abs(set.width - (0.45 + set.capacity * 0.70)) < 0.00001);
+    assert.ok(Math.abs(set.width - LOUNGE_TABLE_LENGTHS[set.capacity - 1]) < 0.00001);
+    assert.ok(Math.abs(set.seatSpan - (0.45 + set.capacity * 0.70)) < 0.00001, '상판을 늘려도 의자 줄 간격은 함께 벌리지 않습니다.');
     assert.equal(edited.seating.seats.filter(s => s.setId === set.id).length, set.capacity);
     assert.ok(set.width / set.capacity > 0.8, '좌석 수에 맞는 실사용 상판 폭이 필요합니다.');
   }
@@ -327,6 +329,44 @@ test('계단 책상 20개의 캡슐 상판·두 판형 다리·높이·무릎 �
   assert.equal(desk.geometry.index.count, indices, '기존 앞판·턱·지지판 부품이 중복으로 남으면 안 됩니다.');
 });
 
+test('각 책상의 모든 의자가 두 지지 다리 사이에 여유 있게 들어가고 앞쪽을 밀어 넣을 수 있다', () => {
+  const template = createTubeChairTemplate(), bounds = new Box3();
+  for (const part of template) { part.geometry.computeBoundingBox(); bounds.union(part.geometry.boundingBox); }
+  const point = new Vector3();
+  for (const set of edited.seating.sets) {
+    const radius = edited.tiers[set.tier].inner + 0.49, middle = (set.start + set.end) / 2;
+    const legOffset = (set.width / 2 - PILL_LEG_INSET) / radius;
+    const planes = [-1, 1].map(sign => {
+      const a = middle + sign * legOffset;
+      return { centre: new Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius),
+        inward: new Vector3(Math.sin(a) * sign, 0, -Math.cos(a) * sign) };
+    });
+    for (const seat of edited.seating.seats.filter(s => s.setId === set.id)) {
+      const outward = new Vector3(seat.position[0],0,seat.position[2]).normalize();
+      const along = new Vector3(outward.z,0,-outward.x), origin = new Vector3(...seat.position).addScaledVector(outward,-0.18);
+      const matrix = new Matrix4().makeBasis(along,new Vector3(0,1,0),outward).setPosition(origin);
+      for (const x of [bounds.min.x,bounds.max.x]) for (const z of [bounds.min.z,bounds.max.z]) {
+        point.set(x,0,z).applyMatrix4(matrix).setY(0);
+        for (const plane of planes) {
+          assert.ok(point.clone().sub(plane.centre).dot(plane.inward) - 0.08 >= 0.06,
+            '바깥쪽 좌석까지 의자 전체 폭과 지지 다리 사이에 최소 6cm 여유가 있어야 합니다.');
+        }
+      }
+      for (const part of template) {
+        const p=part.geometry.attributes.position;
+        for (let i=0;i<p.count;i++) {
+          if (p.getY(i)<0.715) continue;
+          point.fromBufferAttribute(p,i).applyMatrix4(matrix);
+          assert.ok(Math.hypot(point.x,point.z)>set.outer+0.02,'의자를 18cm 밀어 넣어도 높은 등받이와 상판이 관통하면 안 됩니다.');
+        }
+      }
+      assert.ok(0.715-template[5].geometry.boundingBox.max.y>=0.20,'좌판 위 무릎 높이 여유를 유지합니다.');
+    }
+  }
+  const materials=new Set(template.map(p=>p.material));template.forEach(p=>p.geometry.dispose());
+  for (const material of materials) { if (!material.userData.smokedWood) material.bumpMap?.dispose();material.dispose(); }
+});
+
 test('라운지 배치 외 공간·중앙 가구·조명·카메라와 재질·테이블 디자인은 보존된다', async () => {
   const { commit, sourceFiles, transforms, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
   assert.equal(commit, '767bdf9');
@@ -343,6 +383,7 @@ test('라운지 배치 외 공간·중앙 가구·조명·카메라와 재질·�
       assert.equal(createHash('sha256').update(body).digest('hex'), photoBaseline.chairGeometrySource, '의자 형상 생성 코드 보존');
       continue;
     }
+    if (file === 'src/terrace-pill-desk.js') source = Buffer.from(source.toString().replace('\nexport const PILL_LEG_INSET = 0.24;\n', '').replace('const inset = PILL_LEG_INSET;', 'const inset = Math.max(0.32, length * 0.13);'));
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", ''));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }

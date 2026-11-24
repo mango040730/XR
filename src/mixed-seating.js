@@ -129,6 +129,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
         cursor = end + gap / radius;
         const angle = (start + end) / 2;
         const capacity = weight;
+        const seatSpan = descriptor.seatSpan ?? width;
         const outward = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
         const center = outward.clone().multiplyScalar(radius); center.y = tier.height;
         slot++;
@@ -148,7 +149,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
         const setId = `tier-${tierIndex + 1}-desk-${slot}`;
         const type = capacity === 1 ? 'single' : 'shared';
         for (let chair = 0; chair < capacity; chair++) {
-          const chairAngle = angle + (chair - (capacity - 1) / 2) * (width / capacity) / radius;
+          const chairAngle = angle + (chair - (capacity - 1) / 2) * (seatSpan / capacity) / radius;
           const direction = new THREE.Vector3(Math.cos(chairAngle), 0, Math.sin(chairAngle));
           const along = new THREE.Vector3(direction.z, 0, -direction.x);
           const position = direction.clone().multiplyScalar(tier.inner + chairOffset); position.y = tier.height;
@@ -159,7 +160,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
           for (const part of template.parts) add(part.geometry, chairMaterials.get(part.material), matrix);
           seats.push({ setId, tier: tierIndex, type, chairDesign: template.id, position: position.toArray(), facing: direction.clone().negate().toArray() });
         }
-        sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: deskStyle !== 'pill', wooden: deskStyle !== 'pill', deskStyle,
+        sets.push({ id: setId, tier: tierIndex, type, width, seatSpan, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: deskStyle !== 'pill', wooden: deskStyle !== 'pill', deskStyle,
           layout, cluster: descriptor.cluster ?? null, mode: descriptor.mode ?? 'continuous' });
       }
     }

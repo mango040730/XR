@@ -8,6 +8,7 @@ import { GATHERING_LAYOUT as L, GATHERING_ZONES, GATHERING_ENTRY, gatheringFloor
 import { collisionGeometry } from '../src/collision.js';
 import { withinWalkBoundary } from '../src/entrance.js';
 import { isWalkable } from '../src/prepare-space.js';
+import { createTerraceChairTemplate, TERRACE_CHAIR_COLOR } from '../src/terrace-boucle-chair.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
 const model = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
@@ -144,4 +145,35 @@ test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 혼합 �
     const finishes = new Set(); root.traverse(m => { if (m.isMesh) finishes.add(m.material.name); });
     assert.ok(finishes.has('Clay pastel garden flowers') && finishes.has('Clay garden yellow centres'));
   }
+});
+
+test('원형 계단 의자 74개 모두 블루 부클레 원형 좌판·낮은 받침·감싸는 등받이로 교체됐다', () => {
+  const batch = edited.seating.root.getObjectByName('Terrace_boucle_chairs');
+  assert.ok(batch && batch.material.userData.terraceChair);
+  assert.equal(edited.seating.seats.length, 74); assert.equal(edited.seating.sets.length, 28);
+  assert.equal(batch.material.color.getHexString(), TERRACE_CHAIR_COLOR.slice(1).toLowerCase());
+  assert.ok(batch.material.roughness > 0.9 && batch.material.sheen > 0.5 && batch.material.bumpMap);
+  assert.equal(batch.material.metalness, 0); assert.equal(batch.material.clearcoat, 0);
+  assert.ok(batch.geometry.attributes.uv, '부클레 표면 좌표를 병합 후에도 유지해야 합니다.');
+  assert.ok(!edited.seating.root.children.some(m => /^Cafe_Furniture__Integrated_/.test(m.name)), '이전 프레임·다리 의자는 남기지 않습니다.');
+  const template = createTerraceChairTemplate();
+  assert.equal(batch.geometry.index.count, template.reduce((n, p) => n + p.geometry.index.count, 0) * 74);
+  const local = new Box3();
+  for (const part of template) { part.geometry.computeBoundingBox(); local.union(part.geometry.boundingBox); }
+  assert.ok(Math.abs(local.min.y) < 0.00001 && Math.abs(local.max.y - 1.01) < 0.001);
+  assert.ok(local.getSize(new Vector3()).x > 0.65 && local.getSize(new Vector3()).x < 0.70);
+  const ray = new Raycaster(new Vector3(), new Vector3(0, -1, 0));
+  for (const seat of edited.seating.seats) {
+    const [x, y, z] = seat.position;
+    ray.set(new Vector3(x, y + 0.65, z), new Vector3(0, -1, 0));
+    const hit = ray.intersectObject(batch)[0];
+    assert.ok(hit && Math.abs(hit.point.y - y - 0.46) < 0.012, '모든 실제 좌판은 기존 인체 사용 높이에 있어야 합니다.');
+    const radius = Math.hypot(x, z), direction = new Vector3(x, 0, z).normalize();
+    ray.set(new Vector3(x, y + 0.75, z), direction);
+    assert.ok(ray.intersectObject(batch).some(h => h.distance < 0.3), '등받이는 바깥쪽에 있어야 합니다.');
+    ray.set(new Vector3(x, y + 0.75, z), direction.clone().negate()); ray.far = 0.4;
+    assert.equal(ray.intersectObject(batch).length, 0, '중앙을 보는 앞쪽은 열려 있어야 합니다.'); ray.far = Infinity;
+    assert.ok(edited.tiers[seat.tier].outer - radius - local.max.z >= 1.2, '의자 뒤에 보행 여유를 유지합니다.');
+  }
+  for (const part of template) part.geometry.dispose(); template[0].material.bumpMap.dispose(); template[0].material.dispose();
 });

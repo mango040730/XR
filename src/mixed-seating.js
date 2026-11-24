@@ -79,6 +79,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
   const chairMaterials = new Map();
   for (const part of chairTemplate) {
     if (chairMaterials.has(part.material)) continue;
+    if (part.material.userData.terraceChair) { chairMaterials.set(part.material, part.material); continue; }
     const material = part.material.clone();
     const frame = /Golden oak/.test(part.material.name);
     material.name = frame ? 'Terrace chair gold frame' : 'Terrace chair gold seat';
@@ -88,7 +89,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
   const batches = new Map(), sets = [], seats = [];
   function add(geometry, material, transform = new THREE.Matrix4()) {
     const g = geometry.clone(); g.applyMatrix4(transform);
-    if (!material.userData.terraceWood) g.deleteAttribute('uv');
+    if (!material.userData.terraceWood && !material.userData.terraceChair) g.deleteAttribute('uv');
     if (!g.index) g.setIndex(Array.from({ length: g.attributes.position.count }, (_, i) => i));
     if (!batches.has(material)) batches.set(material, []);
     batches.get(material).push(g);
@@ -148,7 +149,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
   }
   for (const [material, parts] of batches) {
     const mesh = new THREE.Mesh(mergeGeometries(parts, false), material);
-    mesh.name = material.userData.terraceWood ? 'Terrace_wood_desks' : `Cafe_Furniture__Integrated_${material.name.replaceAll(' ', '_')}`;
+    mesh.name = material.userData.terraceWood ? 'Terrace_wood_desks' : material.userData.terraceChair ? 'Terrace_boucle_chairs' : `Cafe_Furniture__Integrated_${material.name.replaceAll(' ', '_')}`;
     mesh.userData.mixedSeating = true;
     if (material.userData.terraceWood) mesh.userData.woodenDesks = true;
     mesh.castShadow = mesh.receiveShadow = true;

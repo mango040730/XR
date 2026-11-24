@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { meshPieces } from './mesh-pieces.js';
-import { captureChair, buildMixedSeating } from './mixed-seating.js';
+import { buildMixedSeating } from './mixed-seating.js';
+import { createTerraceChairTemplate } from './terrace-boucle-chair.js';
 import { createJoinedStairs, stairAlignedRing, colorJoinedStairs } from './joined-stairs.js';
 import { createDigitalWall } from './digital-wall.js';
 import { createCentralPlatform } from './central-room.js';
@@ -8,20 +8,6 @@ import { applyClayStyle } from './clay-style.js';
 import { createGatheringFurniture, planter, batchClayProps } from './clay-gatherings.js';
 import { GATHERING_LAYOUT as L } from './gathering-layout.js';
 import { SPACE_COLORS as C } from './space-colors.js';
-
-function sourceChair(model) {
-  const pieces = [];
-  model.traverse(mesh => { if (mesh.isMesh && /^Cafe_Furniture__/.test(mesh.name)) pieces.push(...meshPieces(mesh)); });
-  const cushion = pieces.find(p => Math.abs(p.center.y - 2.49) < 0.015 && Math.abs(p.size.y - 0.11) < 0.015 && p.center.length() > 23);
-  if (!cushion) throw new Error('원본 의자 템플릿을 찾지 못했습니다.');
-  const distance = p => Math.hypot(p.center.x - cushion.center.x, p.center.z - cushion.center.z);
-  const back = pieces.filter(p => Math.abs(p.center.y - 2.9) < 0.015 && Math.abs(p.size.y - 0.38) < 0.015).sort((a, b) => distance(a) - distance(b))[0];
-  const parts = pieces.filter(p => p.bounds.min.y >= 1.99 - 0.001 && distance(p) < 0.65
-    && [0.11, 0.38, 0.466, 0.584].some(h => Math.abs(p.size.y - h) < 0.015));
-  if (parts.length !== 8) throw new Error('원본 의자 부품을 온전히 추출하지 못했습니다.');
-  const template = captureChair({ center: cushion.center, facing: cushion.center.clone().sub(back.center).setY(0).normalize(), parts });
-  return template.map(part => ({ ...part, material: part.material.clone() }));
-}
 
 function circularFloor(radius, angles) {
   const positions = [0, L.floorY, 0], uv = [0.5, 0.5], normals = [0, 1, 0], indices = [];
@@ -37,9 +23,9 @@ function circularFloor(radius, angles) {
 }
 
 // Keep archived GLBs untouched. Build the compact, capacity-limited version from
-// genuinely curved geometry, retaining the source's outer chair design.
+// genuinely curved geometry and the latest reference's upholstered chairs.
 export function prepareGatheringSpace(model) {
-  const chairTemplate = sourceChair(model);
+  const chairTemplate = createTerraceChairTemplate();
   const oldMeshes = [], oldMaterials = new Set();
   model.traverse(mesh => {
     if (!mesh.isMesh) return; oldMeshes.push(mesh);

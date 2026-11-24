@@ -5,7 +5,8 @@ import { CENTRAL_RADIUS, TERRACE_DEPTH } from './space-layout.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from './joined-stairs.js';
 import { createDeskWoodMaterial, mapCurvedWood } from './wood-desks.js';
 import { SPACE_COLORS } from './space-colors.js';
-import { createGlossDeskMaterial, createPillDeskParts } from './terrace-pill-desk.js';
+import { createPillDeskParts } from './terrace-pill-desk.js';
+import { createSmokedWoodMaterial, mapSmokedWood } from './terrace-smoked-wood.js';
 
 export const SEATED_TIER_COUNT = 2;
 export const DESK_BEVEL_SEGMENTS = 12;
@@ -76,7 +77,7 @@ function deskIntervals(tier, obstacles) {
 
 export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22, deskStyle = 'integrated', primaryChairDesign = 'round', chairVariants = [] } = {}) {
   const root = new THREE.Group(); root.name = 'Terrace_integrated_seating';
-  const wood = deskStyle === 'pill' ? createGlossDeskMaterial() : createDeskWoodMaterial();
+  const wood = deskStyle === 'pill' ? createSmokedWoodMaterial() : createDeskWoodMaterial();
   const chairMaterials = new Map();
   const templates = [{ id: primaryChairDesign, parts: chairTemplate }, ...chairVariants];
   for (const part of templates.flatMap(t => t.parts)) {
@@ -128,7 +129,9 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
         const center = outward.clone().multiplyScalar(radius); center.y = tier.height;
         slot++;
         if (deskStyle === 'pill') {
-          for (const part of createPillDeskParts({ inner: tier.inner, start, end, floorY: tier.height })) {
+          const mapping = { inner: tier.inner, start, end, floorY: tier.height };
+          for (const [partIndex, part] of createPillDeskParts(mapping).entries()) {
+            mapSmokedWood(part, mapping, partIndex);
             add(part, wood); part.dispose();
           }
         } else {

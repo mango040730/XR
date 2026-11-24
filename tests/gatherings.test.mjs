@@ -10,6 +10,8 @@ import { withinWalkBoundary } from '../src/entrance.js';
 import { isWalkable } from '../src/prepare-space.js';
 import { createTubeChairTemplate, TUBE_CUSHION_COLOR } from '../src/terrace-tube-chair.js';
 import { createPillDeskParts } from '../src/terrace-pill-desk.js';
+import { SMOKED_WOOD_COLOR } from '../src/terrace-smoked-wood.js';
+import { appearanceSnapshot } from './helpers/appearance-snapshot.mjs';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
 const model = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
@@ -157,8 +159,8 @@ test('계단 의자 74개 모두 파이프 디자인이며 파스텔 블루 천 
   const frame = edited.seating.root.getObjectByName('Terrace_tube_frames');
   const cushion = edited.seating.root.getObjectByName('Terrace_tube_cushions');
   const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
-  assert.equal(frame.material.color.getHexString(), desk.material.color.getHexString());
-  for (const property of ['roughness', 'clearcoat', 'clearcoatRoughness', 'metalness', 'specularIntensity', 'envMapIntensity']) assert.equal(frame.material[property], desk.material[property]);
+  assert.equal(frame.material.color.getHexString(), 'e99804', '의자 프레임은 기존 골드를 유지합니다.');
+  assert.equal(frame.material.roughness, 0.19); assert.equal(frame.material.clearcoat, 1);
   assert.equal(cushion.material.color.getHexString(), TUBE_CUSHION_COLOR.slice(1).toLowerCase());
   assert.equal(cushion.material.color.getHexString(), 'a5bcd5');
   const previous = new Color('#D5A5AB').getHSL({}), current = cushion.material.color.getHSL({});
@@ -192,11 +194,12 @@ test('계단 의자 74개 모두 파이프 디자인이며 파스텔 블루 천 
   for (const material of materials) { material.bumpMap?.dispose(); material.dispose(); }
 });
 
-test('계단 책상 28개가 골드 유광 캡슐 상판과 두 판형 다리이며 앞판 없이 무릎 공간을 확보한다', () => {
+test('계단 책상 28개의 캡슐 상판·두 판형 다리·높이·무릎 공간을 유지하며 무광 우드만 적용한다', () => {
   const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
   assert.ok(desk && !edited.seating.root.getObjectByName('Terrace_wood_desks'));
-  assert.equal(desk.material.color.getHexString(), 'e99804');
-  assert.ok(desk.material.clearcoat >= 0.9 && desk.material.roughness < 0.25 && desk.material.clearcoatRoughness < 0.2);
+  assert.equal(desk.material.color.getHexString(), SMOKED_WOOD_COLOR.slice(1).toLowerCase());
+  assert.ok(desk.material.roughness >= 0.85 && desk.material.userData.smokedWood);
+  assert.equal(desk.material.clearcoat, 0); assert.equal(desk.material.displacementMap, null);
   assert.equal(desk.material.map, null); assert.equal(desk.material.bumpMap, null);
   const ray = new Raycaster(), down = new Vector3(0, -1, 0);
   let indices = 0;
@@ -226,4 +229,15 @@ test('계단 책상 28개가 골드 유광 캡슐 상판과 두 판형 다리이
     parts.forEach(p => p.dispose());
   }
   assert.equal(desk.geometry.index.count, indices, '기존 앞판·턱·지지판 부품이 중복으로 남으면 안 됩니다.');
+});
+
+test('목재 재질 변경 전후 전체 메시·노멀·인덱스·배치와 대상 외 재질이 동일하다', async () => {
+  const { commit, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
+  assert.equal(commit, '767bdf9');
+  assert.deepEqual(appearanceSnapshot(model), baseline, '변경 전 실행 장면의 정확한 형상·배치·다른 가구 재질을 보존해야 합니다.');
+  const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
+  const coordinates = desk.geometry.attributes.deskWoodCoord;
+  assert.equal(coordinates.count, desk.geometry.attributes.position.count);
+  for (const value of coordinates.array) assert.ok(Number.isFinite(value));
+  assert.equal(desk.material.normalMap, null); assert.equal(desk.material.bumpMap, null);
 });

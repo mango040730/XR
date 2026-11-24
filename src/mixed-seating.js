@@ -74,11 +74,11 @@ function deskIntervals(tier, obstacles) {
   return intervals.filter(([start, end]) => (end - start) * radius >= 2);
 }
 
-export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22, deskStyle = 'integrated', chairVariants = [] } = {}) {
+export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22, deskStyle = 'integrated', primaryChairDesign = 'round', chairVariants = [] } = {}) {
   const root = new THREE.Group(); root.name = 'Terrace_integrated_seating';
   const wood = deskStyle === 'pill' ? createGlossDeskMaterial() : createDeskWoodMaterial();
   const chairMaterials = new Map();
-  const templates = [{ id: 'round', parts: chairTemplate }, ...chairVariants];
+  const templates = [{ id: primaryChairDesign, parts: chairTemplate }, ...chairVariants];
   for (const part of templates.flatMap(t => t.parts)) {
     if (chairMaterials.has(part.material)) continue;
     if (part.material.userData.terraceChair) { chairMaterials.set(part.material, part.material); continue; }

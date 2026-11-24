@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { createGlossDeskMaterial } from './terrace-pill-desk.js';
 import { createRoundChairDisc } from './terrace-rounded-chair.js';
 
-export const TUBE_CUSHION_COLOR = '#D5A5AB';
+export const TUBE_CUSHION_COLOR = '#A5BCD5';
 
 function cloth() {
   const data = new Uint8Array(128 * 128 * 4);
@@ -16,7 +16,7 @@ function cloth() {
   weave.wrapS = weave.wrapT = THREE.RepeatWrapping; weave.repeat.set(5, 5);
   weave.magFilter = THREE.LinearFilter; weave.minFilter = THREE.LinearMipmapLinearFilter;
   weave.generateMipmaps = true; weave.needsUpdate = true;
-  const material = new THREE.MeshPhysicalMaterial({ name: 'Terrace blush woven cushion', color: TUBE_CUSHION_COLOR,
+  const material = new THREE.MeshPhysicalMaterial({ name: 'Terrace pastel blue woven cushion', color: TUBE_CUSHION_COLOR,
     roughness: 0.92, metalness: 0, clearcoat: 0, sheen: 0.4, sheenColor: TUBE_CUSHION_COLOR,
     sheenRoughness: 0.85, specularIntensity: 0.25, bumpMap: weave, bumpScale: 0.0015 });
   material.userData.terraceChair = true; material.userData.terraceChairBatch = 'Terrace_tube_cushions';

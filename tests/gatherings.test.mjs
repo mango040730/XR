@@ -2,13 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Box3, Raycaster, Vector3 } from 'three';
+import { Box3, Color, Raycaster, Vector3 } from 'three';
 import { prepareGatheringSpace } from '../src/compact-space.js';
 import { GATHERING_LAYOUT as L, GATHERING_ZONES, GATHERING_ENTRY, gatheringFloorY } from '../src/gathering-layout.js';
 import { collisionGeometry } from '../src/collision.js';
 import { withinWalkBoundary } from '../src/entrance.js';
 import { isWalkable } from '../src/prepare-space.js';
-import { createTerraceChairTemplate, TERRACE_CHAIR_COLOR } from '../src/terrace-rounded-chair.js';
 import { createTubeChairTemplate, TUBE_CUSHION_COLOR } from '../src/terrace-tube-chair.js';
 import { createPillDeskParts } from '../src/terrace-pill-desk.js';
 
@@ -149,56 +148,23 @@ test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 혼합 �
   }
 });
 
-test('섞어 배치한 기존 원형 의자는 넓은 좌판·절반 높이 등받이와 골드 유광을 유지한다', () => {
-  const batch = edited.seating.root.getObjectByName('Terrace_round_chairs');
-  assert.ok(batch && batch.material.userData.terraceChair);
-  assert.equal(edited.seating.seats.length, 74); assert.equal(edited.seating.sets.length, 28);
-  assert.equal(batch.material.color.getHexString(), TERRACE_CHAIR_COLOR.slice(1).toLowerCase());
-  const deskMaterial = edited.seating.root.getObjectByName('Terrace_gloss_desks').material;
-  for (const property of ['roughness', 'clearcoat', 'clearcoatRoughness', 'metalness', 'specularIntensity', 'envMapIntensity', 'sheen', 'map', 'bumpMap']) {
-    assert.equal(batch.material[property], deskMaterial[property], `책상과 같은 마감: ${property}`);
-  }
-  assert.ok(!edited.seating.root.children.some(m => /^Cafe_Furniture__Integrated_/.test(m.name)), '이전 프레임·다리 의자는 남기지 않습니다.');
-  const template = createTerraceChairTemplate();
-  const roundSeats = edited.seating.seats.filter(s => s.chairDesign === 'round');
-  assert.ok(roundSeats.length >= 25 && roundSeats.length < 50);
-  assert.equal(batch.geometry.index.count, template.reduce((n, p) => n + p.geometry.index.count, 0) * roundSeats.length);
-  const local = new Box3();
-  for (const part of template) { part.geometry.computeBoundingBox(); local.union(part.geometry.boundingBox); }
-  assert.ok(Math.abs(local.min.y) < 0.00001 && Math.abs(local.max.y - 0.735) < 0.001);
-  assert.ok(local.getSize(new Vector3()).x > 0.73 && local.getSize(new Vector3()).x < 0.75);
-  assert.ok(Math.abs(template[2].geometry.boundingBox.min.y - 0.46) < 0.001);
-  assert.ok(Math.abs(template[2].geometry.boundingBox.getSize(new Vector3()).y - 0.275) < 0.001, '등받이 자체 높이는 기존 0.55m의 절반이어야 합니다.');
-  assert.ok(Math.abs(template[1].geometry.boundingBox.getSize(new Vector3()).x / 0.66 - 1.12) < 0.001, '원형 좌판 지름은 12% 확대합니다.');
-  const ray = new Raycaster(new Vector3(), new Vector3(0, -1, 0));
-  for (const seat of roundSeats) {
-    const [x, y, z] = seat.position;
-    ray.set(new Vector3(x, y + 0.65, z), new Vector3(0, -1, 0));
-    const hit = ray.intersectObject(batch)[0];
-    assert.ok(hit && Math.abs(hit.point.y - y - 0.46) < 0.012, '모든 실제 좌판은 기존 인체 사용 높이에 있어야 합니다.');
-    const radius = Math.hypot(x, z), direction = new Vector3(x, 0, z).normalize();
-    ray.set(new Vector3(x, y + 0.60, z), direction);
-    assert.ok(ray.intersectObject(batch).some(h => h.distance < 0.33), '등받이는 바깥쪽에 있어야 합니다.');
-    ray.set(new Vector3(x, y + 0.60, z), direction.clone().negate()); ray.far = 0.4;
-    assert.equal(ray.intersectObject(batch).length, 0, '중앙을 보는 앞쪽은 열려 있어야 합니다.'); ray.far = Infinity;
-    assert.ok(edited.tiers[seat.tier].outer - radius - local.max.z >= 1.2, '의자 뒤에 보행 여유를 유지합니다.');
-  }
-  for (const part of template) part.geometry.dispose(); template[0].material.dispose();
-});
-
-test('새 파이프 의자를 두 층과 다인용 책상에 섞고 골드 유광 프레임·핑크 천 쿠션으로 구분한다', () => {
+test('계단 의자 74개 모두 파이프 디자인이며 파스텔 블루 천 쿠션과 골드 프레임을 사용한다', () => {
   const tubeSeats = edited.seating.seats.filter(s => s.chairDesign === 'tube');
-  assert.ok(tubeSeats.length >= 25 && tubeSeats.length < 50);
-  for (const tier of [0, 1]) assert.deepEqual(new Set(edited.seating.seats.filter(s => s.tier === tier).map(s => s.chairDesign)), new Set(['round', 'tube']));
-  for (const set of edited.seating.sets.filter(s => s.capacity >= 3)) {
-    assert.equal(new Set(edited.seating.seats.filter(s => s.setId === set.id).map(s => s.chairDesign)).size, 2);
-  }
+  assert.equal(tubeSeats.length, 74); assert.equal(edited.seating.seats.length, 74);
+  assert.equal(edited.seating.sets.length, 28);
+  assert.equal(edited.seating.root.getObjectByName('Terrace_round_chairs'), undefined, '기존 둥근 의자는 실행 장면에 남기지 않습니다.');
+  for (const tier of [0, 1]) assert.deepEqual(new Set(edited.seating.seats.filter(s => s.tier === tier).map(s => s.chairDesign)), new Set(['tube']));
   const frame = edited.seating.root.getObjectByName('Terrace_tube_frames');
   const cushion = edited.seating.root.getObjectByName('Terrace_tube_cushions');
   const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
   assert.equal(frame.material.color.getHexString(), desk.material.color.getHexString());
   for (const property of ['roughness', 'clearcoat', 'clearcoatRoughness', 'metalness', 'specularIntensity', 'envMapIntensity']) assert.equal(frame.material[property], desk.material[property]);
   assert.equal(cushion.material.color.getHexString(), TUBE_CUSHION_COLOR.slice(1).toLowerCase());
+  assert.equal(cushion.material.color.getHexString(), 'a5bcd5');
+  const previous = new Color('#D5A5AB').getHSL({}), current = cushion.material.color.getHSL({});
+  assert.ok(current.h > 0.5 && current.h < 0.7, '블루 계열이어야 합니다.');
+  assert.ok(Math.abs(previous.s - current.s) < 0.0001 && Math.abs(previous.l - current.l) < 0.0001, '이전 쿠션과 동일한 채도·명도의 파스텔 톤을 유지합니다.');
+  assert.equal(cushion.material.sheenColor.getHexString(), 'a5bcd5');
   assert.ok(cushion.material.roughness > 0.85 && cushion.material.sheen > 0.2 && cushion.material.bumpMap);
   assert.equal(cushion.material.clearcoat, 0); assert.equal(cushion.material.metalness, 0);
   assert.ok(cushion.geometry.attributes.uv);
@@ -216,7 +182,6 @@ test('새 파이프 의자를 두 층과 다인용 책상에 섞고 골드 유�
     ray.set(new Vector3(x, y + 0.6, z), new Vector3(0, -1, 0)); ray.far = 0.3;
     const hit = ray.intersectObject(cushion)[0];
     assert.ok(hit && Math.abs(hit.point.y - y - 0.46) < 0.012 && hit.face.normal.y > 0.9);
-    assert.equal(ray.intersectObject(edited.seating.root.getObjectByName('Terrace_round_chairs')).length, 0, '두 의자를 같은 자리에 중복 배치하면 안 됩니다.');
     ray.set(new Vector3(x, y + 0.78, z), direction); ray.far = 0.35;
     assert.ok(ray.intersectObject(frame).length, '곡선 등받이는 바깥쪽에 있어야 합니다.');
     ray.set(new Vector3(x, y + 0.65, z), direction.clone().negate()); ray.far = 0.4;

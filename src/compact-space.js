@@ -54,7 +54,7 @@ export function prepareGatheringSpace(model) {
   const foundation = new THREE.Mesh(new THREE.CylinderGeometry(L.outerRadius, L.outerRadius, L.pathY + 0.8, 512, 1, true), velvet);
   foundation.name = 'Compact_blue_plinth'; foundation.position.y = (L.pathY - 0.8) / 2; model.add(foundation);
   const tiers = Array.from({ length: 3 }, (_, i) => ({ inner: L.centralRadius + L.tierDepth * i, outer: L.centralRadius + L.tierDepth * (i + 1), height: L.floorY + (L.pathY - L.floorY) * (i + 1) / 3 }));
-  const mixed = buildMixedSeating(model, chairTemplate, [], { tiers, chairOffset: 1.1, deskStyle: 'pill', primaryChairDesign: 'tube' });
+  const mixed = buildMixedSeating(model, chairTemplate, [], { tiers, chairOffset: 1.1, deskStyle: 'pill', primaryChairDesign: 'tube', layout: 'lounge' });
   const clay = applyClayStyle(model);
   colorJoinedStairs(stairs, { upperInner: L.terraceOuter - L.tierDepth, topY: L.pathY, gray: C.stairs, railMaterial: velvet, railOuterRadius: L.outerRadius });
   const digitalWall = createDigitalWall(model, L.outerRadius, L.pathY, carpet, L.screenHeight);

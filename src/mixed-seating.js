@@ -7,6 +7,7 @@ import { createDeskWoodMaterial, mapCurvedWood } from './wood-desks.js';
 import { SPACE_COLORS } from './space-colors.js';
 import { createPillDeskParts } from './terrace-pill-desk.js';
 import { createSmokedWoodMaterial, mapSmokedWood } from './terrace-smoked-wood.js';
+import { terraceLoungePlan } from './terrace-lounge-layout.js';
 
 export const SEATED_TIER_COUNT = 2;
 export const DESK_BEVEL_SEGMENTS = 12;
@@ -75,7 +76,7 @@ function deskIntervals(tier, obstacles) {
   return intervals.filter(([start, end]) => (end - start) * radius >= 2);
 }
 
-export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22, deskStyle = 'integrated', primaryChairDesign = 'round', chairVariants = [] } = {}) {
+export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22, deskStyle = 'integrated', primaryChairDesign = 'round', chairVariants = [], layout = 'continuous' } = {}) {
   const root = new THREE.Group(); root.name = 'Terrace_integrated_seating';
   const wood = deskStyle === 'pill' ? createSmokedWoodMaterial() : createDeskWoodMaterial();
   const chairMaterials = new Map();
@@ -104,6 +105,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
   }
   // Close-spaced 1–4-person desks, staggered in a stable irregular rhythm.
   const rhythm = [1, 4, 2, 3, 2, 4, 1, 3, 4, 2, 1, 3];
+  const lounge = layout === 'lounge' ? terraceLoungePlan(tiers) : null;
   const clearIntervals = [];
   for (let tierIndex = 0; tierIndex < SEATED_TIER_COUNT; tierIndex++) {
     const tier = tiers[tierIndex];
@@ -111,12 +113,13 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
     const intervals = deskIntervals(tier, obstacles);
     clearIntervals.push(intervals);
     let slot = 0;
-    for (let section = 0; section < intervals.length; section++) {
-      const [a, b] = intervals[section];
+    const sections = lounge ? lounge[tierIndex].map(p => ({ ...p, bounds: [p.start, p.end] })) : intervals.map(bounds => ({ bounds }));
+    for (let section = 0; section < sections.length; section++) {
+      const descriptor = sections[section], [a, b] = descriptor.bounds;
       const length = (b - a) * radius;
-      const count = Math.max(1, Math.round(length / 5.5));
+      const count = lounge ? 1 : Math.max(1, Math.round(length / 5.5));
       const gap = 0.35;
-      const weights = Array.from({ length: count }, (_, i) => rhythm[(i + section + tierIndex) % rhythm.length]);
+      const weights = lounge ? [descriptor.capacity] : Array.from({ length: count }, (_, i) => rhythm[(i + section + tierIndex) % rhythm.length]);
       const totalWeight = weights.reduce((sum, w) => sum + w, 0);
       let cursor = a;
       for (const weight of weights) {
@@ -155,7 +158,8 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
           for (const part of template.parts) add(part.geometry, chairMaterials.get(part.material), matrix);
           seats.push({ setId, tier: tierIndex, type, chairDesign: template.id, position: position.toArray(), facing: direction.clone().negate().toArray() });
         }
-        sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: deskStyle !== 'pill', wooden: deskStyle !== 'pill', deskStyle });
+        sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: deskStyle !== 'pill', wooden: deskStyle !== 'pill', deskStyle,
+          layout, cluster: descriptor.cluster ?? null, mode: descriptor.mode ?? 'continuous' });
       }
     }
   }

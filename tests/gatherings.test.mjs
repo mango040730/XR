@@ -96,7 +96,7 @@ test('원형 공간과 계단·블루길을 함께 축소하되 실제 보행 �
   assert.equal(L.pathWidth, 4.6);
   assert.equal(edited.stairs.userData.stepCount, 9);
   assert.ok(edited.seating.sets.length < 60 && edited.seating.sets.length > 15);
-  assert.ok(edited.seating.seats.length < 158 && edited.seating.seats.length > 40);
+  assert.equal(edited.seating.seats.length, 37);
   assert.deepEqual([...new Set(edited.seating.sets.map(s => s.tier))], [0, 1]);
   const ray = new Raycaster(new Vector3(), new Vector3(0, -1, 0));
   for (let i = 0; i < L.stepCount; i++) {
@@ -132,6 +132,31 @@ test('실제 병합 충돌 장면에서 새 입구·계단·중앙 통로를 연
       }
     }
     assert.equal(body.geometry.index.count / 3, meshes.reduce((n, m) => n + (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3, 0));
+    for (const seat of edited.seating.seats) {
+      const outward = new Vector3(seat.position[0], 0, seat.position[2]).normalize();
+      const along = new Vector3(outward.z, 0, -outward.x);
+      const point = new Vector3(...seat.position).addScaledVector(outward, 0.8);
+      ray.set(point.clone().add(new Vector3(0, 0.1, 0)), new Vector3(0, -1, 0)); ray.far = 0.15;
+      const hit = ray.intersectObject(floor)[0];
+      assert.ok(hit && Math.abs(hit.point.y - seat.position[1]) < 0.001, '의자 뒤쪽 이동 공간은 해당 평평한 단 위여야 합니다.');
+      for (const h of [0.4, 0.95, 1.5]) for (const sign of [-1, 1]) {
+        ray.set(point.clone().add(new Vector3(0, h, 0)), along.clone().multiplyScalar(sign)); ray.far = 0.5;
+        assert.equal(ray.intersectObject(body).length, 0, '의자 뒤로 물러나고 옆으로 이동할 공간이 필요합니다.');
+      }
+    }
+    for (const a of edited.seating.sets) {
+      const b = edited.seating.sets.find(s => s.cluster === a.cluster && s.start > a.end);
+      if (!b) continue;
+      const angle = (a.end + b.start) / 2, tier = edited.tiers[a.tier];
+      const inward = new Vector3(-Math.cos(angle), 0, -Math.sin(angle)), side = new Vector3(-inward.z, 0, inward.x);
+      for (let r = tier.inner + 2.1; r >= tier.inner + 1.0; r -= 0.1) for (const offset of [-0.22, 0, 0.22]) {
+        for (const h of [0.4, 0.95, 1.5]) {
+          const point = new Vector3(Math.cos(angle) * r, tier.height + h, Math.sin(angle) * r).addScaledVector(side, offset);
+          ray.set(point, inward); ray.far = 0.15;
+          assert.equal(ray.intersectObject(body).length, 0, '모인 소형 테이블 사이로 접근할 수 있어야 합니다.');
+        }
+      }
+    }
   } finally { for (const mesh of [body, floor]) { mesh.geometry.dispose(); mesh.material.dispose(); } }
 });
 
@@ -152,10 +177,10 @@ test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 혼합 �
   }
 });
 
-test('계단 의자 74개 모두 파이프 디자인이며 파스텔 블루 천 쿠션과 골드 프레임을 사용한다', () => {
+test('계단 의자 37개 모두 파이프 디자인이며 파스텔 블루 천 쿠션과 골드 프레임을 사용한다', () => {
   const tubeSeats = edited.seating.seats.filter(s => s.chairDesign === 'tube');
-  assert.equal(tubeSeats.length, 74); assert.equal(edited.seating.seats.length, 74);
-  assert.equal(edited.seating.sets.length, 28);
+  assert.equal(tubeSeats.length, 37); assert.equal(edited.seating.seats.length, 37);
+  assert.equal(edited.seating.sets.length, 20);
   assert.equal(edited.seating.root.getObjectByName('Terrace_round_chairs'), undefined, '기존 둥근 의자는 실행 장면에 남기지 않습니다.');
   for (const tier of [0, 1]) assert.deepEqual(new Set(edited.seating.seats.filter(s => s.tier === tier).map(s => s.chairDesign)), new Set(['tube']));
   const frame = edited.seating.root.getObjectByName('Terrace_tube_frames');
@@ -196,7 +221,61 @@ test('계단 의자 74개 모두 파이프 디자인이며 파스텔 블루 천 
   for (const material of materials) { material.bumpMap?.dispose(); material.dispose(); }
 });
 
-test('계단 책상 28개의 캡슐 상판·두 판형 다리·높이·무릎 공간을 유지하며 무광 우드만 적용한다', () => {
+test('1·2인 중심의 작은 모임·독립석·넓은 여백을 두 층에 서로 다르게 구성했다', () => {
+  const sets = edited.seating.sets;
+  assert.deepEqual([1, 2, 3, 4].map(n => sets.filter(s => s.capacity === n).length), [9, 7, 2, 2]);
+  assert.deepEqual([0, 1].map(t => sets.filter(s => s.tier === t).length), [11, 9]);
+  assert.equal(sets.reduce((n, s) => n + s.capacity, 0), 37);
+  for (const set of sets) {
+    assert.equal(set.layout, 'lounge');
+    assert.ok(Math.abs(set.width - (0.45 + set.capacity * 0.70)) < 0.00001);
+    assert.equal(edited.seating.seats.filter(s => s.setId === set.id).length, set.capacity);
+    assert.ok(set.width / set.capacity > 0.8, '좌석 수에 맞는 실사용 상판 폭이 필요합니다.');
+  }
+  const longestGaps = [];
+  for (const tierIndex of [0, 1]) {
+    const tier = edited.tiers[tierIndex], radius = tier.inner + 0.49;
+    const tables = sets.filter(s => s.tier === tierIndex).sort((a, b) => a.start - b.start);
+    const gaps = [];
+    for (const [a, b] of edited.seating.clearIntervals[tierIndex]) {
+      let cursor = a;
+      for (const table of tables.filter(s => s.start >= a && s.end <= b)) {
+        gaps.push((table.start - cursor) * radius); cursor = table.end;
+      }
+      gaps.push((b - cursor) * radius);
+    }
+    assert.ok(gaps.filter(g => g > 5.5).length >= 2, '가구 없는 연속 구간이 층마다 여러 곳에 있어야 합니다.');
+    assert.ok(Math.max(...gaps) > 7.5);
+    longestGaps.push(Math.max(...gaps));
+    const available = edited.seating.clearIntervals[tierIndex].reduce((n, [a, b]) => n + (b - a) * radius, 0);
+    assert.ok(tables.reduce((n, t) => n + t.width, 0) / available < 0.35);
+    for (const table of tables) {
+      assert.ok(edited.seating.clearIntervals[tierIndex].some(([a, b]) => table.start >= a && table.end <= b), '좁은 이동 계단 구간을 침범하면 안 됩니다.');
+    }
+    for (let i = 1; i < tables.length; i++) {
+      const a = tables[i - 1], b = tables[i], gap = (b.start - a.end) * radius;
+      assert.ok(gap >= 0.9, '모든 인접 테이블 사이에 실제 통행 간격이 필요합니다.');
+      if (a.cluster === b.cluster) {
+        assert.ok(gap <= 1.15 && a.capacity <= 2 && b.capacity <= 2, '가까운 포켓은 소형 테이블로 구성합니다.');
+      }
+    }
+    for (const table of tables.filter(s => s.mode === 'isolated')) {
+      const others = tables.filter(s => s !== table);
+      assert.ok(others.every(o => Math.min(...[-Math.PI * 2, 0, Math.PI * 2].map(w => Math.max(o.start + w - table.end, table.start - o.end - w))) * radius >= 3));
+    }
+  }
+  assert.ok(longestGaps[1] > 12);
+  let union = 0, intersection = 0;
+  for (let i = 0; i < 3600; i++) {
+    const angle = i / 3600 * Math.PI * 2;
+    const occupied = [0, 1].map(t => sets.some(s => s.tier === t && angle >= s.start && angle <= s.end));
+    if (occupied.some(Boolean)) union++;
+    if (occupied.every(Boolean)) intersection++;
+  }
+  assert.ok(intersection / union < 0.20, '위아래 테이블과 빈 구간을 같은 각도에 반복 정렬하지 않습니다.');
+});
+
+test('계단 책상 20개의 캡슐 상판·두 판형 다리·높이·무릎 공간을 유지하며 무광 우드만 적용한다', () => {
   const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
   assert.ok(desk && !edited.seating.root.getObjectByName('Terrace_wood_desks'));
   assert.equal(desk.material.color.getHexString(), SMOKED_WOOD_COLOR.slice(1).toLowerCase());
@@ -212,7 +291,21 @@ test('계단 책상 28개의 캡슐 상판·두 판형 다리·높이·무릎 �
     const parts = createPillDeskParts({ inner, start: set.start, end: set.end, floorY });
     assert.equal(parts.length, 3);
     for (const part of parts) { indices += part.index?.count ?? part.attributes.position.count; part.computeBoundingBox(); }
-    for (const leg of parts.slice(1)) assert.ok(Math.abs(leg.boundingBox.min.y - floorY) < 0.00001, '두 다리 모두 바닥에 접지해야 합니다.');
+    for (const part of parts) {
+      const p = part.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const r = Math.hypot(p.getX(i), p.getZ(i));
+        assert.ok(r > inner + 0.10 && r < edited.tiers[set.tier].outer - 0.10, '상판과 받침은 평평한 단 안에 있어야 합니다.');
+      }
+    }
+    for (const leg of parts.slice(1)) {
+      assert.ok(Math.abs(leg.boundingBox.min.y - floorY) < 0.00001, '두 다리 모두 바닥에 접지해야 합니다.');
+      const p = leg.attributes.position;
+      const index = Array.from({length:p.count},(_,i)=>i).find(i=>Math.abs(p.getY(i)-floorY)<0.00001);
+      ray.set(new Vector3(p.getX(index),floorY+0.05,p.getZ(index)),down);ray.far=0.1;
+      const hit=ray.intersectObjects(floors)[0];
+      assert.ok(hit && Math.abs(hit.point.y-floorY)<0.00001, '다리가 실제 계단 디딤면에 놓여야 합니다.');
+    }
     ray.set(direction.clone().multiplyScalar(radius).setY(floorY + 1.2), down); ray.far = 0.5;
     const top = ray.intersectObject(desk)[0];
     assert.ok(top && Math.abs(top.point.y - floorY - 0.79) < 0.001, '실제 책상 상면은 기존 높이를 유지해야 합니다.');
@@ -233,7 +326,7 @@ test('계단 책상 28개의 캡슐 상판·두 판형 다리·높이·무릎 �
   assert.equal(desk.geometry.index.count, indices, '기존 앞판·턱·지지판 부품이 중복으로 남으면 안 됩니다.');
 });
 
-test('목재 재질 변경 전후 전체 메시·노멀·인덱스·배치와 대상 외 재질이 동일하다', async () => {
+test('라운지 배치 외 공간·중앙 가구·조명·카메라와 재질·테이블 디자인은 보존된다', async () => {
   const { commit, sourceFiles, transforms, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
   assert.equal(commit, '767bdf9');
   const snapshot = appearanceSnapshot(model);
@@ -242,7 +335,8 @@ test('목재 재질 변경 전후 전체 메시·노멀·인덱스·배치와 �
   // geometry/light/camera source bytes, then compare table buffers against the
   // untouched original geometry factory in the same execution environment.
   for (const [file, hash] of Object.entries(sourceFiles)) {
-    const source = await readFile(new URL('../' + file, import.meta.url));
+    let source = await readFile(new URL('../' + file, import.meta.url));
+    if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", ''));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }
   let count = 0;

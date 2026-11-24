@@ -282,10 +282,10 @@ test('책상은 일체형 형태와 지정 골드를 유지하며 나뭇결·요
 
 test('지정한 다섯 색상과 아래 두 단 좌석만 적용되고 맨윗단 가구는 없다', () => {
   assert.equal(edited.interior.material.color.getHexString(), 'f4cfb8');
-  assert.equal(edited.carpet.material.color.getHexString(), '1a3880');
+  assert.equal(edited.carpet.material.color.getHexString(), '203d85');
   assert.equal(gltf.scene.getObjectByName('Terrace_wood_desks').material.color.getHexString(), 'e99804');
   const cushion = gltf.scene.getObjectByName('Lounge_Pods__Coral_cushion_variation__0_0');
-  assert.equal(cushion.material.color.getHexString(), 'ed715d');
+  assert.equal(cushion.material.color.getHexString(), 'd94224');
   const shell = gltf.scene.getObjectByName('Lounge_Pods__Warm_ivory_•_matte_ceramic__0_0');
   assert.equal(shell.material.color.getHexString(), 'fde8dc');
   const upholstery = gltf.scene.getObjectByName('Lounge_Pods__Terracotta_coral_upholstery__0_0');
@@ -295,7 +295,7 @@ test('지정한 다섯 색상과 아래 두 단 좌석만 적용되고 맨윗단
     const vertex = [...part.vertices][0];
     const actual = new Color().fromBufferAttribute(upholstery.geometry.attributes.color, vertex).getHexString();
     if (part.size.y > 0.35) { assert.equal(actual, 'fde8dc'); backs++; }
-    else { assert.equal(actual, 'ed715d'); pads++; }
+    else { assert.equal(actual, 'd94224'); pads++; }
   }
   assert.ok(backs > 0 && pads > 0);
   assert.equal(SEATED_TIER_COUNT, 2);
@@ -324,7 +324,7 @@ test('최상단의 윗면만 블루이며 아래 두 단과 수직면은 연그�
       const hit = ray.intersectObject(stairs, false)[0];
       assert.ok(hit);
       const actual = stairs.material[hit.face.materialIndex].color.getHexString();
-      assert.equal(actual, tier === 2 ? edited.carpet.material.color.getHexString() : 'd9dadd');
+      assert.equal(actual, tier === 2 ? edited.carpet.material.color.getHexString() : 'cbcbcb');
     }
   }
   for (const angle of [Math.PI / 4, Math.PI * 3 / 4, Math.PI * 5 / 4, Math.PI * 7 / 4]) {
@@ -333,13 +333,13 @@ test('최상단의 윗면만 블루이며 아래 두 단과 수직면은 연그�
     ray.set(new Vector3(radius * direction.x, PATH_Y - 0.5, radius * direction.z), direction);
     const hit = ray.intersectObject(stairs, false)[0];
     assert.ok(hit && hit.distance < 0.15);
-    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'd9dadd', '블루 윗면 아래의 수직 앞면은 연그레이여야 합니다.');
+    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'cbcbcb', '블루 윗면 아래의 수직 앞면은 연그레이여야 합니다.');
   }
   for (let band = 0; band < ACCESS_STEP_COUNT - 1; band++) {
     const radius = CENTRAL_RADIUS + (band + 0.5) * (PATH_INNER_RADIUS - CENTRAL_RADIUS) / ACCESS_STEP_COUNT;
     ray.set(new Vector3(0, PATH_Y + 2, radius), new Vector3(0, -1, 0));
     const hit = ray.intersectObject(stairs, false)[0];
-    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'd9dadd', '이동용 계단은 연그레이로 구분해야 합니다.');
+    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'cbcbcb', '이동용 계단은 연그레이로 구분해야 합니다.');
   }
 });
 

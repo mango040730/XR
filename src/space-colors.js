@@ -1,8 +1,8 @@
 export const SPACE_COLORS = Object.freeze({
-  coral: '#ED715D',
+  coral: '#D94224',
   terraceFurniture: '#E99804',
   floor: '#F4CFB8',
   sculpture: '#FDE8DC',
-  rail: '#1A3880',
-  stairs: '#D9DADD',
+  rail: '#203D85',
+  stairs: '#CBCBCB',
 });

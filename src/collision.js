@@ -18,7 +18,7 @@ export function collisionGeometry(meshes) {
   const geometry = mergeGeometries(parts, false);
   parts.forEach(part => part.dispose());
   if (!geometry) throw new Error('공간 충돌 메시를 병합하지 못했습니다.');
-  computeBoundsTree.call(geometry, { maxLeafSize: 12 });
+  computeBoundsTree.call(geometry, { maxLeafSize: 12, maxDepth: 64 });
   const collider = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
   collider.raycast = acceleratedRaycast;
   return collider;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries, toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
-import { leafBlade } from './botanical.js';
+import { createClayDaisies } from './clay-daisies.js';
 import { SPACE_COLORS as C } from './space-colors.js';
 import { GATHERING_ZONES, gatheringFloorY } from './gathering-layout.js';
 
@@ -15,7 +15,7 @@ const materials = {
   shell: material('Clay warm ivory', C.sculpture), coral: material('Clay coral upholstery', C.coral, { roughness: 0.86, sheen: 0.35, sheenColor: C.coral }),
   gold: material('Clay ochre furniture', C.terraceFurniture, { roughness: 0.6 }),
   orange: material('Clay orange', '#f89135'), blue: material('Clay blue accent', C.rail),
-  soil: material('Clay soil', '#555346', { roughness: 1 }), stem: material('Clay olive branches', '#5b7051'),
+  soil: material('Clay soil', '#555346', { roughness: 1 }), stem: material('Clay daisy stems', '#5c963f'),
   leaf: material('Clay rounded leaves', '#ffffff', { vertexColors: true, roughness: 0.86, side: THREE.DoubleSide }),
   stone: material('Clay river stones', '#ffffff', { vertexColors: true, roughness: 0.9 }),
 };
@@ -86,9 +86,6 @@ function tint(geometry, color) {
   for (let i = 0; i < geometry.attributes.position.count; i++) color.toArray(colors, i * 3);
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); return geometry;
 }
-function tube(root, points, radius) {
-  return add(root, 'Clay_branch', new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 24, radius, CLAY_DETAIL.branchSegments, false), materials.stem);
-}
 export function planter(root, width, depth, x = 0, z = 0, y = 0, treeHeight = 1.4) {
   const rand = random(1771 + Math.round((x + z + y) * 497)), h = width < 0.6 ? 0.16 : 0.4;
   const bowl = add(root, 'Clay_planter', roundedCylinder(1, h, 0.06), materials.shell, x, y, z); bowl.scale.set(width / 2, 1, depth / 2);
@@ -105,20 +102,8 @@ export function planter(root, width, depth, x = 0, z = 0, y = 0, treeHeight = 1.
       pebble.scale.set(radius, radius * (0.57 + rand() * 0.25), radius * (0.75 + rand() * 0.2)); pebble.rotation.y = rand() * TAU;
     }
   }
-  for (const rx of roots) {
-    const base = new THREE.Vector3(x + rx, y + h - 0.02, z), height = treeHeight * (0.85 + rand() * 0.18);
-    const lean = new THREE.Vector3((rand() - 0.5) * height * 0.22, height, (rand() - 0.5) * height * 0.18);
-    const curve = new THREE.CatmullRomCurve3([base, base.clone().addScaledVector(lean, 0.45).add(new THREE.Vector3(0.05, 0, 0.03)), base.clone().add(lean)]);
-    tube(root, curve.points, width < 0.6 ? 0.009 : 0.023);
-    for (let i = 0; i < (width < 0.6 ? 9 : 18); i++) {
-      const t = 0.22 + i * (width < 0.6 ? 0.082 : 0.041), socket = curve.getPoint(t);
-      const angle = i * 2.39996 + rand() * 0.5, dir = new THREE.Vector3(Math.sin(angle), 0.38 + rand() * 0.32, Math.cos(angle)).normalize();
-      const length = treeHeight * (0.21 + rand() * 0.1), start = socket.clone().addScaledVector(dir, length * 0.13);
-      tube(root, [socket, socket.clone().lerp(start, 0.5).add(new THREE.Vector3(0, 0.018, 0)), start], width < 0.6 ? 0.004 : 0.009);
-      const leaf = leafBlade(start, dir, length, length * 0.55, new THREE.Color(['#426d46', '#5d824f', '#789462'][Math.floor(rand() * 3)]), 0.08);
-      add(root, 'Clay_plump_leaf', leaf.geometry, materials.leaf);
-    }
-  }
+  createClayDaisies(root, { width, depth, x, z, soilY: y + h - 0.02, height: treeHeight, roots, materials,
+    seed: 1771 + Math.round((x + z + y) * 497) });
 }
 
 // Merge small leaves, pebbles and furniture parts by finish, while preserving

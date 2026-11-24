@@ -1,8 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Box3, Color, Raycaster, Vector3 } from 'three';
+import { Box3, Color, Matrix4, Raycaster, Vector3 } from 'three';
 import { prepareGatheringSpace } from '../src/compact-space.js';
 import { GATHERING_LAYOUT as L, GATHERING_ZONES, GATHERING_ENTRY, gatheringFloorY } from '../src/gathering-layout.js';
 import { collisionGeometry } from '../src/collision.js';
@@ -232,10 +234,40 @@ test('계단 책상 28개의 캡슐 상판·두 판형 다리·높이·무릎 �
 });
 
 test('목재 재질 변경 전후 전체 메시·노멀·인덱스·배치와 대상 외 재질이 동일하다', async () => {
-  const { commit, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
+  const { commit, sourceFiles, transforms, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
   assert.equal(commit, '767bdf9');
-  assert.deepEqual(appearanceSnapshot(model), baseline, '변경 전 실행 장면의 정확한 형상·배치·다른 가구 재질을 보존해야 합니다.');
+  const snapshot = appearanceSnapshot(model);
+  assert.equal(snapshot.meshes, baseline.meshes); assert.equal(snapshot.surroundings, baseline.surroundings);
+  // CPU/V8 versions can differ at the last floating-point bit. Preserve all
+  // geometry/light/camera source bytes, then compare table buffers against the
+  // untouched original geometry factory in the same execution environment.
+  for (const [file, hash] of Object.entries(sourceFiles)) {
+    const source = await readFile(new URL('../' + file, import.meta.url));
+    assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
+  }
+  let count = 0;
+  model.traverse(object => {
+    const expected = transforms[count++];
+    assert.equal(object.name, expected.name); assert.equal(object.type, expected.type);
+    for (const property of ['matrix', 'matrixWorld']) object[property].elements.forEach((v, i) => {
+      assert.ok(Math.abs(v - expected[property][i]) < 1e-12, `${object.name} 위치·회전·크기 보존`);
+    });
+  });
+  assert.equal(count, transforms.length);
   const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
+  const originals = edited.seating.sets.flatMap(set => createPillDeskParts({ inner: edited.tiers[set.tier].inner, start: set.start, end: set.end, floorY: set.center[1] }));
+  for (const part of originals) {
+    part.applyMatrix4(new Matrix4()); // Same identity transform/normal normalization as the original batching path.
+    part.deleteAttribute('uv');
+    if (!part.index) part.setIndex(Array.from({ length: part.attributes.position.count }, (_, i) => i));
+  }
+  const expected = mergeGeometries(originals);
+  const exact = (actual, original, label) => assert.equal(Buffer.compare(
+    Buffer.from(actual.buffer, actual.byteOffset, actual.byteLength),
+    Buffer.from(original.buffer, original.byteOffset, original.byteLength)), 0, label);
+  for (const property of ['position', 'normal']) exact(desk.geometry.attributes[property].array, expected.attributes[property].array, `${property} 버퍼 보존`);
+  exact(desk.geometry.index.array, expected.index.array, '인덱스 보존');
+  expected.dispose(); originals.forEach(p => p.dispose());
   const coordinates = desk.geometry.attributes.deskWoodCoord;
   assert.equal(coordinates.count, desk.geometry.attributes.position.count);
   for (const value of coordinates.array) assert.ok(Number.isFinite(value));

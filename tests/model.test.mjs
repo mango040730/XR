@@ -15,6 +15,7 @@ import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from '../src/joined-stairs.js';
 import { CENTRAL_STEP_RISE, centralBoundary, centralIsRaised } from '../src/central-room.js';
 import { collisionGeometry } from '../src/collision.js';
 import { SPACE_COLORS } from '../src/space-colors.js';
+import { ENTRY_POSITION, ENTRY_HEIGHT, ENTRY_WIDTH } from '../src/entrance.js';
 import { prepareSpace, isWalkable, FLOOR_Y, PATH_WIDTH, PATH_INNER_RADIUS, PATH_OUTER_RADIUS, PATH_Y, WALK_RADIUS, CENTRAL_RADIUS } from '../src/prepare-space.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -78,13 +79,14 @@ test('원본 공간 모델이 누락되거나 변경되지 않았다', () => {
   assert.equal(createHash('sha256').update(bytes).digest('hex'), '856fb59b6ea8b0494e0be265c0f1ed8df86df7cd3a0ce4724eae2218b27853eb');
 });
 
-test('사람 눈높이의 시작점 아래에 평평한 바닥이 있다', () => {
-  const ray = new Raycaster(new Vector3(0, 2.825, 22), new Vector3(0, -1, 0));
+test('출입구 시작점 아래에 블루길과 같은 높이의 평평한 바닥이 있다', () => {
+  const eye = new Vector3(...ENTRY_POSITION).add(new Vector3(0, 1.65, 0));
+  const ray = new Raycaster(eye, new Vector3(0, -1, 0));
   const hit = ray.intersectObjects(floors, false)[0];
   assert.ok(hit, '시작점 아래의 바닥이 필요합니다.');
-  assert.ok(Math.abs(hit.point.y - 1.15) < 0.001);
+  assert.ok(Math.abs(hit.point.y - PATH_Y) < 0.001);
   assert.ok(Math.abs(hit.face.normal.y) > 0.9);
-  ray.set(new Vector3(0, 2.825, 22), new Vector3(0, 0, -1));
+  ray.set(eye, new Vector3(0, 0, -1));
   ray.far = 1.5;
   assert.equal(ray.intersectObject(gltf.scene, true).length, 0, '시작점 앞에 보행 공간이 필요합니다.');
 });
@@ -432,13 +434,14 @@ test('네 방향 이동 계단에서 몸통과 어깨 경로를 책상과 의자
   }
 });
 
-test('디지털 스크린이 이음부를 포함한 360도 전 방향의 벽을 덮는다', () => {
+test('출입구를 제외한 원형 벽과 출입구 상부는 빈 디지털 스크린으로 이어진다', () => {
   const ray = new Raycaster();
   const wall = edited.digitalWall;
   for (let i = 0; i <= 720; i++) {
     const angle = i * Math.PI / 360;
     const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
     for (const height of [0.3, SCREEN_WALL_HEIGHT / 2, SCREEN_WALL_HEIGHT - 0.3]) {
+      if (height < ENTRY_HEIGHT + 0.3 && direction.z > 0 && Math.abs(direction.x) * wall.radius < ENTRY_WIDTH / 2 + 0.5) continue;
       ray.set(new Vector3(0, PATH_Y + height, 0), direction);
       const hit = ray.intersectObject(wall.root, true)[0];
       assert.ok(hit, `각도 ${i / 2}에서 벽에 틈이 없어야 합니다.`);
@@ -458,11 +461,12 @@ test('스크린은 UI 없는 빈 발광 표면이고 기존 벽 장식은 제거
   gltf.scene.traverse(mesh => assert.ok(!/^(Architecture|Signage)__/.test(mesh.name), '기존 반원 벽·간판·문·장식이 남으면 안 됩니다.'));
 });
 
-test('블루길 바깥에서 전 방향의 디지털 벽 충돌이 유지된다', () => {
+test('실제 출입구를 제외한 디지털 벽의 충돌이 유지된다', () => {
   const ray = new Raycaster(); ray.far = 1;
   for (let i = 0; i < 360; i++) {
     const angle = i * Math.PI / 180;
     const direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+    if (direction.z > 0 && Math.abs(direction.x) * edited.digitalWall.radius < ENTRY_WIDTH / 2 + 0.5) continue;
     const origin = direction.clone().multiplyScalar(WALK_RADIUS); origin.y = PATH_Y + 1.5;
     ray.set(origin, direction);
     const hit = ray.intersectObject(edited.digitalWall.root, true)[0];

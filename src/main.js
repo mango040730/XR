@@ -6,6 +6,7 @@ import { prepareSpace, isWalkable, WALK_RADIUS } from './prepare-space.js';
 import { collisionGeometry } from './collision.js';
 import { createStudioRenderer } from './studio-renderer.js';
 import { CENTRAL_FURNITURE_LAYOUT } from './central-furniture.js';
+import { resetToEntrance, withinWalkBoundary, ENTRY_POSITION } from './entrance.js';
 
 // The document intentionally contains only the rendering canvas: no HUD or VR button.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -31,8 +32,7 @@ document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(68, innerWidth / innerHeight, 0.06, 240);
 camera.rotation.order = 'YXZ';
 const rig = new THREE.Group();
-rig.position.set(0, 1.175, 22);
-camera.position.y = 1.65;
+resetToEntrance(rig, camera);
 scene.add(rig);
 rig.add(camera);
 
@@ -97,8 +97,7 @@ function tryMove(dx, dz, delta) {
   if (!ready || Math.abs(dx) + Math.abs(dz) < 0.00001) return;
   camera.getWorldPosition(head);
   const x = head.x, z = head.z;
-  // Keep the viewer within the original circular architecture.
-  if (Math.hypot(x + dx, z + dz) > WALK_RADIUS) return;
+  if (!withinWalkBoundary(x + dx, z + dz, WALK_RADIUS)) return;
   const height = floorHeight(x + dx, z + dz, rig.position.y);
   if (height === null || height - rig.position.y > 0.34) return;
   direction.set(dx, 0, dz);
@@ -136,10 +135,7 @@ function moveRelative(x, z, delta, speed = 2.5) {
 }
 
 function resetPosition() {
-  rig.position.set(0, 1.175, 22);
-  rig.rotation.set(0, 0, 0);
-  camera.rotation.set(0, 0, 0);
-  if (!renderer.xr.isPresenting) camera.position.set(0, 1.65, 0);
+  resetToEntrance(rig, camera, renderer.xr.isPresenting);
 }
 
 async function loadSpace() {
@@ -163,7 +159,7 @@ async function loadSpace() {
   });
   collider = collisionGeometry(meshes);
   floor = collisionGeometry(floors);
-  const initialFloor = floorHeight(0, 22, 1.175, 2);
+  const initialFloor = floorHeight(ENTRY_POSITION[0], ENTRY_POSITION[2], ENTRY_POSITION[1], 2);
   if (initialFloor !== null) rig.position.y = initialFloor;
   ready = true;
   document.documentElement.dataset.scene = 'ready';
@@ -221,7 +217,7 @@ controllers.forEach(controller => {
     if (!destination || Math.abs(destination.face.normal.y) < 0.7) return;
     const obstruction = ray.intersectObject(collider, false)[0];
     if (obstruction && obstruction.distance < destination.distance - 0.07) return;
-    if (Math.hypot(destination.point.x, destination.point.z) > WALK_RADIUS) return;
+    if (!withinWalkBoundary(destination.point.x, destination.point.z, WALK_RADIUS)) return;
     // Ensure the landing spot has enough clear space for a standing viewer.
     for (const offset of [0, Math.PI / 2, Math.PI, Math.PI * 1.5]) {
       origin.copy(destination.point).addScaledVector(up, 0.9);

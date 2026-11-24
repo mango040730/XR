@@ -3,12 +3,14 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Box3, Raycaster, Vector3 } from 'three';
+import { Box3, Raycaster, Vector3, Group, PerspectiveCamera } from 'three';
 import { CENTRAL_FURNITURE_LAYOUT } from '../src/central-furniture.js';
 import { prepareSpace, isWalkable, CENTRAL_RADIUS, PATH_Y } from '../src/prepare-space.js';
 import { centralIsRaised } from '../src/central-room.js';
 import { collisionGeometry } from '../src/collision.js';
 import { meshPieces } from '../src/mesh-pieces.js';
+import { ENTRY_POSITION, ENTRY_RADIUS, ENTRY_OUTER_Z, ENTRY_HEIGHT, resetToEntrance, withinWalkBoundary } from '../src/entrance.js';
+import { WALK_RADIUS } from '../src/prepare-space.js';
 
 async function load(file) {
   const bytes = await readFile(new URL(`../public/models/${file}.glb`, import.meta.url));
@@ -86,14 +88,22 @@ test('실제 병합 충돌에 새 가구와 계단형 라운지가 포함되고 
   try {
     assert.equal(body.geometry.index.count / 3, meshes.reduce((n, mesh) => n + (mesh.geometry.index?.count ?? mesh.geometry.attributes.position.count) / 3, 0));
     const ray = new Raycaster();
-    for (let z = 22; z >= 20; z -= 0.1) {
-      ray.set(new Vector3(0, 1.535, z), new Vector3(0, -1, 0)); ray.far = 0.96;
-      assert.ok(Math.abs(ray.intersectObject(floor)[0].point.y - 1.15) < 0.0001);
+    for (let z = ENTRY_POSITION[2]; z >= WALK_RADIUS - 0.5; z -= 0.05) {
+      assert.ok(withinWalkBoundary(0, z, WALK_RADIUS));
+      ray.set(new Vector3(0, PATH_Y + 0.36, z), new Vector3(0, -1, 0)); ray.far = 0.96;
+      assert.ok(Math.abs(ray.intersectObject(floor)[0].point.y - PATH_Y) < 0.0001);
       for (const h of [0.4, 0.95, 1.5]) for (const x of [-0.22, 0, 0.22]) {
-        ray.set(new Vector3(x, 1.175 + h, z), new Vector3(0, 0, -1)); ray.far = 0.32;
+        ray.set(new Vector3(x, ENTRY_POSITION[1] + h, z), new Vector3(0, 0, -1)); ray.far = 0.32;
         assert.equal(ray.intersectObject(body).length, 0);
       }
     }
+    // The opening is empty at body height; the display remains over its head.
+    ray.set(new Vector3(0, PATH_Y + 1.5, ENTRY_RADIUS - 1), new Vector3(0, 0, 1)); ray.far = 2;
+    assert.equal(ray.intersectObject(body).length, 0);
+    ray.set(new Vector3(0, PATH_Y + ENTRY_HEIGHT + 0.4, ENTRY_RADIUS - 1), new Vector3(0, 0, 1));
+    assert.ok(ray.intersectObject(body).length, '출입구 위쪽의 디스플레이와 벽은 유지해야 합니다.');
+    ray.set(new Vector3(0, PATH_Y + 1.5, ENTRY_RADIUS), new Vector3(1, 0, 0)); ray.far = 3;
+    assert.ok(ray.intersectObject(body).length, '문틀 옆면은 실제 충돌이 있어야 합니다.');
     for (const group of edited.furniture.groups) {
       let hits = 0;
       group.asset.traverse(mesh => {
@@ -116,4 +126,40 @@ test('실제 병합 충돌에 새 가구와 계단형 라운지가 포함되고 
   } finally {
     for (const mesh of [body, floor]) { mesh.geometry.dispose(); mesh.material.dispose(); }
   }
+});
+
+test('입구 바닥과 블루길이 전 폭에서 같은 외곽선과 높이로 연결된다', () => {
+  const ray = new Raycaster(new Vector3(), new Vector3(0, -1, 0), 0, 1);
+  const carpet = edited.carpet.geometry.attributes.position;
+  const rim = [];
+  for (let i = carpet.count / 2; i < carpet.count; i++) if (carpet.getZ(i) > ENTRY_RADIUS * 0.95) rim.push({ x: carpet.getX(i), z: carpet.getZ(i) });
+  rim.sort((a, b) => a.x - b.x);
+  for (let x = -1.8; x <= 1.8; x += 0.09) {
+    const i = rim.findIndex(p => p.x >= x), a = rim[i - 1], b = rim[i];
+    const edgeZ = a.z + (b.z - a.z) * (x - a.x) / (b.x - a.x);
+    for (const offset of [-0.01, -0.00005, 0.00005, 0.01, 0.5, 1.5]) {
+      ray.ray.origin.set(x, PATH_Y + 0.2, edgeZ + offset);
+      const hit = ray.intersectObjects(floors, false)[0];
+      assert.ok(hit && Math.abs(hit.point.y - PATH_Y) < 0.00001, '출입구 바닥에 틈이나 턱이 없어야 합니다.');
+    }
+  }
+  ray.ray.origin.set(0, PATH_Y + 0.2, ENTRY_RADIUS + 0.15);
+  const surfaces = ray.intersectObject(edited.digitalWall.root, true).filter(hit => Math.abs(hit.point.y - PATH_Y) < 0.00001);
+  assert.deepEqual([...new Set(surfaces.map(hit => hit.object))], [edited.digitalWall.entrance.landing], '하단 벽 마감이 출입구 바닥 위에 겹치면 안 됩니다.');
+});
+
+test('초기·리셋 시 입구에서 안쪽을 바라보고 출입구 밖의 원형 경계는 유지된다', () => {
+  const rig = new Group(), camera = new PerspectiveCamera(); rig.add(camera);
+  rig.position.set(10, 3, 4); rig.rotation.y = 2; camera.rotation.set(0.7, 1, 0);
+  resetToEntrance(rig, camera); rig.updateMatrixWorld(true);
+  assert.deepEqual(rig.position.toArray(), ENTRY_POSITION);
+  assert.equal(camera.position.y, 1.65);
+  const direction = camera.getWorldDirection(new Vector3());
+  assert.ok(direction.z < -0.99 && direction.y < 0, '시작 시 중앙 공간 쪽을 약간 내려다봐야 합니다.');
+  assert.ok(withinWalkBoundary(0, ENTRY_POSITION[2], WALK_RADIUS));
+  assert.ok(!withinWalkBoundary(2.5, ENTRY_RADIUS + 1, WALK_RADIUS));
+  assert.ok(!withinWalkBoundary(0, ENTRY_OUTER_Z, WALK_RADIUS));
+  assert.ok(!withinWalkBoundary(-ENTRY_RADIUS - 1, 0, WALK_RADIUS));
+  resetToEntrance(rig, camera, true);
+  assert.equal(camera.rotation.x, 0, 'VR에서는 고개 기울기를 강제로 적용하지 않아야 합니다.');
 });

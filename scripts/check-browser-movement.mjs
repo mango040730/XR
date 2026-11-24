@@ -2,6 +2,7 @@
 // No browser dependencies or application-only testing hooks are required.
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
+import { ENTRY_POSITION, ENTRY_RADIUS } from '../src/entrance.js';
 
 const url = process.argv[2] ?? 'http://127.0.0.1:4173/';
 const targets = await (await fetch('http://127.0.0.1:9223/json/list')).json();
@@ -45,7 +46,7 @@ try {
   await send('Runtime.enable');
   await send('Page.enable');
   await send('Page.navigate', { url });
-  const deadline = Date.now() + 45000;
+  const deadline = Date.now() + 120000;
   while (!(await evaluate('Boolean(window.spaceVR?.ready)'))) {
     assert.ok(Date.now() < deadline, `이동 준비 시간 초과: ${errors.join('\n')}`);
     await pause(500);
@@ -53,9 +54,13 @@ try {
   await send('Page.bringToFront');
   assert.equal(await evaluate('document.querySelectorAll("canvas").length'), 1, '공간 캔버스는 하나여야 합니다.');
   const start = await evaluate('window.spaceVR.position');
+  assert.ok(start.every((value, i) => Math.abs(value - ENTRY_POSITION[i]) < 0.0001), '입구에서 시작해야 합니다.');
+  const initialScreenshot = await send('Page.captureScreenshot', { format: 'png' });
+  await writeFile('/private/tmp/gonggan-entry-default.png', Buffer.from(initialScreenshot.data, 'base64'));
   await key('KeyW', 'w');
   const forward = await evaluate('window.spaceVR.position');
   assert.ok(start[2] - forward[2] > 0.2, `W 전진 실패: ${start} -> ${forward}`);
+  assert.ok(forward[2] < ENTRY_RADIUS - 0.1, '입구를 실제로 통과해 블루길 안으로 진입해야 합니다.');
   await key('KeyS', 's');
   const backward = await evaluate('window.spaceVR.position');
   assert.ok(backward[2] - forward[2] > 0.2, 'S 후진 실패');

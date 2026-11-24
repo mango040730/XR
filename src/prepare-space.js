@@ -90,7 +90,7 @@ export function prepareSpace(model, { centralFurniture = null } = {}) {
   foundation.name = 'Circular_foundation';
   foundation.position.y = -0.4;
   model.add(foundation);
-  const digitalWall = createDigitalWall(model, PATH_OUTER_RADIUS, PATH_Y);
+  const digitalWall = createDigitalWall(model, PATH_OUTER_RADIUS, PATH_Y, carpet);
   const replacedFurniture = centralFurniture ? removeCentralFurniture(model) : null;
   const loungeSpacing = centralFurniture ? null : spaceLoungeJunction(model);
   const central = rebuildCentralRoom(model);

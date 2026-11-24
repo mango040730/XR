@@ -4,15 +4,16 @@ import { CENTRAL_RADIUS } from './space-layout.js';
 import { FLOOR_Y } from './space-levels.js';
 import { centralIsRaised, CENTRAL_STEP_RISE } from './central-room.js';
 
-// Individual metre-scale assets replace the corresponding original groups.
-// Their local origin is the seating circle's centre, not its asymmetric bounds.
+// Match the reference's room-to-furniture proportions. Enlarge the footprints,
+// preserving usable seat/table heights and the supplied local mesh/materials.
+// The local origin is the seating circle's centre, not its asymmetric bounds.
 export const CENTRAL_FURNITURE_LAYOUT = [
-  { id: '01_tiered_forum', x: -8.892, z: -7.98046 },
-  { id: '02_grand_curve_lounge', x: -9.58, z: 11.4 },
-  { id: '03_reading_nook', x: -17.3, z: 2.67 },
-  { id: '04_round_meeting', x: 9.462, z: -11.4 },
-  { id: '05_s_curve_meeting', x: 3.76, z: 0.456 },
-  { id: '06_conversation_nook', x: 16.074, z: 4.8705 },
+  { id: '01_tiered_forum', x: -9.1, z: -8.3, footprint: 1.6 },
+  { id: '02_grand_curve_lounge', x: -9.6, z: 11.3, footprint: 1.8 },
+  { id: '03_reading_nook', x: -18, z: 3.5, footprint: 1.25 },
+  { id: '04_round_meeting', x: 9.2, z: -11.6, footprint: 1.75 },
+  { id: '05_s_curve_meeting', x: 3.1, z: 0.6, footprint: 1.65 },
+  { id: '06_conversation_nook', x: 15.8, z: 5.4, footprint: 1.65 },
 ];
 
 export function validateCentralFurniture(assets) {
@@ -29,6 +30,12 @@ export function removeCentralFurniture(model) {
   });
   let removedParts = 0;
   for (const mesh of meshes) {
+    // The reference keeps this freestanding oval bed at the front, separate
+    // from the crossed-out dining set. Preserve its complete planting assembly.
+    if (/^Planting__.*__0_-2$/.test(mesh.name)) {
+      mesh.userData.referencePlanter = true;
+      continue;
+    }
     const pieces = meshPieces(mesh);
     for (const piece of pieces) {
       if (/^Lounge_Pods__/.test(mesh.name) || Math.hypot(piece.center.x, piece.center.z) < CENTRAL_RADIUS) {
@@ -54,6 +61,7 @@ export function installCentralFurniture(model, assets) {
     const floorY = FLOOR_Y + (raised ? CENTRAL_STEP_RISE : 0);
     asset.name = placement.id;
     asset.position.set(placement.x, floorY, placement.z);
+    asset.scale.set(placement.footprint, 1, placement.footprint);
     asset.userData.centralFurniture = true;
     asset.traverse(mesh => {
       if (!mesh.isMesh) return;

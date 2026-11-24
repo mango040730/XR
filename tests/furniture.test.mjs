@@ -31,18 +31,23 @@ const edited = prepareSpace(model, { centralFurniture: assets });
 const meshes = [], floors = [];
 model.traverse(mesh => { if (mesh.isMesh) { meshes.push(mesh); if (isWalkable(mesh)) floors.push(mesh); } });
 
-test('첨부 GLB 6종의 실제 형상·치수·재질을 변경하지 않고 대응 위치에 교체했다', () => {
+test('첨부 GLB의 원본 형상·재질·높이를 보존하며 참고 이미지 비중에 맞춰 넓혔다', () => {
   assert.equal(edited.furniture.groups.length, 6);
   assert.ok(edited.replacedFurniture.removedParts > 700);
   for (const group of edited.furniture.groups) {
     assert.equal(fingerprint(group.asset), before.get(group.id), `${group.id}의 메시와 재질을 보존해야 합니다.`);
-    assert.deepEqual(group.asset.scale.toArray(), [1, 1, 1], '미터 단위의 가구를 원래 사람 치수로 배치해야 합니다.');
+    assert.equal(group.asset.scale.y, 1, '좌석과 책상의 사용 높이는 늘이지 않아야 합니다.');
+    assert.ok(group.asset.scale.x >= 1.25 && group.asset.scale.x <= 1.8);
+    assert.equal(group.asset.scale.x, group.asset.scale.z, '평면에서 가구 곡선의 비율을 보존해야 합니다.');
     assert.ok(Math.abs(new Box3().setFromObject(group.asset).min.y - group.floorY) < 0.00001);
   }
   assert.ok(!meshes.some(mesh => /^Lounge_Pods__/.test(mesh.name)), '기존 소파의 받침과 쿠션까지 모두 교체해야 합니다.');
-  for (const mesh of meshes.filter(m => /^(Cafe_Furniture|Planting|Luminaires)__/.test(m.name) && !m.userData.centralFurniture && !m.userData.mixedSeating)) {
+  for (const mesh of meshes.filter(m => /^(Cafe_Furniture|Planting|Luminaires)__/.test(m.name) && !m.userData.centralFurniture && !m.userData.mixedSeating && !m.userData.referencePlanter)) {
     assert.ok(meshPieces(mesh).every(piece => Math.hypot(piece.center.x, piece.center.z) >= CENTRAL_RADIUS), '중앙에 옛 가구나 식재가 겹쳐 남으면 안 됩니다.');
   }
+  const planter = model.getObjectByName('Planting__Warm_ivory_•_matte_ceramic__0_-2');
+  assert.ok(planter?.userData.referencePlanter, '참고 이미지 앞쪽의 독립 화분은 유지해야 합니다.');
+  assert.ok(Math.abs(new Box3().setFromObject(planter).min.y - 1.15) < 0.0001);
 });
 
 test('교체 가구의 모든 접지점이 앞·뒤 단차의 해당 바닥 위에 놓이며 외곽 좌석은 유지된다', () => {

@@ -184,11 +184,17 @@ test('전체 지름을 유지하며 단 깊이를 3m로 줄여 중앙 지름을 
   }
 });
 
-test('계단 사이의 둥근 스툴은 바닥 받침·쿠션까지 제거하고 중앙 좌석은 유지했다', () => {
+test('계단 스툴과 중앙 원형 계단의 떠 있는 좌석 네 개를 받침까지 제거했다', () => {
   assert.equal(edited.seating.removedStools, 2);
+  assert.equal(edited.central.removedFloatingSeats, 4);
+  assert.equal(edited.central.removedFloatingSeatParts, 8);
   let central = 0;
   gltf.scene.traverse(mesh => {
     if (!mesh.isMesh || mesh.userData.mixedSeating) return;
+    if (/^Lounge_Pods__(Tangerine_ottoman|Sunflower_cushions|Cobalt_fabric|Sofa_recessed_plinth)__-1_0$/.test(mesh.name)) {
+      const parts = meshPieces(mesh);
+      assert.ok(parts.every(p => Math.max(p.size.x, p.size.z) > 3), '작은 원형 좌석과 받침이 남으면 안 됩니다.');
+    }
     if (/^Lounge_Pods__.*Tangerine_ottoman/.test(mesh.name)) {
       central += meshPieces(mesh).filter(p => Math.hypot(p.center.x, p.center.z) < 23.2).length;
     }
@@ -198,7 +204,7 @@ test('계단 사이의 둥근 스툴은 바닥 받침·쿠션까지 제거하고
     }
   });
   assert.ok(sourceCentralRoundSeats > 0);
-  assert.equal(central, sourceCentralRoundSeats, '중앙 라운지의 둥근 좌석은 유지해야 합니다.');
+  assert.equal(central, sourceCentralRoundSeats - 2, '작은 오렌지 좌석 두 개를 제외한 큰 라운지 좌석은 유지해야 합니다.');
 });
 
 test('각 단 앞쪽에 1~4인용 곡선 일체형 책상을 모두 섞어 촘촘히 배치했다', () => {

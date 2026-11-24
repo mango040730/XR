@@ -28,11 +28,19 @@ export function rebuildCentralRoom(model) {
     if (mesh.isMesh && /^(Lounge_Pods|Cafe_Furniture|Planting|Luminaires)__/.test(mesh.name) && !mesh.userData.mixedSeating) meshes.push(mesh);
   });
   const byMesh = new Map(meshes.map(mesh => [mesh, meshPieces(mesh)]));
+  const floatingSeats = [...byMesh.values()].flat().filter(p => /^Lounge_Pods__(Tangerine_ottoman|Sunflower_cushions|Cobalt_fabric)__-1_0$/.test(p.mesh.name)
+    && Math.abs(p.size.y - 0.5) < 0.002 && Math.max(p.size.x, p.size.z) < 1.6);
+  const floatingSeatSet = new Set(floatingSeats);
   const pots = [...byMesh.values()].flat().filter(p => /^Planting__.*Warm_ivory/.test(p.mesh.name) && p.size.y > 0.3 && p.bounds.min.y < 1.2);
-  let removedDividers = 0, raisedPieces = 0;
+  let removedDividers = 0, raisedPieces = 0, removedFloatingSeatParts = 0;
   for (const [mesh, pieces] of byMesh) {
     const positions = mesh.geometry.attributes.position;
     for (const piece of pieces) {
+      const floatingBase = /^Lounge_Pods__Sofa_recessed_plinth__-1_0$/.test(mesh.name)
+        && floatingSeats.some(seat => Math.hypot(piece.center.x - seat.center.x, piece.center.z - seat.center.z) < 0.02);
+      if (floatingSeatSet.has(piece) || floatingBase) {
+        piece.remove = true; removedFloatingSeatParts++; continue;
+      }
       if (Math.hypot(piece.center.x, piece.center.z) >= CENTRAL_RADIUS) continue;
       // These two freestanding bean blocks represented the floor boundary as
       // furniture. Replace them with the actual continuous stepped floor.
@@ -87,5 +95,5 @@ export function rebuildCentralRoom(model) {
   platform.userData.walkable = true;
   platform.castShadow = platform.receiveShadow = true;
   model.add(platform);
-  return { platform, rise: CENTRAL_STEP_RISE, removedDividers, raisedPieces };
+  return { platform, rise: CENTRAL_STEP_RISE, removedDividers, raisedPieces, removedFloatingSeats: floatingSeats.length, removedFloatingSeatParts };
 }

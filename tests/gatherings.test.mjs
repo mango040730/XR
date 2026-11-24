@@ -367,17 +367,29 @@ test('각 책상의 모든 의자가 두 지지 다리 사이에 여유 있게 �
   for (const material of materials) { if (!material.userData.smokedWood) material.bumpMap?.dispose();material.dispose(); }
 });
 
-test('라운지 배치 외 공간·중앙 가구·조명·카메라와 재질·테이블 디자인은 보존된다', async () => {
+test('화분 식재 외 공간·중앙 가구·조명·카메라와 재질·테이블 디자인은 보존된다', async () => {
   const { commit, sourceFiles, transforms, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
   assert.equal(commit, '767bdf9');
   const photoBaseline = JSON.parse(await readFile(new URL('./helpers/wood-photo-baseline.json', import.meta.url)));
-  const snapshot = appearanceSnapshot(model, { materialExclusions: ['Terrace_gloss_desks', 'Terrace_tube_frames'] });
-  assert.equal(snapshot.meshes, photoBaseline.meshes); assert.equal(snapshot.surroundings, photoBaseline.surroundings);
+  const planterBaseline = JSON.parse(await readFile(new URL('./helpers/open-planter-baseline.json', import.meta.url)));
+  const snapshot = appearanceSnapshot(model, { materialExclusions: ['Terrace_gloss_desks', 'Terrace_tube_frames'], materialNameExclusions: ['Clay soil'] });
+  assert.equal(snapshot.meshes, planterBaseline.meshes); assert.equal(snapshot.surroundings, planterBaseline.surroundings);
   // CPU/V8 versions can differ at the last floating-point bit. Preserve all
   // geometry/light/camera source bytes, then compare table buffers against the
   // untouched original geometry factory in the same execution environment.
   for (const [file, hash] of Object.entries(sourceFiles)) {
     let source = await readFile(new URL('../' + file, import.meta.url));
+    if (file === 'src/clay-gatherings.js') {
+      const text = source.toString().replace("import { hollowPlanterGeometry } from './clay-planter.js';\n", '').replace("'#48392F'", "'#555346'");
+      const preserved = text.slice(0, text.indexOf('export function planter(')) + text.slice(text.indexOf('// Merge small leaves,'));
+      assert.equal(createHash('sha256').update(preserved).digest('hex'), planterBaseline.furnitureSource, '화분 외 중앙 가구 생성 코드 보존');
+      continue;
+    }
+    if (file === 'src/clay-flower-bed.js') {
+      const text = source.toString(), preserved = text.slice(0, text.indexOf('  for (const [px, pz,')) + text.slice(text.indexOf('  for (let i = 0; i < chosen.length; i++)'));
+      assert.equal(createHash('sha256').update(preserved).digest('hex'), planterBaseline.flowerSource, '꽃·줄기·긴 잎 생성 코드 보존');
+      continue;
+    }
     if (file === 'src/terrace-tube-chair.js') {
       const text = source.toString(), body = text.slice(text.indexOf('  // Four slim posts;'), text.indexOf('\n  return parts;'));
       assert.equal(createHash('sha256').update(body).digest('hex'), photoBaseline.chairGeometrySource, '의자 형상 생성 코드 보존');

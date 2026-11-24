@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries, toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createClayFlowerBed } from './clay-flower-bed.js';
+import { hollowPlanterGeometry } from './clay-planter.js';
 import { SPACE_COLORS as C } from './space-colors.js';
 import { GATHERING_ZONES, gatheringFloorY } from './gathering-layout.js';
 
@@ -15,7 +16,7 @@ const materials = {
   shell: material('Clay warm ivory', C.sculpture), coral: material('Clay coral upholstery', C.coral, { roughness: 0.86, sheen: 0.35, sheenColor: C.coral }),
   gold: material('Clay ochre furniture', C.terraceFurniture, { roughness: 0.6 }),
   orange: material('Clay orange', '#f89135'), blue: material('Clay blue accent', C.rail),
-  soil: material('Clay soil', '#555346', { roughness: 1 }), stem: material('Clay daisy stems', '#5c963f'),
+  soil: material('Clay soil', '#48392F', { roughness: 1 }), stem: material('Clay daisy stems', '#5c963f'),
   leaf: material('Clay rounded leaves', '#ffffff', { vertexColors: true, roughness: 0.86, side: THREE.DoubleSide }),
   stone: material('Clay river stones', '#ffffff', { vertexColors: true, roughness: 0.9 }),
 };
@@ -88,22 +89,46 @@ function tint(geometry, color) {
 }
 export function planter(root, width, depth, x = 0, z = 0, y = 0, treeHeight = 1.4) {
   const rand = random(1771 + Math.round((x + z + y) * 497)), h = width < 0.6 ? 0.16 : 0.4;
-  const bowl = add(root, 'Clay_planter', roundedCylinder(1, h, 0.06), materials.shell, x, y, z); bowl.scale.set(width / 2, 1, depth / 2);
-  const soil = add(root, 'Clay_planter_soil', roundedCylinder(1, 0.018, 0.005), materials.soil, x, y + h - 0.025, z); soil.scale.set(width * 0.43, 1, depth * 0.40);
-  const rim = add(root, 'Clay_planter_rim', new THREE.TorusGeometry(0.94, 0.055, 16, 96), materials.shell, x, y + h - 0.025, z);
-  rim.rotation.x = Math.PI / 2; rim.scale.set(width / 2, depth / 2, 1);
+  const wall = Math.min(0.028, depth * 0.04), top = h + 0.03;
+  add(root, 'Clay_planter', hollowPlanterGeometry(width, depth, top, wall), materials.shell, x, y, z);
+  const soilA = width / 2 - wall - 0.004, soilB = depth / 2 - wall - 0.004, soilSurface = y + h - 0.007;
+  const soil = add(root, 'Clay_planter_soil', roundedCylinder(1, 0.018, 0.005), materials.soil, x, y + h - 0.025, z);
+  soil.scale.set(soilA, 1, soilB);
   const roots = width < 0.6 ? [0] : [-width * 0.21, width * 0.18];
-  const pitch = width < 0.6 ? 0.055 : 0.16;
-  for (let iz = 0, dz = -depth * 0.38; dz <= depth * 0.38; iz++, dz += pitch * 0.77) {
-    for (let dx = -width * 0.43 + (iz % 2) * pitch / 2; dx <= width * 0.43; dx += pitch) {
-      if ((dx / (width * 0.43)) ** 2 + (dz / (depth * 0.38)) ** 2 > 0.93 || roots.some(rx => Math.hypot(dx - rx, dz) < pitch * 0.82)) continue;
-      const radius = pitch * (0.47 + rand() * 0.16), stone = new THREE.SphereGeometry(1, 32, 20);
-      const pebble = add(root, 'Clay_pebble', tint(stone, new THREE.Color(['#b3b4a4', '#a3a59b', '#c3baa5'][Math.floor(rand() * 3)])), materials.stone, x + dx, y + h - 0.005, z + dz);
-      pebble.scale.set(radius, radius * (0.57 + rand() * 0.25), radius * (0.75 + rand() * 0.2)); pebble.rotation.y = rand() * TAU;
-    }
+  const stones = [], count = width < 0.6 ? 3 : width > 2.5 ? 8 : 5;
+  for (let i = 0; i < count; i++) {
+    const radius = Math.min(0.075, depth * 0.07) * (0.75 + rand() * 0.6);
+    const pebble = add(root, 'Clay_pebble', tint(new THREE.SphereGeometry(1, 32, 20),
+      new THREE.Color(['#d2d3ce', '#babebb', '#e0e1dc'][Math.floor(rand() * 3)])), materials.stone);
+    pebble.scale.set(radius, radius * (0.30 + rand() * 0.10), radius * (0.75 + rand() * 0.25));
+    pebble.rotation.y = rand() * TAU; stones.push(pebble);
   }
   createClayFlowerBed(root, { width, depth, x, z, soilY: y + h - 0.02, height: treeHeight, roots, materials,
     seed: 1771 + Math.round((x + z + y) * 497) });
+  const bed = root.userData.flowerBeds.at(-1), placed = [];
+  for (const stone of stones) {
+    const radius = Math.max(stone.scale.x, stone.scale.z);
+    let found = false;
+    for (let attempt = 0; attempt < 160; attempt++) {
+      // A few loose pairs among independent stones; never a grid or border ring.
+      let dx = (rand() * 2 - 1) * soilA * 0.88, dz = (rand() * 2 - 1) * soilB * 0.86;
+      if (attempt < 20 && placed.length && placed.length % 3 === 1) {
+        const previous = placed.at(-1), angle = rand() * TAU, distance = (radius + previous.radius) * 1.25;
+        dx = previous.dx + Math.cos(angle) * distance; dz = previous.dz + Math.sin(angle) * distance;
+      }
+      if ((dx / (soilA - radius)) ** 2 + (dz / (soilB - radius)) ** 2 > 0.95) continue;
+      if (roots.some(rx => Math.hypot(dx - rx * 0.70, dz) < radius + 0.015)) continue;
+      if (bed.mounds.some(m => ((x + dx - m.centre[0]) / (m.scale[0] + radius * 0.6)) ** 2
+        + ((z + dz - m.centre[2]) / (m.scale[2] + radius * 0.6)) ** 2 < 1)) continue;
+      if (placed.some(p => Math.hypot(dx - p.dx, dz - p.dz) < (radius + p.radius) * 1.05)) continue;
+      stone.position.set(x + dx, soilSurface + stone.scale.y * 0.20, z + dz);
+      placed.push({ dx, dz, radius }); found = true; break;
+    }
+    if (!found) { stone.removeFromParent(); stone.geometry.dispose(); }
+  }
+  root.userData.planters ??= [];
+  root.userData.planters.push({ width, depth, height: top, wallThickness: wall, soilSurface,
+    soilRadii: [soilA, soilB], stoneCount: placed.length, base: [x, y, z] });
 }
 
 // Merge small leaves, pebbles and furniture parts by finish, while preserving

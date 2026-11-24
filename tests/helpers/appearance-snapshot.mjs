@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-export function appearanceSnapshot(root, { materialExclusions = ['Terrace_gloss_desks'] } = {}) {
+export function appearanceSnapshot(root, { materialExclusions = ['Terrace_gloss_desks'], materialNameExclusions = [] } = {}) {
   root.updateMatrixWorld(true);
   const geometry = createHash('sha256'), surroundings = createHash('sha256');
   let meshes = 0;
@@ -14,6 +14,7 @@ export function appearanceSnapshot(root, { materialExclusions = ['Terrace_gloss_
     if (materialExclusions.includes(object.name)) return;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
     for (const material of materials) {
+      if (materialNameExclusions.includes(material.name)) continue;
       const values = {};
       for (const key of ['name', 'color', 'emissive', 'emissiveIntensity', 'roughness', 'metalness', 'clearcoat', 'clearcoatRoughness',
         'specularIntensity', 'envMapIntensity', 'sheen', 'sheenColor', 'sheenRoughness', 'bumpScale', 'side', 'transparent', 'opacity', 'vertexColors']) {

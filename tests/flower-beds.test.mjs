@@ -1,34 +1,63 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
-import { Group, Vector3, Raycaster } from 'three';
+import { readFile } from 'node:fs/promises';
+import { Box3, Group, Vector3, Raycaster } from 'three';
 import { planter, batchClayProps } from '../src/clay-gatherings.js';
 
-function planterFingerprint(root) {
-  const hash = createHash('sha256');
-  root.traverse(mesh => {
-    if (!mesh.isMesh || !['Clay_planter', 'Clay_planter_soil', 'Clay_planter_rim', 'Clay_pebble'].includes(mesh.name)) return;
-    mesh.updateMatrix(); hash.update(mesh.name);
-    for (const name of ['position', 'normal']) hash.update(JSON.stringify(Array.from(mesh.geometry.attributes[name].array, v => Math.round(v * 1e6))));
-    hash.update(JSON.stringify(Array.from(mesh.geometry.index?.array ?? [])));
-    hash.update(JSON.stringify(mesh.matrix.elements.map(v => Math.round(v * 1e6))));
-    hash.update(mesh.material.color.getHexString());
-    hash.update(JSON.stringify([mesh.material.roughness, mesh.material.clearcoat]));
-  });
-  return hash.digest('hex');
-}
+const baseline = JSON.parse(await readFile(new URL('./helpers/open-planter-baseline.json', import.meta.url)));
 
-test('식물을 교체해도 기존 화분·흙·테두리·자갈의 실제 형상과 위치·색상이 동일하다', () => {
-  const fixtures = [
-    [0.34, 0.34, 0.28, '894621cd03a829c429fce8d0baa22b6080366c208a6a208d54b6d54d99f7bae4'],
-    [1.75, 0.64, 1.35, '99965e58a99a781b9a91a098cdc06b54b437f5483dc44020d503b803d3ccffa7'],
-    [3.3, 1.25, 1.45, '71f5eaebf5f7b67f91248bf28329e1dad6ad353a71dbe078ecbe14614aed6164'],
-  ];
-  for (const [w, d, h, expected] of fixtures) {
-    const root = new Group(); planter(root, w, d, 0, 0, 0, h);
-    assert.equal(planterFingerprint(root), expected, '변경 전 모델의 화분·돌 스냅샷과 일치해야 합니다.');
-  }
-});
+for (const fixture of baseline.fixtures) {
+  const { width, depth, height } = fixture;
+  test(`${width}m 화분 외곽과 꽃·긴 잎은 보존하고 아래 둥근 잎만 작게 낮춘다`, () => {
+    const root = new Group(); planter(root, width, depth, 0, 0, 0, height); root.updateMatrixWorld(true);
+    const bounds = new Box3().setFromObject(root.getObjectByName('Clay_planter'));
+    for (const end of ['min', 'max']) bounds[end].toArray().forEach((v, i) => assert.ok(Math.abs(v - fixture.bounds[end][i]) < 0.000001));
+    const bed = root.userData.flowerBeds[0];
+    assert.deepEqual(bed.flowers, fixture.bed.flowers); assert.deepEqual(bed.blades, fixture.bed.blades);
+    assert.equal(bed.soilY, fixture.bed.soilY); assert.equal(bed.height, fixture.bed.height);
+    for (let i = 0; i < bed.mounds.length; i++) {
+      const old = fixture.bed.mounds[i], next = bed.mounds[i];
+      next.scale.forEach((v, j) => assert.ok(v / old.scale[j] >= 0.51999 && v / old.scale[j] <= 0.60001));
+      assert.ok(next.centre[1] + next.scale[1] < old.centre[1] + old.scale[1]);
+    }
+  });
+
+  test(`${width}m 화분의 얇은 속벽·낮은 흙·드문 회색 돌 사이에 충분한 흙이 보인다`, () => {
+    const root = new Group(); planter(root, width, depth, 0, 0, 0, height); root.updateMatrixWorld(true);
+    const info = root.userData.planters[0], shell = root.getObjectByName('Clay_planter'), soil = root.getObjectByName('Clay_planter_soil');
+    const stones = root.children.filter(m => m.name === 'Clay_pebble'), ray = new Raycaster();
+    assert.ok(info.wallThickness < depth * 0.05); assert.ok(info.height - info.soilSurface > 0.035);
+    assert.equal(soil.material.color.getHexString(), '48392f'); assert.equal(soil.material.roughness, 1);
+    ray.set(new Vector3(0, info.height + 1, 0), new Vector3(0, -1, 0));
+    const innerFloor = ray.intersectObject(shell)[0];
+    assert.ok(innerFloor && innerFloor.point.y < info.soilSurface - 0.08, '중앙 윗면은 막힌 흰 판이 없어야 합니다.');
+    ray.set(new Vector3(width / 2 - info.wallThickness / 2, info.height + 1, 0), new Vector3(0, -1, 0));
+    assert.ok(Math.abs(ray.intersectObject(shell)[0].point.y - info.height) < 0.001, '얇은 테두리에는 실제 두께가 있어야 합니다.');
+    ray.set(new Vector3(0, info.soilSurface + 0.012, 0), new Vector3(1, 0, 0));
+    const wall = ray.intersectObject(shell)[0];
+    assert.ok(wall && Math.abs(wall.point.x - (width / 2 - info.wallThickness)) < 0.001 && wall.face.normal.x < -0.9);
+    assert.ok(stones.length >= 3 && stones.length <= 11);
+    for (const stone of stones) {
+      const b = new Box3().setFromObject(stone);
+      assert.ok(b.min.y < info.soilSurface && b.max.y > info.soilSurface, '돌은 흙에 일부 묻혀야 합니다.');
+      assert.ok(b.max.y < info.height + 0.015);
+      const color = stone.geometry.attributes.color;
+      assert.ok(Math.max(color.getX(0), color.getY(0), color.getZ(0)) - Math.min(color.getX(0), color.getY(0), color.getZ(0)) < 0.05);
+    }
+    const surfaces = [soil, ...stones, ...root.children.filter(m => m.name === 'Clay_rounded_green_mound')];
+    let visible = 0, total = 0;
+    for (let i = -12; i <= 12; i++) for (let j = -10; j <= 10; j++) {
+      const u = i / 12, v = j / 10; if (u * u + v * v > 0.8) continue;
+      ray.set(new Vector3(u * info.soilRadii[0], info.height + 1, v * info.soilRadii[1]), new Vector3(0, -1, 0));
+      if (ray.intersectObjects(surfaces)[0]?.object === soil) visible++;
+      total++;
+    }
+    assert.ok(visible / total > 0.50, `둥근 잎과 돌 사이 흙이 충분히 노출되어야 합니다: ${visible}/${total}`);
+    for (const stem of root.children.filter(m => m.name === 'Clay_garden_stem')) {
+      assert.ok(stem.geometry.parameters.path.points[0].y < info.soilSurface, '줄기 뿌리는 흙 안에 연결됩니다.');
+    }
+  });
+}
 
 test('참고 이미지의 봉오리·컵꽃·작은 데이지와 낮은 초록 화단 구성을 실제 형상으로 만든다', () => {
   const root = new Group(); planter(root, 1.75, 0.64, 0, 0, 0, 1.35);

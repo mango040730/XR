@@ -60,13 +60,13 @@ export function createClayFlowerBed(root, { width, depth, x, z, soilY, height, r
   ];
   const chosen = small ? [patterns[0], patterns[2], patterns[3], patterns[8], patterns[10]] : patterns;
   const flowers = [], blades = [], mounds = [];
-  for (const [px, pz, w, h, d, green] of [
-    [-0.79, 0.18, 0.13, 0.25, 0.34, '#4e713b'], [-0.49, 0.36, 0.13, 0.22, 0.31, '#73924a'],
-    [0.07, 0.10, 0.23, 0.24, 0.30, '#64813f'], [0.42, 0.32, 0.12, 0.22, 0.30, '#849d55'],
-    [0.80, 0.05, 0.12, 0.27, 0.34, '#6f8a45'],
+  for (const [px, pz, w, h, d, green, shrink] of [
+    [-0.80, 0.12, 0.13, 0.25, 0.34, '#4e713b', 0.54], [-0.48, -0.20, 0.13, 0.22, 0.31, '#73924a', 0.58],
+    [0.06, 0.38, 0.23, 0.24, 0.30, '#64813f', 0.52], [0.38, -0.30, 0.12, 0.22, 0.30, '#849d55', 0.60],
+    [0.82, 0.18, 0.12, 0.27, 0.34, '#6f8a45', 0.55],
   ]) {
-    const centre = new THREE.Vector3(x + px * spread, soilY + H * h * 0.35, z + pz * depth * 0.3);
-    const scale = new THREE.Vector3(width * w, H * h * 0.65, depth * d);
+    const centre = new THREE.Vector3(x + px * spread, soilY + H * h * 0.35 * shrink, z + pz * depth * 0.3);
+    const scale = new THREE.Vector3(width * w, H * h * 0.65, depth * d).multiplyScalar(shrink);
     ellipsoid(root, 'Clay_rounded_green_mound', centre, scale, materials.leaf, null, green);
     mounds.push({ centre: centre.toArray(), scale: scale.toArray() });
   }

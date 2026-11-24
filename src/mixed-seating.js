@@ -5,6 +5,7 @@ import { CENTRAL_RADIUS, TERRACE_DEPTH } from './space-layout.js';
 import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from './joined-stairs.js';
 import { createDeskWoodMaterial, mapCurvedWood } from './wood-desks.js';
 import { SPACE_COLORS } from './space-colors.js';
+import { createGlossDeskMaterial, createPillDeskParts } from './terrace-pill-desk.js';
 
 export const SEATED_TIER_COUNT = 2;
 export const DESK_BEVEL_SEGMENTS = 12;
@@ -73,9 +74,9 @@ function deskIntervals(tier, obstacles) {
   return intervals.filter(([start, end]) => (end - start) * radius >= 2);
 }
 
-export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22 } = {}) {
+export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22, deskStyle = 'integrated' } = {}) {
   const root = new THREE.Group(); root.name = 'Terrace_integrated_seating';
-  const wood = createDeskWoodMaterial();
+  const wood = deskStyle === 'pill' ? createGlossDeskMaterial() : createDeskWoodMaterial();
   const chairMaterials = new Map();
   for (const part of chairTemplate) {
     if (chairMaterials.has(part.material)) continue;
@@ -125,11 +126,16 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
         const outward = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
         const center = outward.clone().multiplyScalar(radius); center.y = tier.height;
         slot++;
-        // Restore the original integrated desk profile while retaining walnut.
-        board(tier.inner + 0.14, tier.inner + 0.84, start, end, tier.height + 0.70, 0.09);
-        board(tier.inner + 0.14, tier.inner + 0.24, start, end, tier.height, 1.03);
-        for (const edge of [start, end]) {
-          board(tier.inner + 0.18, tier.inner + 0.80, edge - 0.035 / radius, edge + 0.035 / radius, tier.height, 0.74, 0.012);
+        if (deskStyle === 'pill') {
+          for (const part of createPillDeskParts({ inner: tier.inner, start, end, floorY: tier.height })) {
+            add(part, wood); part.dispose();
+          }
+        } else {
+          board(tier.inner + 0.14, tier.inner + 0.84, start, end, tier.height + 0.70, 0.09);
+          board(tier.inner + 0.14, tier.inner + 0.24, start, end, tier.height, 1.03);
+          for (const edge of [start, end]) {
+            board(tier.inner + 0.18, tier.inner + 0.80, edge - 0.035 / radius, edge + 0.035 / radius, tier.height, 0.74, 0.012);
+          }
         }
         const setId = `tier-${tierIndex + 1}-desk-${slot}`;
         const type = capacity === 1 ? 'single' : 'shared';
@@ -143,13 +149,13 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
           for (const part of chairTemplate) add(part.geometry, chairMaterials.get(part.material), matrix);
           seats.push({ setId, tier: tierIndex, type, position: position.toArray(), facing: direction.clone().negate().toArray() });
         }
-        sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: true, wooden: true });
+        sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: deskStyle !== 'pill', wooden: deskStyle !== 'pill', deskStyle });
       }
     }
   }
   for (const [material, parts] of batches) {
     const mesh = new THREE.Mesh(mergeGeometries(parts, false), material);
-    mesh.name = material.userData.terraceWood ? 'Terrace_wood_desks' : material.userData.terraceChair ? 'Terrace_boucle_chairs' : `Cafe_Furniture__Integrated_${material.name.replaceAll(' ', '_')}`;
+    mesh.name = material.userData.terraceDesk ? 'Terrace_gloss_desks' : material.userData.terraceWood ? 'Terrace_wood_desks' : material.userData.terraceChair ? 'Terrace_boucle_chairs' : `Cafe_Furniture__Integrated_${material.name.replaceAll(' ', '_')}`;
     mesh.userData.mixedSeating = true;
     if (material.userData.terraceWood) mesh.userData.woodenDesks = true;
     mesh.castShadow = mesh.receiveShadow = true;

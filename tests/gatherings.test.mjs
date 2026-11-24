@@ -9,6 +9,7 @@ import { collisionGeometry } from '../src/collision.js';
 import { withinWalkBoundary } from '../src/entrance.js';
 import { isWalkable } from '../src/prepare-space.js';
 import { createTerraceChairTemplate, TERRACE_CHAIR_COLOR } from '../src/terrace-boucle-chair.js';
+import { createPillDeskParts } from '../src/terrace-pill-desk.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
 const model = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
@@ -176,4 +177,40 @@ test('원형 계단 의자 74개 모두 블루 부클레 원형 좌판·낮은 �
     assert.ok(edited.tiers[seat.tier].outer - radius - local.max.z >= 1.2, '의자 뒤에 보행 여유를 유지합니다.');
   }
   for (const part of template) part.geometry.dispose(); template[0].material.bumpMap.dispose(); template[0].material.dispose();
+});
+
+test('계단 책상 28개가 골드 유광 캡슐 상판과 두 판형 다리이며 앞판 없이 무릎 공간을 확보한다', () => {
+  const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
+  assert.ok(desk && !edited.seating.root.getObjectByName('Terrace_wood_desks'));
+  assert.equal(desk.material.color.getHexString(), 'e99804');
+  assert.ok(desk.material.clearcoat >= 0.9 && desk.material.roughness < 0.25 && desk.material.clearcoatRoughness < 0.2);
+  assert.equal(desk.material.map, null); assert.equal(desk.material.bumpMap, null);
+  const ray = new Raycaster(), down = new Vector3(0, -1, 0);
+  let indices = 0;
+  for (const set of edited.seating.sets) {
+    assert.equal(set.deskStyle, 'pill');
+    const inner = edited.tiers[set.tier].inner, angle = (set.start + set.end) / 2, floorY = set.center[1];
+    const radius = inner + 0.49, direction = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+    const parts = createPillDeskParts({ inner, start: set.start, end: set.end, floorY });
+    assert.equal(parts.length, 3);
+    for (const part of parts) { indices += part.index?.count ?? part.attributes.position.count; part.computeBoundingBox(); }
+    for (const leg of parts.slice(1)) assert.ok(Math.abs(leg.boundingBox.min.y - floorY) < 0.00001, '두 다리 모두 바닥에 접지해야 합니다.');
+    ray.set(direction.clone().multiplyScalar(radius).setY(floorY + 1.2), down); ray.far = 0.5;
+    const top = ray.intersectObject(desk)[0];
+    assert.ok(top && Math.abs(top.point.y - floorY - 0.79) < 0.001, '실제 책상 상면은 기존 높이를 유지해야 합니다.');
+    for (const fraction of [-0.32, 0, 0.32]) for (const offset of [-0.20, 0.20]) {
+      const a = angle + fraction * set.width / radius;
+      ray.set(new Vector3(Math.cos(a) * (radius + offset), floorY + 1.1, Math.sin(a) * (radius + offset)), down); ray.far = 0.4;
+      const hit = ray.intersectObject(desk)[0];
+      assert.ok(hit && Math.abs(hit.point.y - floorY - 0.79) < 0.001 && hit.face.normal.y > 0.99,
+        '긴 곡선 상판도 전체 폭에서 윗면이 채워지고 노멀이 위를 향해야 합니다.');
+    }
+    ray.set(direction.clone().multiplyScalar(inner + 0.05).setY(floorY + 0.52), direction); ray.far = 0.85;
+    assert.equal(ray.intersectObject(desk).length, 0, '상판 아래 중앙은 막힌 앞판 없이 열려 있어야 합니다.');
+    const a = angle + (set.width / 2 - 0.018) / radius;
+    ray.set(new Vector3(Math.cos(a) * (radius + 0.31), floorY + 1, Math.sin(a) * (radius + 0.31)), down); ray.far = 0.3;
+    assert.equal(ray.intersectObject(desk).length, 0, '상판의 양끝은 사각형이 아닌 둥근 캡슐 윤곽이어야 합니다.');
+    parts.forEach(p => p.dispose());
+  }
+  assert.equal(desk.geometry.index.count, indices, '기존 앞판·턱·지지판 부품이 중복으로 남으면 안 됩니다.');
 });

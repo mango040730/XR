@@ -6,7 +6,7 @@ import { ACCESS_HALF_ANGLE, ACCESS_DIRECTIONS } from './joined-stairs.js';
 import { createDeskWoodMaterial, mapCurvedWood } from './wood-desks.js';
 import { SPACE_COLORS } from './space-colors.js';
 import { createPillDeskParts } from './terrace-pill-desk.js';
-import { createSmokedWoodMaterial, mapSmokedWood } from './terrace-smoked-wood.js';
+import { createSmokedWoodMaterial, mapSmokedWood, varyChairWood } from './terrace-smoked-wood.js';
 import { terraceLoungePlan } from './terrace-lounge-layout.js';
 
 export const SEATED_TIER_COUNT = 2;
@@ -93,6 +93,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
   const batches = new Map(), sets = [], seats = [];
   function add(geometry, material, transform = new THREE.Matrix4()) {
     const g = geometry.clone(); g.applyMatrix4(transform);
+    if (material.userData.smokedWood && material.userData.terraceChair) varyChairWood(g, transform.elements[12], transform.elements[14]);
     if (!material.userData.terraceWood && !material.userData.terraceChair) g.deleteAttribute('uv');
     if (!g.index) g.setIndex(Array.from({ length: g.attributes.position.count }, (_, i) => i));
     if (!batches.has(material)) batches.set(material, []);

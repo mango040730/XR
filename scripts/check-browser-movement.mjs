@@ -53,6 +53,17 @@ try {
     await pause(500);
   }
   await send('Page.bringToFront');
+  let woodTexture;
+  const textureDeadline = Date.now() + 15000;
+  while (!woodTexture) {
+    woodTexture = await evaluate(`(() => {
+      const entry = performance.getEntriesByType('resource').find(e => e.name.includes('wood-table-001-diffuse-2k.jpg') && e.responseEnd > 0);
+      return entry ? {url: entry.name, bytes: entry.decodedBodySize, status: entry.responseStatus ?? 0} : null;
+    })()`);
+    assert.ok(Date.now() < textureDeadline, '실제 목재 사진 텍스처 로드 시간 초과');
+    if (!woodTexture) await pause(200);
+  }
+  assert.ok(woodTexture.bytes > 500000 && [0, 200].includes(woodTexture.status), '실제 목재 사진이 성공적으로 로드되어야 합니다.');
   assert.equal(await evaluate('document.querySelectorAll("canvas").length'), 1, '공간 캔버스는 하나여야 합니다.');
   const start = await evaluate('window.spaceVR.position');
   assert.ok(start.every((value, i) => Math.abs(value - ENTRY_POSITION[i]) < 0.0001), '입구에서 시작해야 합니다.');
@@ -95,7 +106,7 @@ try {
     requestAnimationFrame(sample);
   })`);
   assert.deepEqual(errors, [], '브라우저 실행 오류가 없어야 합니다.');
-  console.log(JSON.stringify({ url, ready: true, start, forward, backward, left, touch, mobile, frames, errors }, null, 2));
+  console.log(JSON.stringify({ url, ready: true, woodTexture, start, forward, backward, left, touch, mobile, frames, errors }, null, 2));
   const screenshot = await send('Page.captureScreenshot', { format: 'png' });
   await writeFile('/private/tmp/gonggan-movement-browser.png', Buffer.from(screenshot.data, 'base64'));
 } finally { ws.close(); }

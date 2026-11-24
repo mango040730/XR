@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createGlossDeskMaterial } from './terrace-pill-desk.js';
+import { createSmokedWoodMaterial, mapChairWood } from './terrace-smoked-wood.js';
 import { createRoundChairDisc } from './terrace-rounded-chair.js';
 
 export const TUBE_CUSHION_COLOR = '#A5BCD5';
@@ -24,11 +24,14 @@ function cloth() {
 }
 
 export function createTubeChairTemplate() {
-  const frame = createGlossDeskMaterial(); frame.name = 'Terrace golden tubular frame';
+  const frame = createSmokedWoodMaterial({ role: 'chair' });
   delete frame.userData.terraceDesk; frame.userData.terraceChair = true;
   frame.userData.terraceChairBatch = 'Terrace_tube_frames';
   const cushion = cloth(), parts = [];
-  const add = (geometry, material = frame) => parts.push({ geometry, material });
+  const add = (geometry, material = frame) => {
+    if (material === frame) mapChairWood(geometry, parts.length);
+    parts.push({ geometry, material });
+  };
   // Four slim posts; the two rear legs rise continuously to the curved rail.
   for (const x of [-0.212, 0.212]) for (const rear of [false, true]) {
     const height = rear ? 0.78 : 0.41;

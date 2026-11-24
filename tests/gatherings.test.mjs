@@ -12,7 +12,7 @@ import { withinWalkBoundary } from '../src/entrance.js';
 import { isWalkable } from '../src/prepare-space.js';
 import { createTubeChairTemplate, TUBE_CUSHION_COLOR } from '../src/terrace-tube-chair.js';
 import { createPillDeskParts } from '../src/terrace-pill-desk.js';
-import { SMOKED_WOOD_COLOR } from '../src/terrace-smoked-wood.js';
+import { SMOKED_WOOD_COLOR, WOOD_PHOTO_PATH } from '../src/terrace-smoked-wood.js';
 import { appearanceSnapshot } from './helpers/appearance-snapshot.mjs';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -177,7 +177,7 @@ test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 혼합 �
   }
 });
 
-test('계단 의자 37개 모두 파이프 디자인이며 파스텔 블루 천 쿠션과 골드 프레임을 사용한다', () => {
+test('계단 의자 37개 모두 파이프 디자인이며 파스텔 블루 천 쿠션과 테이블과 같은 무광 목재 프레임을 사용한다', () => {
   const tubeSeats = edited.seating.seats.filter(s => s.chairDesign === 'tube');
   assert.equal(tubeSeats.length, 37); assert.equal(edited.seating.seats.length, 37);
   assert.equal(edited.seating.sets.length, 20);
@@ -186,8 +186,9 @@ test('계단 의자 37개 모두 파이프 디자인이며 파스텔 블루 천 
   const frame = edited.seating.root.getObjectByName('Terrace_tube_frames');
   const cushion = edited.seating.root.getObjectByName('Terrace_tube_cushions');
   const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
-  assert.equal(frame.material.color.getHexString(), 'e99804', '의자 프레임은 기존 골드를 유지합니다.');
-  assert.equal(frame.material.roughness, 0.19); assert.equal(frame.material.clearcoat, 1);
+  assert.equal(frame.material.color.getHexString(), desk.material.color.getHexString());
+  assert.equal(frame.material.roughness, desk.material.roughness); assert.equal(frame.material.clearcoat, 0);
+  assert.equal(frame.material.userData.woodPhoto, desk.material.userData.woodPhoto);
   assert.equal(cushion.material.color.getHexString(), TUBE_CUSHION_COLOR.slice(1).toLowerCase());
   assert.equal(cushion.material.color.getHexString(), 'a5bcd5');
   const previous = new Color('#D5A5AB').getHSL({}), current = cushion.material.color.getHSL({});
@@ -329,13 +330,19 @@ test('계단 책상 20개의 캡슐 상판·두 판형 다리·높이·무릎 �
 test('라운지 배치 외 공간·중앙 가구·조명·카메라와 재질·테이블 디자인은 보존된다', async () => {
   const { commit, sourceFiles, transforms, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
   assert.equal(commit, '767bdf9');
-  const snapshot = appearanceSnapshot(model);
-  assert.equal(snapshot.meshes, baseline.meshes); assert.equal(snapshot.surroundings, baseline.surroundings);
+  const photoBaseline = JSON.parse(await readFile(new URL('./helpers/wood-photo-baseline.json', import.meta.url)));
+  const snapshot = appearanceSnapshot(model, { materialExclusions: ['Terrace_gloss_desks', 'Terrace_tube_frames'] });
+  assert.equal(snapshot.meshes, photoBaseline.meshes); assert.equal(snapshot.surroundings, photoBaseline.surroundings);
   // CPU/V8 versions can differ at the last floating-point bit. Preserve all
   // geometry/light/camera source bytes, then compare table buffers against the
   // untouched original geometry factory in the same execution environment.
   for (const [file, hash] of Object.entries(sourceFiles)) {
     let source = await readFile(new URL('../' + file, import.meta.url));
+    if (file === 'src/terrace-tube-chair.js') {
+      const text = source.toString(), body = text.slice(text.indexOf('  // Four slim posts;'), text.indexOf('\n  return parts;'));
+      assert.equal(createHash('sha256').update(body).digest('hex'), photoBaseline.chairGeometrySource, '의자 형상 생성 코드 보존');
+      continue;
+    }
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", ''));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }
@@ -366,4 +373,29 @@ test('라운지 배치 외 공간·중앙 가구·조명·카메라와 재질·�
   assert.equal(coordinates.count, desk.geometry.attributes.position.count);
   for (const value of coordinates.array) assert.ok(Number.isFinite(value));
   assert.equal(desk.material.normalMap, null); assert.equal(desk.material.bumpMap, null);
+});
+
+
+test('실제 목재 사진만 낮은 대비로 샘플링하고 상판은 곡률을 따라 휘지 않는 판재 좌표를 사용한다', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../public/textures/wood-source.json', import.meta.url)));
+  const bytes = await readFile(new URL('../public/' + WOOD_PHOTO_PATH, import.meta.url));
+  assert.equal(bytes.readUInt16BE(0), 0xffd8);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), manifest.sha256);
+  assert.equal(manifest.license, 'CC0-1.0');
+  const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
+  const frame = edited.seating.root.getObjectByName('Terrace_tube_frames');
+  for (const mesh of [desk, frame]) {
+    assert.ok(mesh.geometry.attributes.deskWoodNormal);
+    assert.equal(mesh.material.bumpMap, null); assert.equal(mesh.material.normalMap, null); assert.equal(mesh.material.displacementMap, null);
+    assert.ok(mesh.material.roughness >= 0.85 && mesh.material.clearcoat === 0);
+    const shader = { vertexShader:'#include <common>\n#include <begin_vertex>', fragmentShader:'#include <common>\n#include <color_fragment>', uniforms:{} };
+    mesh.material.onBeforeCompile(shader);
+    assert.equal(shader.uniforms.woodPhoto.value.userData.source, manifest.source);
+    assert.ok(shader.fragmentShader.includes('texture2D(woodPhoto'));
+    assert.ok(!shader.fragmentShader.includes('sin('), '나뭇결은 반복 사인파가 아니라 실제 사진에서 읽어야 합니다.');
+    assert.ok(!shader.vertexShader.includes('transformed +='), '변위로 기존 형상을 바꾸면 안 됩니다.');
+  }
+  const source = await readFile(new URL('../src/terrace-smoked-wood.js', import.meta.url),'utf8');
+  const tableMapping = source.slice(source.indexOf('export function mapSmokedWood'),source.indexOf('export function mapChairWood'));
+  assert.ok(!tableMapping.includes('atan2'), '곡선 외곽을 따라 결까지 휘는 방사형 매핑을 사용하지 않습니다.');
 });

@@ -1,0 +1,16 @@
+{
+  "asset": "Wood Table 001",
+  "author": [
+    "Dimitrios Savva",
+    "Rico Cilliers"
+  ],
+  "license": "CC0-1.0",
+  "source": "https://polyhaven.com/a/wood_table_001",
+  "download": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wood_table_001/wood_table_001_diff_2k.jpg",
+  "sha256": "63ae5cd186197b40f18bc020fe2b652bb08df4d9fc6240c6cbf8a7e3bc32c096",
+  "dimensionsMetres": [
+    1.5,
+    1.5
+  ],
+  "usage": "Diffuse photograph sampled as low-contrast neutral luminance only; no AO, displacement, normal map or photographed object geometry."
+}

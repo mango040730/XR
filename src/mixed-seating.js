@@ -74,11 +74,12 @@ function deskIntervals(tier, obstacles) {
   return intervals.filter(([start, end]) => (end - start) * radius >= 2);
 }
 
-export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22, deskStyle = 'integrated' } = {}) {
+export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIXED_TIERS, chairOffset = 1.22, deskStyle = 'integrated', chairVariants = [] } = {}) {
   const root = new THREE.Group(); root.name = 'Terrace_integrated_seating';
   const wood = deskStyle === 'pill' ? createGlossDeskMaterial() : createDeskWoodMaterial();
   const chairMaterials = new Map();
-  for (const part of chairTemplate) {
+  const templates = [{ id: 'round', parts: chairTemplate }, ...chairVariants];
+  for (const part of templates.flatMap(t => t.parts)) {
     if (chairMaterials.has(part.material)) continue;
     if (part.material.userData.terraceChair) { chairMaterials.set(part.material, part.material); continue; }
     const material = part.material.clone();
@@ -146,8 +147,10 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
           const position = direction.clone().multiplyScalar(tier.inner + chairOffset); position.y = tier.height;
           const matrix = new THREE.Matrix4().makeBasis(along, new THREE.Vector3(0, 1, 0), direction);
           matrix.setPosition(position);
-          for (const part of chairTemplate) add(part.geometry, chairMaterials.get(part.material), matrix);
-          seats.push({ setId, tier: tierIndex, type, position: position.toArray(), facing: direction.clone().negate().toArray() });
+          const variantIndex = templates.length > 1 ? [0, 1, 1, 0, 1, 0][(seats.length + tierIndex) % 6] : 0;
+          const template = templates[variantIndex];
+          for (const part of template.parts) add(part.geometry, chairMaterials.get(part.material), matrix);
+          seats.push({ setId, tier: tierIndex, type, chairDesign: template.id, position: position.toArray(), facing: direction.clone().negate().toArray() });
         }
         sets.push({ id: setId, tier: tierIndex, type, width, capacity, center: center.toArray(), outward: outward.toArray(), start, end, inner: tier.inner + 0.14, outer: tier.inner + 0.84, integrated: deskStyle !== 'pill', wooden: deskStyle !== 'pill', deskStyle });
       }
@@ -155,13 +158,13 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
   }
   for (const [material, parts] of batches) {
     const mesh = new THREE.Mesh(mergeGeometries(parts, false), material);
-    mesh.name = material.userData.terraceDesk ? 'Terrace_gloss_desks' : material.userData.terraceWood ? 'Terrace_wood_desks' : material.userData.terraceChair ? 'Terrace_round_chairs' : `Cafe_Furniture__Integrated_${material.name.replaceAll(' ', '_')}`;
+    mesh.name = material.userData.terraceDesk ? 'Terrace_gloss_desks' : material.userData.terraceWood ? 'Terrace_wood_desks' : material.userData.terraceChair ? (material.userData.terraceChairBatch ?? 'Terrace_round_chairs') : `Cafe_Furniture__Integrated_${material.name.replaceAll(' ', '_')}`;
     mesh.userData.mixedSeating = true;
     if (material.userData.terraceWood) mesh.userData.woodenDesks = true;
     mesh.castShadow = mesh.receiveShadow = true;
     root.add(mesh); parts.forEach(part => part.dispose());
   }
-  chairTemplate.forEach(part => part.geometry.dispose());
+  templates.forEach(template => template.parts.forEach(part => part.geometry.dispose()));
   model.add(root);
   return { root, sets, seats, clearIntervals, singleSets: sets.filter(s => s.type === 'single').length, sharedSets: sets.filter(s => s.type === 'shared').length };
 }

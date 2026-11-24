@@ -16,7 +16,7 @@ function finish() {
 }
 
 // Broad, softly crowned round forms with a flat supporting underside.
-function cushion(radius, bottom, height, bevel, depthScale = 1) {
+export function createRoundChairDisc(radius, bottom, height, bevel, depthScale = 1) {
   const points = [new THREE.Vector2(0, bottom), new THREE.Vector2(radius - bevel, bottom)];
   for (let i = 1; i <= 10; i++) {
     const a = -Math.PI / 2 + i * Math.PI / 20;
@@ -73,7 +73,7 @@ export function createTerraceChairTemplate() {
   // Keep the back attached to the seat while halving its own height.
   back.scale(TERRACE_CHAIR_ROUND_SCALE, 0.5, TERRACE_CHAIR_ROUND_SCALE);
   back.translate(0, 0.23, 0);
-  const rounds = [cushion(0.315, 0, 0.15, 0.055, 0.96), cushion(0.33, 0.15, 0.30, 0.12, 0.96)];
+  const rounds = [createRoundChairDisc(0.315, 0, 0.15, 0.055, 0.96), createRoundChairDisc(0.33, 0.15, 0.30, 0.12, 0.96)];
   rounds.forEach(geometry => geometry.scale(TERRACE_CHAIR_ROUND_SCALE, 1, TERRACE_CHAIR_ROUND_SCALE));
   return [...rounds, back].map(geometry => ({ geometry, material }));
 }

@@ -1,28 +1,21 @@
 import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
-export const TERRACE_CHAIR_COLOR = '#3448C5';
+import { SPACE_COLORS } from './space-colors.js';
+import { createGlossDeskMaterial } from './terrace-pill-desk.js';
 
-function fabric() {
-  const size = 128, data = new Uint8Array(size * size * 4);
-  let state = 8319;
-  for (let i = 0; i < data.length; i += 4) {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    const value = 85 + (state >>> 25);
-    data.set([value, value, value, 255], i);
-  }
-  const pile = new THREE.DataTexture(data, size, size);
-  pile.wrapS = pile.wrapT = THREE.RepeatWrapping; pile.repeat.set(5, 5);
-  pile.magFilter = THREE.LinearFilter; pile.minFilter = THREE.LinearMipmapLinearFilter;
-  pile.generateMipmaps = true; pile.needsUpdate = true;
-  const material = new THREE.MeshPhysicalMaterial({ name: 'Terrace cobalt boucle upholstery', color: TERRACE_CHAIR_COLOR,
-    roughness: 0.96, metalness: 0, clearcoat: 0, specularIntensity: 0.22,
-    sheen: 0.65, sheenColor: '#7d8ae3', sheenRoughness: 0.9, bumpMap: pile, bumpScale: 0.0012 });
+export const TERRACE_CHAIR_COLOR = SPACE_COLORS.terraceFurniture;
+export const TERRACE_CHAIR_ROUND_SCALE = 1.12;
+
+function finish() {
+  const material = createGlossDeskMaterial();
+  material.name = 'Terrace golden gloss chair';
+  delete material.userData.terraceDesk;
   material.userData.terraceChair = true;
   return material;
 }
 
-// Broad, softly crowned foam discs, with a flat supporting underside.
+// Broad, softly crowned round forms with a flat supporting underside.
 function cushion(radius, bottom, height, bevel, depthScale = 1) {
   const points = [new THREE.Vector2(0, bottom), new THREE.Vector2(radius - bevel, bottom)];
   for (let i = 1; i <= 10; i++) {
@@ -75,7 +68,12 @@ function wrapBack() {
 }
 
 export function createTerraceChairTemplate() {
-  const material = fabric();
-  return [cushion(0.315, 0, 0.15, 0.055, 0.96), cushion(0.33, 0.15, 0.30, 0.12, 0.96), wrapBack()]
-    .map(geometry => ({ geometry, material }));
+  const material = finish();
+  const back = wrapBack();
+  // Keep the back attached to the seat while halving its own height.
+  back.scale(TERRACE_CHAIR_ROUND_SCALE, 0.5, TERRACE_CHAIR_ROUND_SCALE);
+  back.translate(0, 0.23, 0);
+  const rounds = [cushion(0.315, 0, 0.15, 0.055, 0.96), cushion(0.33, 0.15, 0.30, 0.12, 0.96)];
+  rounds.forEach(geometry => geometry.scale(TERRACE_CHAIR_ROUND_SCALE, 1, TERRACE_CHAIR_ROUND_SCALE));
+  return [...rounds, back].map(geometry => ({ geometry, material }));
 }

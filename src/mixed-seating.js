@@ -155,7 +155,7 @@ export function buildMixedSeating(model, chairTemplate, obstacles, { tiers = MIX
   }
   for (const [material, parts] of batches) {
     const mesh = new THREE.Mesh(mergeGeometries(parts, false), material);
-    mesh.name = material.userData.terraceDesk ? 'Terrace_gloss_desks' : material.userData.terraceWood ? 'Terrace_wood_desks' : material.userData.terraceChair ? 'Terrace_boucle_chairs' : `Cafe_Furniture__Integrated_${material.name.replaceAll(' ', '_')}`;
+    mesh.name = material.userData.terraceDesk ? 'Terrace_gloss_desks' : material.userData.terraceWood ? 'Terrace_wood_desks' : material.userData.terraceChair ? 'Terrace_round_chairs' : `Cafe_Furniture__Integrated_${material.name.replaceAll(' ', '_')}`;
     mesh.userData.mixedSeating = true;
     if (material.userData.terraceWood) mesh.userData.woodenDesks = true;
     mesh.castShadow = mesh.receiveShadow = true;

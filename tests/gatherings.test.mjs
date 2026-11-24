@@ -8,7 +8,7 @@ import { GATHERING_LAYOUT as L, GATHERING_ZONES, GATHERING_ENTRY, gatheringFloor
 import { collisionGeometry } from '../src/collision.js';
 import { withinWalkBoundary } from '../src/entrance.js';
 import { isWalkable } from '../src/prepare-space.js';
-import { createTerraceChairTemplate, TERRACE_CHAIR_COLOR } from '../src/terrace-boucle-chair.js';
+import { createTerraceChairTemplate, TERRACE_CHAIR_COLOR } from '../src/terrace-rounded-chair.js';
 import { createPillDeskParts } from '../src/terrace-pill-desk.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
@@ -148,21 +148,25 @@ test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 혼합 �
   }
 });
 
-test('원형 계단 의자 74개 모두 블루 부클레 원형 좌판·낮은 받침·감싸는 등받이로 교체됐다', () => {
-  const batch = edited.seating.root.getObjectByName('Terrace_boucle_chairs');
+test('원형 계단 의자 74개는 넓어진 원형 좌판·절반 높이 등받이와 책상과 동일한 골드 유광이다', () => {
+  const batch = edited.seating.root.getObjectByName('Terrace_round_chairs');
   assert.ok(batch && batch.material.userData.terraceChair);
   assert.equal(edited.seating.seats.length, 74); assert.equal(edited.seating.sets.length, 28);
   assert.equal(batch.material.color.getHexString(), TERRACE_CHAIR_COLOR.slice(1).toLowerCase());
-  assert.ok(batch.material.roughness > 0.9 && batch.material.sheen > 0.5 && batch.material.bumpMap);
-  assert.equal(batch.material.metalness, 0); assert.equal(batch.material.clearcoat, 0);
-  assert.ok(batch.geometry.attributes.uv, '부클레 표면 좌표를 병합 후에도 유지해야 합니다.');
+  const deskMaterial = edited.seating.root.getObjectByName('Terrace_gloss_desks').material;
+  for (const property of ['roughness', 'clearcoat', 'clearcoatRoughness', 'metalness', 'specularIntensity', 'envMapIntensity', 'sheen', 'map', 'bumpMap']) {
+    assert.equal(batch.material[property], deskMaterial[property], `책상과 같은 마감: ${property}`);
+  }
   assert.ok(!edited.seating.root.children.some(m => /^Cafe_Furniture__Integrated_/.test(m.name)), '이전 프레임·다리 의자는 남기지 않습니다.');
   const template = createTerraceChairTemplate();
   assert.equal(batch.geometry.index.count, template.reduce((n, p) => n + p.geometry.index.count, 0) * 74);
   const local = new Box3();
   for (const part of template) { part.geometry.computeBoundingBox(); local.union(part.geometry.boundingBox); }
-  assert.ok(Math.abs(local.min.y) < 0.00001 && Math.abs(local.max.y - 1.01) < 0.001);
-  assert.ok(local.getSize(new Vector3()).x > 0.65 && local.getSize(new Vector3()).x < 0.70);
+  assert.ok(Math.abs(local.min.y) < 0.00001 && Math.abs(local.max.y - 0.735) < 0.001);
+  assert.ok(local.getSize(new Vector3()).x > 0.73 && local.getSize(new Vector3()).x < 0.75);
+  assert.ok(Math.abs(template[2].geometry.boundingBox.min.y - 0.46) < 0.001);
+  assert.ok(Math.abs(template[2].geometry.boundingBox.getSize(new Vector3()).y - 0.275) < 0.001, '등받이 자체 높이는 기존 0.55m의 절반이어야 합니다.');
+  assert.ok(Math.abs(template[1].geometry.boundingBox.getSize(new Vector3()).x / 0.66 - 1.12) < 0.001, '원형 좌판 지름은 12% 확대합니다.');
   const ray = new Raycaster(new Vector3(), new Vector3(0, -1, 0));
   for (const seat of edited.seating.seats) {
     const [x, y, z] = seat.position;
@@ -170,13 +174,13 @@ test('원형 계단 의자 74개 모두 블루 부클레 원형 좌판·낮은 �
     const hit = ray.intersectObject(batch)[0];
     assert.ok(hit && Math.abs(hit.point.y - y - 0.46) < 0.012, '모든 실제 좌판은 기존 인체 사용 높이에 있어야 합니다.');
     const radius = Math.hypot(x, z), direction = new Vector3(x, 0, z).normalize();
-    ray.set(new Vector3(x, y + 0.75, z), direction);
-    assert.ok(ray.intersectObject(batch).some(h => h.distance < 0.3), '등받이는 바깥쪽에 있어야 합니다.');
-    ray.set(new Vector3(x, y + 0.75, z), direction.clone().negate()); ray.far = 0.4;
+    ray.set(new Vector3(x, y + 0.60, z), direction);
+    assert.ok(ray.intersectObject(batch).some(h => h.distance < 0.33), '등받이는 바깥쪽에 있어야 합니다.');
+    ray.set(new Vector3(x, y + 0.60, z), direction.clone().negate()); ray.far = 0.4;
     assert.equal(ray.intersectObject(batch).length, 0, '중앙을 보는 앞쪽은 열려 있어야 합니다.'); ray.far = Infinity;
     assert.ok(edited.tiers[seat.tier].outer - radius - local.max.z >= 1.2, '의자 뒤에 보행 여유를 유지합니다.');
   }
-  for (const part of template) part.geometry.dispose(); template[0].material.bumpMap.dispose(); template[0].material.dispose();
+  for (const part of template) part.geometry.dispose(); template[0].material.dispose();
 });
 
 test('계단 책상 28개가 골드 유광 캡슐 상판과 두 판형 다리이며 앞판 없이 무릎 공간을 확보한다', () => {

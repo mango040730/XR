@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { buildMixedSeating } from './mixed-seating.js';
-import { createTerraceChairTemplate } from './terrace-boucle-chair.js';
+import { createTerraceChairTemplate } from './terrace-rounded-chair.js';
 import { createJoinedStairs, stairAlignedRing, colorJoinedStairs } from './joined-stairs.js';
 import { createDigitalWall } from './digital-wall.js';
 import { createCentralPlatform } from './central-room.js';

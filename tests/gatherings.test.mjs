@@ -46,6 +46,29 @@ test('각 모임 구역에 실제 4~10개의 독립된 1인 좌석이 있고 좌
   assert.equal(GATHERING_ZONES.length, 6);
 });
 
+test('중앙 계단형 라운지는 넓어진 두 층에 5석씩 배치해 총 10석을 유지한다', () => {
+  const group = edited.furniture.groups.find(g => g.kind === 'forum');
+  const treads = group.root.children.filter(m => m.name === 'Clay_forum_tread');
+  assert.equal(treads.length, 2);
+  assert.deepEqual([0, 1].map(t => group.seats.filter(s => s.tier === t).length), [5, 5]);
+  assert.deepEqual([...new Set(group.seats.map(s => s.position[1]))], [0.46, 0.76]);
+  assert.equal(group.seats.length, 10);
+  assert.equal(group.radius, 3.4);
+  const bounds = new Box3().setFromObject(group.root), size = bounds.getSize(new Vector3());
+  assert.ok(size.x > 6.7 && size.x < 6.81, '지름을 기존 약 6m에서 약 6.8m로 넓힙니다.');
+  const ray = new Raycaster();
+  for (const seat of group.seats) {
+    assert.equal(seat.mesh.userData.seatWidth, 0.84);
+    const [x, y, z] = seat.position, r = Math.hypot(x, z);
+    const origin = new Vector3(x / r * (r + 0.32), y + 0.1, z / r * (r + 0.32)).applyMatrix4(group.root.matrixWorld);
+    ray.set(origin, new Vector3(0, -1, 0)); ray.far = 0.25;
+    const hit = ray.intersectObjects(treads)[0];
+    assert.ok(hit && Math.abs(hit.point.y - group.floorY - y + 0.13) < 0.001, '쿠션 뒤까지 넓은 실제 단이 이어집니다.');
+  }
+  const pot = group.root.userData.planters[0];
+  assert.ok(-pot.base[2] - pot.depth / 2 - group.radius >= 0.119, '넓어진 등받이 뒤에 화분이 겹치지 않아야 합니다.');
+});
+
 test('중앙의 좌석·등받이·화분·돌·잎이 부드러운 실제 곡면과 클레이 재질로 구성된다', () => {
   let vertices = 0, leafMeshes = 0, coralSeats = 0;
   for (const group of edited.furniture.groups) group.root.traverse(mesh => {
@@ -385,34 +408,24 @@ test('각 책상의 모든 의자가 두 지지 다리 사이에 여유 있게 �
   for (const material of materials) { if (!material.userData.smokedWood) material.bumpMap?.dispose();material.dispose(); }
 });
 
-test('요청한 식재·계단 색상 외 공간·중앙 가구·조명·카메라와 테이블 디자인은 보존된다', async () => {
+test('계단형 가구 외 주변 가구·조명·카메라·재질과 테이블 디자인은 보존된다', async () => {
   const { commit, sourceFiles, transforms, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
   assert.equal(commit, '767bdf9');
   const photoBaseline = JSON.parse(await readFile(new URL('./helpers/wood-photo-baseline.json', import.meta.url)));
   const planterBaseline = JSON.parse(await readFile(new URL('./helpers/open-planter-baseline.json', import.meta.url)));
-  const gray = edited.stairs.material[0], color = gray.color.clone(), sheen = gray.sheenColor.clone();
-  assert.equal(color.getHexString(), 'b8b8b8');
-  // Compare against the historical snapshot with only the requested gray
-  // color normalized; all other finish properties remain in the comparison.
-  let snapshot;
-  try {
-    gray.color.set('#CBCBCB'); gray.sheenColor.set('#CBCBCB');
-    snapshot = appearanceSnapshot(model, { materialExclusions: ['Terrace_gloss_desks', 'Terrace_tube_frames'], materialNameExclusions: ['Clay soil'] });
-  } finally { gray.color.copy(color); gray.sheenColor.copy(sheen); }
-  assert.equal(snapshot.meshes, planterBaseline.meshes); assert.equal(snapshot.surroundings, planterBaseline.surroundings);
+  const forumBaseline = JSON.parse(await readFile(new URL('./helpers/two-tier-forum-baseline.json', import.meta.url)));
+  assert.equal(edited.stairs.material[0].color.getHexString(), 'b8b8b8');
+  const snapshot = appearanceSnapshot(model, { materialExclusions: [], subtreeExclusions: ['Gathering_tiered-forum'] });
+  assert.equal(snapshot.meshes, forumBaseline.meshes); assert.equal(snapshot.surroundings, forumBaseline.surroundings);
   // CPU/V8 versions can differ at the last floating-point bit. Preserve all
-  // geometry/light/camera source bytes, then compare table buffers against the
+  // unchanged geometry/light/camera source bytes, then compare table buffers against the
   // untouched original geometry factory in the same execution environment.
   for (const [file, hash] of Object.entries(sourceFiles)) {
     let source = await readFile(new URL('../' + file, import.meta.url));
     if (file === 'src/clay-gatherings.js') {
-      const text = source.toString().replace("import { hollowPlanterGeometry } from './clay-planter.js';\n", '').replace("'#48392F'", "'#555346'")
-        // Normalize only the explicitly removed planter-crossing block against
-        // the historical source; every other furniture statement is preserved.
-        .replace('        planter(root, 1.5, 0.56, -0.65, 2.9, 0, 0.58);',
-          "        const returning = arc(root, 'Clay_S_returning_curve', 1.1, 1.28, 2.25, 4.25, 0, 0.42, materials.shell, 0.06);\n        returning.position.set(-0.65, 0, 4.05);\n        planter(root, 1.5, 0.56, -0.65, 2.9, 0, 0.58);");
-      const preserved = text.slice(0, text.indexOf('export function planter(')) + text.slice(text.indexOf('// Merge small leaves,'));
-      assert.equal(createHash('sha256').update(preserved).digest('hex'), planterBaseline.furnitureSource, '화분 외 중앙 가구 생성 코드 보존');
+      const text = source.toString();
+      const preserved = text.slice(0, text.indexOf('      const counts =')) + text.slice(text.indexOf("    } else if (zone.kind === 'sofa')"));
+      assert.equal(createHash('sha256').update(preserved).digest('hex'), forumBaseline.furnitureSource, '계단형 가구 외 화분·중앙 가구 생성 코드 보존');
       continue;
     }
     if (file === 'src/clay-flower-bed.js') {
@@ -426,19 +439,24 @@ test('요청한 식재·계단 색상 외 공간·중앙 가구·조명·카메�
       continue;
     }
     if (file === 'src/terrace-pill-desk.js') source = Buffer.from(source.toString().replace('\nexport const PILL_LEG_INSET = 0.24;\n', '').replace('const inset = PILL_LEG_INSET;', 'const inset = Math.max(0.32, length * 0.13);'));
+    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9"));
     if (file === 'src/space-colors.js') source = Buffer.from(source.toString().replace("stairs: '#B8B8B8'", "stairs: '#CBCBCB'"));
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", ''));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }
+  const forumStart = transforms.findIndex(t => t.name === 'Gathering_tiered-forum');
+  const forumEnd = transforms.findIndex((t, i) => i > forumStart && t.name.startsWith('Gathering_'));
+  const unchangedTransforms = transforms.filter((_, i) => i < forumStart || i >= forumEnd);
   let count = 0;
   model.traverse(object => {
-    const expected = transforms[count++];
+    for (let ancestor = object; ancestor; ancestor = ancestor.parent) if (ancestor.name === 'Gathering_tiered-forum') return;
+    const expected = unchangedTransforms[count++];
     assert.equal(object.name, expected.name); assert.equal(object.type, expected.type);
     for (const property of ['matrix', 'matrixWorld']) object[property].elements.forEach((v, i) => {
       assert.ok(Math.abs(v - expected[property][i]) < 1e-12, `${object.name} 위치·회전·크기 보존`);
     });
   });
-  assert.equal(count, transforms.length);
+  assert.equal(count, unchangedTransforms.length);
   const desk = edited.seating.root.getObjectByName('Terrace_gloss_desks');
   const originals = edited.seating.sets.flatMap(set => createPillDeskParts({ inner: edited.tiers[set.tier].inner, start: set.start, end: set.end, floorY: set.center[1] }));
   for (const part of originals) {

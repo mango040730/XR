@@ -158,21 +158,22 @@ export function createGatheringFurniture(model) {
     const root = new THREE.Group(); root.name = `Gathering_${zone.id}`;
     const seats = [], R = zone.radius;
     if (zone.kind === 'forum') {
-      const counts = [3, 3, 4];
-      for (let row = 0; row < 3; row++) {
-        const outer = 1.5 + row * 0.64, top = 0.46 + row * 0.28;
-        const tread = arc(root, 'Clay_forum_tread', outer - 0.64, outer, 0.78, TAU - 0.78, 0, top - 0.13, materials.shell, 0.045);
+      const counts = [5, 5], tierDepth = 0.8, seatWidth = 0.84;
+      for (let row = 0; row < counts.length; row++) {
+        const outer = R - 0.24 - (counts.length - 1 - row) * tierDepth, top = 0.46 + row * 0.30;
+        const tread = arc(root, 'Clay_forum_tread', outer - tierDepth, outer, 0.78, TAU - 0.78, 0, top - 0.13, materials.shell, 0.045);
         tread.userData.walkable = true;
-        const radius = outer - 0.30, padAngle = 0.76 / radius;
+        const radius = outer - 0.38, padAngle = seatWidth / radius;
         for (let i = 0; i < counts[row]; i++) {
-          const angle = THREE.MathUtils.lerp(1.14, TAU - 1.14, (i + 0.5) / counts[row]) + [0, 0.26, -0.1][row];
+          const angle = THREE.MathUtils.lerp(1.10, TAU - 1.10, (i + 0.5) / counts[row]) + [0, 0.13][row];
           const pad = arc(root, 'Clay_forum_seat', radius - 0.28, radius + 0.28, angle - padAngle / 2, angle + padAngle / 2, top - 0.13, 0.13, materials.coral, 0.045);
           pad.userData.walkable = true;
           seat(root, pad, seats, [Math.sin(angle) * radius, top, Math.cos(angle) * radius], [-Math.sin(angle), 0, -Math.cos(angle)], 'forum', row);
+          pad.userData.seatWidth = seatWidth;
         }
       }
-      arc(root, 'Clay_forum_back', 2.84, 3.02, 0.78, TAU - 0.78, 0, 1.15, materials.shell, 0.055);
-      planter(root, 1.75, 0.64, 0, -3.43, 0, 1.35);
+      arc(root, 'Clay_forum_back', R - 0.18, R, 0.78, TAU - 0.78, 0, 0.96, materials.shell, 0.055);
+      planter(root, 1.75, 0.64, 0, -R - 0.44, 0, 1.35);
     } else if (zone.kind === 'sofa') {
       const opening = zone.opening ?? 0, start = opening + 0.86, end = opening + TAU - 0.86;
       arc(root, 'Clay_sofa_plinth', R - 0.68, R, start, end, 0, 0.32, materials.shell, 0.055);

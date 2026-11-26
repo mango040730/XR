@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
 
-export function appearanceSnapshot(root, { materialExclusions = ['Terrace_gloss_desks'], materialNameExclusions = [] } = {}) {
+export function appearanceSnapshot(root, { materialExclusions = ['Terrace_gloss_desks'], materialNameExclusions = [], subtreeExclusions = [] } = {}) {
   root.updateMatrixWorld(true);
   const geometry = createHash('sha256'), surroundings = createHash('sha256');
   let meshes = 0;
   root.traverse(object => {
+    for (let ancestor = object; ancestor; ancestor = ancestor.parent) if (subtreeExclusions.includes(ancestor.name)) return;
     geometry.update(JSON.stringify([object.type, object.name, object.matrix.elements, object.matrixWorld.elements]));
     if (!object.isMesh) return;
     meshes++;

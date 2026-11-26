@@ -1,0 +1,66 @@
+{
+  "figma": "https://www.figma.com/design/rplcAtbB90tZ2eBFFRsPq6/UI-DESIGN-ZONE?node-id=43-567",
+  "frames": [
+    "368:75",
+    "368:88",
+    "368:104",
+    "368:115",
+    "368:124"
+  ],
+  "assets": {
+    "avatar-default.png": {
+      "node": "368:111",
+      "slot": "캐릭터 선택: 첫 번째, 498×360 안 object-contain",
+      "bytes": 1780872,
+      "sha256": "7efb563c70f49e0ba2268bb7d9cdae2d23987c02fba6e3b9a9a50f84384a1558"
+    },
+    "avatar-summary.png": {
+      "node": "368:119",
+      "slot": "닉네임: 첫 번째 캐릭터, 206×211 안 object-contain",
+      "bytes": 1780872,
+      "sha256": "7efb563c70f49e0ba2268bb7d9cdae2d23987c02fba6e3b9a9a50f84384a1558"
+    },
+    "avatar-2-sheet.png": {
+      "node": "368:260",
+      "slot": "두 번째 캐릭터, 원본 시트의 좌하단, Figma crop 좌표",
+      "bytes": 1269372,
+      "sha256": "8a2fdaf8f622fb2af5603c305aae36de1c74d90bdc211c9a77f6d78fc852ad41"
+    },
+    "avatar-3-sheet.png": {
+      "node": "368:259",
+      "slot": "세 번째 캐릭터, 원본 시트의 우하단, Figma crop 좌표",
+      "bytes": 1269372,
+      "sha256": "8a2fdaf8f622fb2af5603c305aae36de1c74d90bdc211c9a77f6d78fc852ad41"
+    },
+    "avatar-4.png": {
+      "node": "368:261",
+      "slot": "네 번째 캐릭터, 원본 1107:1359 비율",
+      "bytes": 561703,
+      "sha256": "cec1127c49b7c1b27866ba93e3713e97f2fc5f34bc421baa60c06c40196127db"
+    },
+    "caret-left.svg": {
+      "node": "368:108",
+      "slot": "선택 화면 왼쪽 40×40",
+      "bytes": 845,
+      "sha256": "566eddd9ae75127358e3fbe33354e7290f2f83b80f474769a0974dced9ee4d17"
+    },
+    "caret-right.svg": {
+      "node": "368:112",
+      "slot": "선택 화면 오른쪽 40×40",
+      "bytes": 846,
+      "sha256": "69b600a70083140ef6a1b4d88a2fe381c0ed1b86357af33e173e8422afa513af"
+    },
+    "neighborhood-map.png": {
+      "node": "368:128",
+      "slot": "지도 498×360, Figma 115.14% crop",
+      "bytes": 1117737,
+      "sha256": "aca110e433d19759535a7edb466f97450f1ae50b8e092205f65f616204ae3fe3"
+    },
+    "map-marker.svg": {
+      "node": "368:129",
+      "slot": "지도 중앙 24×24, 위치 재설정 시 이동",
+      "bytes": 569,
+      "sha256": "2dcf39145e04038dc2215079391c4646d82577571cd449e065fe884d11a392be"
+    }
+  }
+}

@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 import { GATHERING_ENTRY, GATHERING_LAYOUT } from '../src/gathering-layout.js';
+import { finishEntryPreview } from './helpers/entry-flow.mjs';
 const ENTRY_POSITION = GATHERING_ENTRY.position, ENTRY_RADIUS = GATHERING_LAYOUT.outerRadius;
 
 const url = process.argv[2] ?? 'http://127.0.0.1:4173/';
@@ -52,6 +53,10 @@ try {
     assert.ok(Date.now() < deadline, `이동 준비 시간 초과: ${errors.join('\n')}`);
     await pause(500);
   }
+  await finishEntryPreview(evaluate);
+  while (!(await evaluate('Boolean(window.spaceVR?.entered) && !document.getElementById("entry-root")'))) {
+    assert.ok(Date.now() < deadline, '접속 UI 완료 후 공간 진입 시간 초과'); await pause(100);
+  }
   await send('Page.bringToFront');
   let woodTexture;
   const textureDeadline = Date.now() + 15000;
@@ -63,7 +68,11 @@ try {
     assert.ok(Date.now() < textureDeadline, '실제 목재 사진 텍스처 로드 시간 초과');
     if (!woodTexture) await pause(200);
   }
-  assert.ok(woodTexture.bytes > 500000 && [0, 200].includes(woodTexture.status), '실제 목재 사진이 성공적으로 로드되어야 합니다.');
+  woodTexture.dimensions = await evaluate(`new Promise((resolve, reject) => {
+    const image = new Image(); image.onload = () => resolve([image.naturalWidth, image.naturalHeight]);
+    image.onerror = () => reject(new Error('목재 사진 디코딩 실패')); image.src = ${JSON.stringify(woodTexture.url)};
+  })`);
+  assert.ok(woodTexture.dimensions.every(n => n >= 1024) && [0, 200, 304].includes(woodTexture.status), `실제 목재 사진을 디코딩해야 합니다: ${JSON.stringify(woodTexture)}`);
   assert.equal(await evaluate('document.querySelectorAll("canvas").length'), 1, '공간 캔버스는 하나여야 합니다.');
   const start = await evaluate('window.spaceVR.position');
   assert.ok(start.every((value, i) => Math.abs(value - ENTRY_POSITION[i]) < 0.0001), '입구에서 시작해야 합니다.');

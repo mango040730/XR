@@ -422,6 +422,17 @@ test('계단형 가구 외 주변 가구·조명·카메라·재질과 테이블
   // untouched original geometry factory in the same execution environment.
   for (const [file, hash] of Object.entries(sourceFiles)) {
     let source = await readFile(new URL('../' + file, import.meta.url));
+    if (file === 'src/main.js') {
+      const before = JSON.parse(await readFile(new URL('./helpers/entry-space-baseline.json', import.meta.url)));
+      const text = source.toString();
+      const protectedParts = {
+        renderSetup: text.slice(text.indexOf('THREE.Mesh.prototype.raycast'), text.indexOf('function floorHeight')).replace('\nrenderer.domElement.inert = true;', ''),
+        physics: text.slice(text.indexOf('function floorHeight'), text.indexOf('async function loadSpace')).replaceAll('!entrySession.entered || ', ''),
+        modelSetup: text.slice(text.indexOf('  const loader = new GLTFLoader();'), text.indexOf('  await renderer.compileAsync')),
+      };
+      for (const [part, value] of Object.entries(protectedParts)) assert.equal(createHash('sha256').update(value).digest('hex'), before[part], `${part} 공간·카메라·조명·충돌 구성 보존`);
+      continue;
+    }
     if (file === 'src/clay-gatherings.js') {
       const text = source.toString();
       const preserved = text.slice(0, text.indexOf('      const counts =')) + text.slice(text.indexOf("    } else if (zone.kind === 'sofa')"));

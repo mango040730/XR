@@ -1,0 +1,96 @@
+@font-face {
+  font-family: 'Wanted Sans';
+  src: url('/fonts/wanted-sans/WantedSansVariable.woff2') format('woff2');
+  font-weight: 100 1000;
+  font-style: normal;
+  font-display: swap;
+}
+.entry-overlay {
+  --entry-text: #efeeec;
+  position: fixed; inset: 0; z-index: 10;
+  display: grid; place-items: center; overflow: auto; padding: 24px;
+  box-sizing: border-box; isolation: isolate;
+  font-family: 'Wanted Sans', sans-serif; font-size: 18px; line-height: 26px;
+  letter-spacing: 0.04px; color: var(--entry-text);
+  transition: opacity 240ms ease;
+}
+.entry-backdrop {
+  position: fixed; inset: -24px; z-index: -1;
+  background: linear-gradient(#d8d3c9 45%, #304e8b 50%);
+  background-image: var(--entry-backdrop, linear-gradient(#d8d3c9 45%, #304e8b 50%));
+  background-size: cover; background-position: center; filter: blur(14px);
+  pointer-events: none;
+}
+.entry-overlay.is-leaving { opacity: 0; pointer-events: none; }
+.entry-card, .entry-card * { box-sizing: border-box; }
+.entry-card {
+  width: 594px; height: 601px; flex: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  position: relative; padding: 40px 48px; border-radius: 12px;
+  background: rgba(23,24,26,.6); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+}
+.entry-card[data-step='avatar'], .entry-card[data-step='nickname'] { height: 600px; }
+.entry-card[data-step='login'], .entry-card[data-step='identity'] { transform: translateY(-0.5px); }
+.entry-card[data-step='location'] { height: 648px; gap: 24px; }
+.entry-card h1 { font-size: 36px; font-weight: 700; line-height: 44px; margin: 0; text-align: center; outline: none; }
+.entry-fields, .entry-actions { display: flex; flex-direction: column; width: 100%; }
+.entry-fields { gap: 32px; }
+.entry-card[data-step='identity'] .entry-fields { gap: 20px; }
+.entry-field { display: flex; flex-direction: column; gap: 8px; width: 100%; color: #c4c3c1; }
+.entry-field input {
+  appearance: none; width: 100%; height: 52px; border: 1px solid transparent; border-radius: 6px;
+  background: rgba(0,0,0,.4); color: #c4c3c1; padding: 12px;
+  font: inherit; letter-spacing: inherit; outline: none;
+}
+.entry-field input::placeholder { color: #757578; opacity: 1; }
+.entry-field input[name='email'] { padding-inline: 16px; background: transparent; border-color: rgba(255,255,255,.2); }
+.entry-field input[name='email']::placeholder { color: #c4c3c1; }
+.entry-field input:focus { border-color: rgba(255,255,255,.65); }
+.entry-actions { gap: 12px; }
+.entry-button {
+  width: 100%; height: 52px; display: flex; align-items: center; justify-content: center;
+  padding: 12px; border: 1px solid transparent; border-radius: 6px;
+  background: rgba(255,255,255,.2); color: #dbdad8;
+  font: inherit; font-weight: 500; letter-spacing: inherit; cursor: pointer;
+}
+.entry-button.secondary { background: transparent; border-color: rgba(255,255,255,.2); color: #efeeec; }
+.entry-button:hover { background-color: rgba(255,255,255,.28); }
+.entry-button.secondary:hover { background-color: rgba(255,255,255,.08); }
+.entry-button:disabled { cursor: wait; opacity: .65; }
+.entry-card button:focus-visible, .entry-map:focus-visible { outline: 2px solid #efeeec; outline-offset: 4px; }
+.entry-carousel { position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; height: 360px; }
+.entry-avatar-slot { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; pointer-events: none; }
+.entry-avatar { position: relative; height: 100%; aspect-ratio: var(--avatar-ratio); overflow: hidden; flex: none; }
+.entry-avatar > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.entry-avatar[data-avatar='violet'] > img { object-fit: fill; object-position: bottom; }
+.entry-avatar[data-crop] > img { position: absolute; width: 201.27%; height: 198.46%; top: -98.46%; max-width: none; object-fit: fill; }
+.entry-avatar[data-crop='left'] > img { left: -4.72%; }
+.entry-avatar[data-crop='right'] > img { left: -101.27%; }
+.entry-arrow { position: relative; z-index: 1; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 50%; }
+.entry-arrow > img { display: block; }
+.entry-nickname { width: 100%; display: flex; flex-direction: column; gap: 24px; align-items: center; }
+.entry-summary { position: relative; width: 206px; height: 211px; display: flex; justify-content: center; }
+.entry-map { width: 100%; height: 360px; position: relative; border-radius: 8px; overflow: hidden; flex: none; outline: none; }
+.entry-map-image { position: absolute; width: 115.14%; height: 115.14%; left: -8.89%; top: -7.51%; max-width: none; user-select: none; pointer-events: none; }
+.entry-map-marker { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); pointer-events: none; }
+.entry-map.is-editing { cursor: crosshair; }
+.entry-feedback { position: absolute; left: 48px; right: 48px; bottom: 16px; text-align: center; font-size: 13px; line-height: 18px; margin: 0; color: #efeeec; }
+.entry-feedback:empty { display: none; }
+.entry-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; clip-path: inset(50%); overflow: hidden; white-space: nowrap; }
+@media (max-width: 650px) {
+  .entry-overlay { padding: 16px; }
+  .entry-card { width: 100%; max-width: 594px; padding: 32px 24px; }
+  .entry-card h1 { font-size: 30px; line-height: 40px; }
+  .entry-feedback { left: 24px; right: 24px; bottom: 10px; }
+  .entry-carousel { height: 330px; }
+  .entry-map { height: auto; aspect-ratio: 498 / 360; }
+  .entry-card[data-step='location'] { height: auto; min-height: 550px; }
+}
+@media (max-height: 680px) {
+  .entry-overlay { place-items: start center; }
+  .entry-card { margin-block: auto; min-height: 560px; height: auto; gap: 24px; }
+  .entry-card[data-step='avatar'], .entry-card[data-step='nickname'] { height: auto; min-height: 560px; }
+  .entry-card[data-step='location'] { height: auto; }
+  .entry-carousel { height: 300px; }
+}
+@media (prefers-reduced-motion: reduce) { .entry-overlay { transition: none; } }

@@ -8,8 +8,9 @@ import { createStudioRenderer } from './studio-renderer.js';
 import { prepareGatheringSpace } from './compact-space.js';
 import { GATHERING_LAYOUT, GATHERING_ENTRY } from './gathering-layout.js';
 import { resetToEntrance, withinWalkBoundary } from './entrance.js';
+import { entrySession } from './entry-state.js';
 
-// The document intentionally contains only the rendering canvas: no HUD or VR button.
+// Entry UI is separate from the scene; after entry the canvas has no HUD.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#d8d3c9');
@@ -29,6 +30,7 @@ renderer.xr.setFramebufferScaleFactor(1);
 renderer.domElement.setAttribute('aria-label', '3D 가상 공간');
 renderer.domElement.tabIndex = 0;
 document.body.appendChild(renderer.domElement);
+renderer.domElement.inert = true;
 
 const camera = new THREE.PerspectiveCamera(68, innerWidth / innerHeight, 0.06, 240);
 camera.rotation.order = 'YXZ';
@@ -95,7 +97,7 @@ function floorHeight(x, z, y, maxDrop = 0.6) {
 }
 
 function tryMove(dx, dz, delta) {
-  if (!ready || Math.abs(dx) + Math.abs(dz) < 0.00001) return;
+  if (!entrySession.entered || !ready || Math.abs(dx) + Math.abs(dz) < 0.00001) return;
   camera.getWorldPosition(head);
   const x = head.x, z = head.z;
   if (!withinWalkBoundary(x + dx, z + dz, GATHERING_LAYOUT.walkRadius, GATHERING_ENTRY)) return;
@@ -158,15 +160,22 @@ async function loadSpace() {
   floor = collisionGeometry(floors);
   const initialFloor = floorHeight(GATHERING_ENTRY.position[0], GATHERING_ENTRY.position[2], GATHERING_ENTRY.position[1], 2);
   if (initialFloor !== null) rig.position.y = initialFloor;
+  await renderer.compileAsync(scene, camera);
+  studio.render();
   ready = true;
   document.documentElement.dataset.scene = 'ready';
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
   window.dispatchEvent(new Event('space-ready'));
 }
+// Capture the original empty loading view, keeping it behind the entry cards
+// even after the full room has finished preparing in the background.
+studio.render();
+window.dispatchEvent(new CustomEvent('space-backdrop', { detail: renderer.domElement.toDataURL('image/png') }));
 void loadSpace().catch(error => {
   document.documentElement.dataset.scene = 'error';
   console.error('공간 모델을 불러오지 못했습니다.', error);
+  window.dispatchEvent(new Event('space-error'));
 });
 
 if (navigator.xr) navigator.xr.isSessionSupported('immersive-vr')
@@ -174,7 +183,7 @@ if (navigator.xr) navigator.xr.isSessionSupported('immersive-vr')
   .catch(error => console.info('WebXR:', error.message));
 
 async function enterVR() {
-  if (!ready || !xrSupported || xrStarting || renderer.xr.isPresenting) return;
+  if (!entrySession.entered || !ready || !xrSupported || xrStarting || renderer.xr.isPresenting) return;
   xrStarting = true;
   try {
     const session = await navigator.xr.requestSession('immersive-vr', {
@@ -203,7 +212,7 @@ const controllers = [renderer.xr.getController(0), renderer.xr.getController(1)]
 controllers.forEach(controller => {
   rig.add(controller);
   controller.addEventListener('selectend', () => {
-    if (!ready || !renderer.xr.isPresenting) return;
+    if (!entrySession.entered || !ready || !renderer.xr.isPresenting) return;
     controller.getWorldPosition(origin);
     controller.getWorldQuaternion(rotation);
     direction.set(0, 0, -1).applyQuaternion(rotation);
@@ -231,7 +240,7 @@ controllers.forEach(controller => {
 });
 
 function look(dx, dy) {
-  if (renderer.xr.isPresenting) return;
+  if (!entrySession.entered || renderer.xr.isPresenting) return;
   camera.rotation.y -= dx * 0.0022;
   camera.rotation.x = THREE.MathUtils.clamp(camera.rotation.x - dy * 0.0022, -1.45, 1.45);
 }
@@ -239,7 +248,7 @@ document.addEventListener('mousemove', event => {
   if (document.pointerLockElement === renderer.domElement) look(event.movementX, event.movementY);
 });
 renderer.domElement.addEventListener('click', () => {
-  if (!ready) return;
+  if (!entrySession.entered || !ready) return;
   if (xrSupported) { void enterVR(); return; }
   if (matchMedia('(pointer: fine)').matches && !document.pointerLockElement) {
     const result = renderer.domElement.requestPointerLock?.();
@@ -247,6 +256,7 @@ renderer.domElement.addEventListener('click', () => {
   }
 });
 renderer.domElement.addEventListener('pointerdown', event => {
+  if (!entrySession.entered) return;
   if (event.pointerType === 'mouse') return;
   touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
   renderer.domElement.setPointerCapture(event.pointerId);
@@ -261,6 +271,7 @@ for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) {
   renderer.domElement.addEventListener(event, e => touches.delete(e.pointerId));
 }
 document.addEventListener('keydown', event => {
+  if (!entrySession.entered) return;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
   keys.add(event.code);
   if (event.code === 'KeyV' && !event.repeat) void enterVR();
@@ -271,6 +282,9 @@ function clearInput() { keys.clear(); touches.clear(); }
 window.addEventListener('blur', clearInput);
 document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
 document.addEventListener('pointerlockchange', clearInput);
+window.addEventListener('space-enter', () => {
+  clearInput(); resetPosition(); renderer.domElement.inert = false; renderer.domElement.focus({ preventScroll: true });
+});
 window.addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
@@ -305,6 +319,8 @@ function xrInput(delta) {
 // A small read-only diagnostics surface; nothing is drawn over the scene.
 window.spaceVR = Object.freeze({
   get ready() { return ready; },
+  get entered() { return entrySession.entered; },
+  get profile() { return entrySession.entered ? entrySession.profile : null; },
   get vrSupported() { return xrSupported; },
   get presenting() { return renderer.xr.isPresenting; },
   get position() { return rig.position.toArray(); },
@@ -314,7 +330,7 @@ window.spaceVR = Object.freeze({
 renderer.setAnimationLoop(time => {
   const delta = Math.min((time - (lastTime || time)) / 1000, 0.04);
   lastTime = time;
-  if (ready) {
+  if (ready && entrySession.entered) {
     if (renderer.xr.isPresenting) xrInput(delta);
     else {
       const x = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft'));

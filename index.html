@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#c5d5e3" />
-    <meta name="description" content="공간.glb 원본을 사람 눈높이에서 탐험하는 UI 없는 WebXR 가상 공간." />
+    <meta name="description" content="캐릭터와 닉네임을 설정하고 입장하는 WebXR 가상 모임 공간." />
+    <link rel="preload" href="/fonts/wanted-sans/WantedSansVariable.woff2" as="font" type="font/woff2" crossorigin />
     <title>공간 VR</title>
     <style>
       html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #c5d5e3; }
@@ -12,6 +13,7 @@
     </style>
   </head>
   <body>
-    <script type="module" src="/src/main.js"></script>
+    <div id="entry-root" class="entry-overlay"></div>
+    <script type="module" src="/src/entry.js"></script>
   </body>
 </html>

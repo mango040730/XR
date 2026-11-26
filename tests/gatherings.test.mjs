@@ -178,6 +178,24 @@ test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 혼합 �
   }
 });
 
+test('중앙 화분을 관통하던 긴 흰 곡선 블록은 제거하고 화분과 식재는 유지한다', () => {
+  const root = edited.furniture.groups.find(g => g.id === 's-curve-meeting').root;
+  const shell = root.children.find(m => m.isMesh && m.material.name === 'Clay warm ivory');
+  const pot = root.userData.planters.find(p => p.base[0] === -0.65 && p.base[2] === 2.9);
+  assert.ok(pot); assert.equal(pot.width, 1.5); assert.equal(pot.depth, 0.56);
+  const bed = root.userData.flowerBeds.find(b => b.base[0] === -0.65 && b.base[2] === 2.9);
+  assert.equal(bed.flowers.length, 11); assert.equal(bed.blades.length, 8);
+  const ray = new Raycaster();
+  ray.set(new Vector3(-0.65, 0.8, 2.9).applyMatrix4(root.matrixWorld), new Vector3(0, -1, 0)); ray.far = 1;
+  const centre = ray.intersectObject(shell)[0];
+  assert.ok(centre && centre.point.y < root.position.y + 0.1, '흙 위로 흰 블록이 지나가면 안 됩니다.');
+  for (const angle of [2.35, 4.15]) {
+    const point = new Vector3(-0.65 + Math.sin(angle) * 1.19, 0.8, 4.05 + Math.cos(angle) * 1.19).applyMatrix4(root.matrixWorld);
+    ray.set(point, new Vector3(0, -1, 0));
+    assert.equal(ray.intersectObject(shell).length, 0, '화분 양쪽으로 튀어나온 블록 끝도 제거해야 합니다.');
+  }
+});
+
 test('계단 의자 37개 모두 파이프 디자인이며 파스텔 블루 천 쿠션과 테이블과 같은 무광 목재 프레임을 사용한다', () => {
   const tubeSeats = edited.seating.seats.filter(s => s.chairDesign === 'tube');
   assert.equal(tubeSeats.length, 37); assert.equal(edited.seating.seats.length, 37);
@@ -388,7 +406,11 @@ test('요청한 식재·계단 색상 외 공간·중앙 가구·조명·카메�
   for (const [file, hash] of Object.entries(sourceFiles)) {
     let source = await readFile(new URL('../' + file, import.meta.url));
     if (file === 'src/clay-gatherings.js') {
-      const text = source.toString().replace("import { hollowPlanterGeometry } from './clay-planter.js';\n", '').replace("'#48392F'", "'#555346'");
+      const text = source.toString().replace("import { hollowPlanterGeometry } from './clay-planter.js';\n", '').replace("'#48392F'", "'#555346'")
+        // Normalize only the explicitly removed planter-crossing block against
+        // the historical source; every other furniture statement is preserved.
+        .replace('        planter(root, 1.5, 0.56, -0.65, 2.9, 0, 0.58);',
+          "        const returning = arc(root, 'Clay_S_returning_curve', 1.1, 1.28, 2.25, 4.25, 0, 0.42, materials.shell, 0.06);\n        returning.position.set(-0.65, 0, 4.05);\n        planter(root, 1.5, 0.56, -0.65, 2.9, 0, 0.58);");
       const preserved = text.slice(0, text.indexOf('export function planter(')) + text.slice(text.indexOf('// Merge small leaves,'));
       assert.equal(createHash('sha256').update(preserved).digest('hex'), planterBaseline.furnitureSource, '화분 외 중앙 가구 생성 코드 보존');
       continue;

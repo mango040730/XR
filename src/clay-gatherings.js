@@ -205,8 +205,6 @@ export function createGatheringFurniture(model) {
       }
       if (zone.sCurve) {
         planter(root, 1.5, 0.65, R + 0.43, -1.5, 0, 1.35);
-        const returning = arc(root, 'Clay_S_returning_curve', 1.1, 1.28, 2.25, 4.25, 0, 0.42, materials.shell, 0.06);
-        returning.position.set(-0.65, 0, 4.05);
         planter(root, 1.5, 0.56, -0.65, 2.9, 0, 0.58);
       }
     }

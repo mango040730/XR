@@ -4,5 +4,5 @@ export const SPACE_COLORS = Object.freeze({
   floor: '#F4CFB8',
   sculpture: '#FDE8DC',
   rail: '#203D85',
-  stairs: '#CBCBCB',
+  stairs: '#B8B8B8',
 });

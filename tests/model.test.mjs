@@ -324,7 +324,7 @@ test('최상단의 윗면만 블루이며 아래 두 단과 수직면은 연그�
       const hit = ray.intersectObject(stairs, false)[0];
       assert.ok(hit);
       const actual = stairs.material[hit.face.materialIndex].color.getHexString();
-      assert.equal(actual, tier === 2 ? edited.carpet.material.color.getHexString() : 'cbcbcb');
+      assert.equal(actual, tier === 2 ? edited.carpet.material.color.getHexString() : 'b8b8b8');
     }
   }
   for (const angle of [Math.PI / 4, Math.PI * 3 / 4, Math.PI * 5 / 4, Math.PI * 7 / 4]) {
@@ -333,13 +333,13 @@ test('최상단의 윗면만 블루이며 아래 두 단과 수직면은 연그�
     ray.set(new Vector3(radius * direction.x, PATH_Y - 0.5, radius * direction.z), direction);
     const hit = ray.intersectObject(stairs, false)[0];
     assert.ok(hit && hit.distance < 0.15);
-    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'cbcbcb', '블루 윗면 아래의 수직 앞면은 연그레이여야 합니다.');
+    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'b8b8b8', '블루 윗면 아래의 수직 앞면은 연그레이여야 합니다.');
   }
   for (let band = 0; band < ACCESS_STEP_COUNT - 1; band++) {
     const radius = CENTRAL_RADIUS + (band + 0.5) * (PATH_INNER_RADIUS - CENTRAL_RADIUS) / ACCESS_STEP_COUNT;
     ray.set(new Vector3(0, PATH_Y + 2, radius), new Vector3(0, -1, 0));
     const hit = ray.intersectObject(stairs, false)[0];
-    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'cbcbcb', '이동용 계단은 연그레이로 구분해야 합니다.');
+    assert.equal(stairs.material[hit.face.materialIndex].color.getHexString(), 'b8b8b8', '이동용 계단은 연그레이로 구분해야 합니다.');
   }
 });
 

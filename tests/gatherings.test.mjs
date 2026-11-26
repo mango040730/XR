@@ -367,12 +367,20 @@ test('각 책상의 모든 의자가 두 지지 다리 사이에 여유 있게 �
   for (const material of materials) { if (!material.userData.smokedWood) material.bumpMap?.dispose();material.dispose(); }
 });
 
-test('화분 식재 외 공간·중앙 가구·조명·카메라와 재질·테이블 디자인은 보존된다', async () => {
+test('요청한 식재·계단 색상 외 공간·중앙 가구·조명·카메라와 테이블 디자인은 보존된다', async () => {
   const { commit, sourceFiles, transforms, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
   assert.equal(commit, '767bdf9');
   const photoBaseline = JSON.parse(await readFile(new URL('./helpers/wood-photo-baseline.json', import.meta.url)));
   const planterBaseline = JSON.parse(await readFile(new URL('./helpers/open-planter-baseline.json', import.meta.url)));
-  const snapshot = appearanceSnapshot(model, { materialExclusions: ['Terrace_gloss_desks', 'Terrace_tube_frames'], materialNameExclusions: ['Clay soil'] });
+  const gray = edited.stairs.material[0], color = gray.color.clone(), sheen = gray.sheenColor.clone();
+  assert.equal(color.getHexString(), 'b8b8b8');
+  // Compare against the historical snapshot with only the requested gray
+  // color normalized; all other finish properties remain in the comparison.
+  let snapshot;
+  try {
+    gray.color.set('#CBCBCB'); gray.sheenColor.set('#CBCBCB');
+    snapshot = appearanceSnapshot(model, { materialExclusions: ['Terrace_gloss_desks', 'Terrace_tube_frames'], materialNameExclusions: ['Clay soil'] });
+  } finally { gray.color.copy(color); gray.sheenColor.copy(sheen); }
   assert.equal(snapshot.meshes, planterBaseline.meshes); assert.equal(snapshot.surroundings, planterBaseline.surroundings);
   // CPU/V8 versions can differ at the last floating-point bit. Preserve all
   // geometry/light/camera source bytes, then compare table buffers against the
@@ -396,6 +404,7 @@ test('화분 식재 외 공간·중앙 가구·조명·카메라와 재질·테�
       continue;
     }
     if (file === 'src/terrace-pill-desk.js') source = Buffer.from(source.toString().replace('\nexport const PILL_LEG_INSET = 0.24;\n', '').replace('const inset = PILL_LEG_INSET;', 'const inset = Math.max(0.32, length * 0.13);'));
+    if (file === 'src/space-colors.js') source = Buffer.from(source.toString().replace("stairs: '#B8B8B8'", "stairs: '#CBCBCB'"));
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", ''));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }

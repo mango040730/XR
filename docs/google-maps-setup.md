@@ -1,5 +1,7 @@
 # 실제 동네 설정: Google Maps 설정과 검증
 
+현재 사용자 요청에 따라 기본 화면은 외부 API·기기 위치를 사용하지 않는 데모다. 이 문서는 이후 Google Maps 도입을 선택할 때 사용하는 설정 안내이며 지금 데모 이용에는 필요하지 않다. 실제 모드로 전환하려면 로컬 환경 또는 GitHub Actions 변수에 `VITE_LOCATION_MODE=google`을 명시하고 재배포해야 한다. 기본값은 `demo`이므로 키 등록만으로 실제 모드가 활성화되지는 않는다.
+
 현재 프로젝트는 Vite + JavaScript + Three.js이며 별도 계정 API/DB가 없다. 로그인 등 기존 화면은 UI 미리보기지만 동네 설정은 Google Maps JavaScript API·Geocoding Service와 브라우저 Geolocation API를 실제로 사용한다. 키가 없거나 위치/주소 조회에 실패하면 확정·입장을 막으며 데모 지도나 기본 좌표로 우회하지 않는다.
 
 ## 1. Google Cloud 설정
@@ -28,6 +30,7 @@
 
 ```dotenv
 VITE_GOOGLE_MAPS_API_KEY=발급받은_개발용_키
+VITE_LOCATION_MODE=google
 ```
 
 ```sh

@@ -1,3 +1,4 @@
+import {validDemoSelection,copyDemoSelection} from './demo-location.js';
 export const LOCATION_STORAGE_KEY = 'meet-join.location.v1';
 const MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 
@@ -6,9 +7,11 @@ export function validCoordinates(value) {
     && Number.isFinite(value.lng) && Math.abs(value.lng) <= 180);
 }
 export function validLocation(value) {
+  if(value?.mode==='demo')return validDemoSelection(value);
   return validCoordinates(value) && typeof value.address === 'string' && Boolean(value.address.trim());
 }
 export function copyLocation(value) {
+  if(value?.mode==='demo')return copyDemoSelection(value);
   if (!validLocation(value)) return null;
   return {
     lat: value.lat, lng: value.lng, address: value.address.trim(),
@@ -19,7 +22,7 @@ export function copyLocation(value) {
   };
 }
 export function saveLocation(value, storage = globalThis.localStorage, now = Date.now()) {
-  if (!validLocation(value)) throw new Error('INVALID_LOCATION');
+  if (!validCoordinates(value) || !validLocation(value)) throw new Error('INVALID_LOCATION');
   // Keep the resolved address in the existing in-memory profile, not an
   // indefinite Google content cache. Re-resolve it when restoring a selection.
   const { address: _address, ...saved } = copyLocation(value);

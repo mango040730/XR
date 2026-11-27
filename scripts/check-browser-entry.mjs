@@ -227,6 +227,7 @@ try {
   assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'nickname');
   await fill({ nickname: '우리 동네' }); await submit();
   await until('document.querySelector(".entry-map")?.dataset.status === "ready"', '좌표와 주소 준비');
+  const mapProvider=await evaluate('document.querySelector(".entry-map").dataset.provider??"google"');
   await capture('location');
   await click('reset-location');
   const mapBounds=await evaluate('document.querySelector(".entry-map").getBoundingClientRect().toJSON()');
@@ -312,5 +313,5 @@ try {
       await send('Fetch.disable'); avatarModuleOverride=null; dynamicCounts.push(count);
     }
   }
-  console.log(JSON.stringify({ url, maps:useMapsFixture?'test SDK / Chrome Geolocation override':'live Google Maps', figmaCard: geometry, firstAvatar, avatarAssets: avatarSlots, navigation: 'bounded', dynamicCounts, dots: 'passed', delayedSceneGate: 'passed', retry: 'passed', expectedLoadFailures, errors }, null, 2));
+  console.log(JSON.stringify({ url, maps:mapProvider==='demo'?'local demo map':useMapsFixture?'test SDK / Chrome Geolocation override':'live Google Maps', figmaCard: geometry, firstAvatar, avatarAssets: avatarSlots, navigation: 'bounded', dynamicCounts, dots: 'passed', delayedSceneGate: 'passed', retry: 'passed', expectedLoadFailures, errors }, null, 2));
 } finally { const cleanupFixture=useMapsFixture; useMapsFixture=false; await send('Fetch.disable').catch(() => {}); if(cleanupFixture) await send('Browser.resetPermissions').catch(()=>{}); ws.close(); }

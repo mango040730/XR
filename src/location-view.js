@@ -2,8 +2,11 @@ import { createLocationController } from './location-controller.js';
 import { readSavedLocation, saveLocation } from './location-data.js';
 import { googleMapProvider, onMapsAuthError } from './google-maps.js';
 import { showFieldError, validateField } from './entry-validation.js';
+import { LOCATION_MODE } from './location-mode.js';
+import { mountDemoLocationView } from './demo-location-view.js';
 
 export function mountLocationView(root, { onConfirm }) {
+  if(LOCATION_MODE==='demo')return mountDemoLocationView(root,{onConfirm});
   const host = root.querySelector('.entry-google-map'), panel = root.querySelector('.entry-map');
   const submit = root.querySelector('[type=submit]'), reset = root.querySelector('[data-action=reset-location]');
   const message = root.querySelector('.entry-map-message'), status = root.querySelector('.entry-map-state');

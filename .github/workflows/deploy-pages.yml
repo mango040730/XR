@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_BASE_PATH: /XR/
+      VITE_LOCATION_MODE: ${{ vars.VITE_LOCATION_MODE || 'demo' }}
       VITE_GOOGLE_MAPS_API_KEY: ${{ vars.VITE_GOOGLE_MAPS_API_KEY || secrets.VITE_GOOGLE_MAPS_API_KEY }}
     steps:
       - name: Check out source

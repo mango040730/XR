@@ -47,7 +47,7 @@ try{
   assert.equal(await evaluate('document.querySelector("#space-tutorial-title").textContent'),'캘린더 기능은 준비 중이에요.');await capture('calendar');await click('close');
   assert.equal(await evaluate('Boolean(document.querySelector(".space-tutorial-overlay"))'),false);
   // Enter the real gray access stairs by walking, without teleporting the rig.
-  await evaluate(`window.__crossroadsTiming={};window.__crossroadsObserver=new MutationObserver(()=>{const shown=Boolean(document.querySelector('[data-tutorial-step="crossroads"]'));if(shown&&!window.__crossroadsTiming.opened)window.__crossroadsTiming.opened=performance.now();if(!shown&&window.__crossroadsTiming.opened&&!window.__crossroadsTiming.closed)window.__crossroadsTiming.closed=performance.now();});window.__crossroadsObserver.observe(document.body,{childList:true});`);
+  await evaluate(`window.__crossroadsTiming={};window.__relationshipTiming={};window.__tutorialOverlap=false;window.__crossroadsObserver=new MutationObserver(()=>{for(const [step,timing] of [['crossroads',window.__crossroadsTiming],['relationship',window.__relationshipTiming]]){const shown=Boolean(document.querySelector('[data-tutorial-step="'+step+'"]'));if(shown&&!timing.opened)timing.opened=performance.now();if(!shown&&timing.opened&&!timing.closed)timing.closed=performance.now();}if(document.querySelectorAll('.space-tutorial-overlay').length>1)window.__tutorialOverlap=true;});window.__crossroadsObserver.observe(document.body,{childList:true});`);
   await send('Input.dispatchKeyEvent',{type:'keyDown',code:'KeyW',key:'w'});
   await until('Boolean(document.querySelector("[data-tutorial-step=crossroads]"))','실제 회색 계단 진입');
   await send('Input.dispatchKeyEvent',{type:'keyUp',code:'KeyW',key:'w'});
@@ -61,10 +61,28 @@ try{
   assert.ok((await evaluate('window.spaceVR.position'))[2]<crossroads.position[2]-.2,'팝업 표시 중에도 이동');
   await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await pause(100);await capture('mobile-crossroads');
   assert.ok(await evaluate(`(()=>{const b=document.querySelector('.crossroads-tutorial-card').getBoundingClientRect();return b.left>=0&&b.right<=innerWidth&&b.top>=0&&b.bottom<=innerHeight})()`));
+  await send('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});
+  await send('Input.dispatchKeyEvent',{type:'keyDown',code:'ShiftLeft',key:'Shift'});
+  await send('Input.dispatchKeyEvent',{type:'keyDown',code:'KeyW',key:'w'});
+  await until('Math.hypot(window.spaceVR.position[0],window.spaceVR.position[2])<12.35','실제 중앙 공간 진입');
+  await send('Input.dispatchKeyEvent',{type:'keyUp',code:'KeyW',key:'w'});await send('Input.dispatchKeyEvent',{type:'keyUp',code:'ShiftLeft',key:'Shift'});
   await until('!document.querySelector("[data-tutorial-step=crossroads]")','교차로 5초 자동 닫힘');
   const duration=await evaluate('window.__crossroadsTiming.closed-window.__crossroadsTiming.opened');assert.ok(duration>=4990&&duration<5500,`읽기 시간 5초: ${duration}`);
   assert.equal(await evaluate('document.pointerLockElement'),null);assert.equal(await evaluate('document.activeElement===document.querySelector("canvas")'),true);
-  await key('KeyR','r',30);await key('KeyW','w',3800);assert.equal(await evaluate('Boolean(document.querySelector(".space-tutorial-overlay"))'),false,'교차로도 같은 접속에서 반복 없음');
+  await until('Boolean(document.querySelector("[data-tutorial-step=relationship]"))','관계의 방 안내');
+  const relationship=await evaluate(`(()=>{const root=document.querySelector('[data-tutorial-step="relationship"]'),c=root.querySelector('.entry-card'),b=c.getBoundingClientRect(),s=getComputedStyle(c),h=getComputedStyle(c.querySelector('h1')),p=getComputedStyle(c.querySelector('p'));return{box:[b.width,b.height],padding:[s.paddingTop,s.paddingRight],gap:getComputedStyle(c.querySelector('.space-tutorial-copy')).gap,title:c.querySelector('h1').textContent,body:c.querySelector('p').textContent,typography:[h.fontSize,h.lineHeight,h.fontWeight,p.fontSize,p.lineHeight,p.fontWeight],background:s.backgroundColor,blur:s.backdropFilter,role:root.getAttribute('role'),pointerEvents:getComputedStyle(root).pointerEvents,inert:document.querySelector('canvas').inert,focus:document.activeElement===document.querySelector('canvas'),position:window.spaceVR.position};})()`);
+  assert.deepEqual(relationship.box,[594,158]);assert.deepEqual(relationship.padding,['40px','48px']);assert.equal(relationship.gap,'12px');
+  assert.equal(relationship.title,'이곳은 관계의 방입니다!');assert.equal(relationship.body,'원하는 콘텐츠, 원하는 사람들과 모임을 가져보세요.');
+  assert.deepEqual(relationship.typography,['28px','36px','600','22px','30px','600']);assert.equal(relationship.background,'rgba(23, 24, 26, 0.6)');assert.equal(relationship.blur,'blur(25px)');
+  assert.equal(relationship.role,'status');assert.equal(relationship.pointerEvents,'none');assert.equal(relationship.inert,false);assert.equal(relationship.focus,true);
+  assert.ok(relationship.position[1]<1.65&&Math.hypot(relationship.position[0],relationship.position[2])<12.5);
+  assert.equal(await evaluate('window.__tutorialOverlap'),false,'교차로/관계의 방 안내는 겹치지 않음');
+  await capture('relationship');await key('KeyW','w',200);assert.ok((await evaluate('window.spaceVR.position'))[2]<relationship.position[2]-.1,'관계의 방 안내 중 이동 유지');
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await capture('mobile-relationship');
+  assert.ok(await evaluate(`(()=>{const b=document.querySelector('.relationship-tutorial-card').getBoundingClientRect();return b.left>=0&&b.right<=innerWidth&&b.top>=0&&b.bottom<=innerHeight})()`));
+  await until('!document.querySelector("[data-tutorial-step=relationship]")','관계의 방 5초 자동 닫힘');
+  const relationshipDuration=await evaluate('window.__relationshipTiming.closed-window.__relationshipTiming.opened');assert.ok(relationshipDuration>=4990&&relationshipDuration<5500,`관계의 방 읽기 시간 5초: ${relationshipDuration}`);
+  await key('KeyR','r',30);await key('KeyW','w',6000);assert.ok((await evaluate('window.spaceVR.position'))[2]<12.5);assert.equal(await evaluate('Boolean(document.querySelector(".space-tutorial-overlay"))'),false,'교차로/관계의 방 모두 같은 접속에서 반복 없음');
   await evaluate('window.__crossroadsObserver.disconnect()');assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({url,trigger:'real blue-rail and gray stair entry',plaza,gathering,mobile:'passed',sequence:'passed',pauseAndResume:'passed',oncePerSession:'passed',calendarNotice:'passed',crossroads:{...crossroads,duration,movement:'passed',mobile:'passed',repeat:'none'},errors},null,2));
+  console.log(JSON.stringify({url,trigger:'real blue-rail, gray stair and central room entry',plaza,gathering,mobile:'passed',sequence:'passed',pauseAndResume:'passed',oncePerSession:'passed',calendarNotice:'passed',crossroads:{...crossroads,duration,movement:'passed',mobile:'passed',repeat:'none'},relationship:{...relationship,duration:relationshipDuration,movement:'passed',mobile:'passed',overlap:false,repeat:'none'},errors},null,2));
 }finally{ws.close();}

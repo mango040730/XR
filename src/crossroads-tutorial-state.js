@@ -1,3 +1,5 @@
+import {createTimedRegionTutorialState} from './timed-region-tutorial-state.js';
+
 export const CROSSROADS_DURATION_MS = 5000;
 
 export function isOnGrayTerrace({x,y,z},layout) {
@@ -10,23 +12,5 @@ export function isOnGrayTerrace({x,y,z},layout) {
 }
 
 export function createCrossroadsTutorialState(layout) {
-  let phase='waiting',anchor=null,remaining=CROSSROADS_DURATION_MS,lastTime=null;
-  return {
-    get phase(){return phase;},
-    get active(){return phase==='showing';},
-    observe(position) {
-      if(phase!=='waiting'||![position.x,position.y,position.z].every(Number.isFinite))return false;
-      if(!isOnGrayTerrace(position,layout)){anchor??={x:position.x,z:position.z};return false;}
-      if(!anchor||Math.hypot(position.x-anchor.x,position.z-anchor.z)<.05)return false;
-      phase='showing';return true;
-    },
-    tick(now,visible=true) {
-      if(phase!=='showing'||!Number.isFinite(now))return false;
-      if(lastTime!==null)remaining-=Math.max(0,now-lastTime);
-      lastTime=visible?now:null;
-      if(remaining>0)return false;
-      phase='done';lastTime=null;return true;
-    },
-    dispose(){phase='done';lastTime=null;},
-  };
+  return createTimedRegionTutorialState(position=>isOnGrayTerrace(position,layout),{durationMs:CROSSROADS_DURATION_MS});
 }

@@ -1,25 +1,29 @@
 import './space-tutorial.css';
 import {createPlazaTutorialState} from './plaza-tutorial-state.js';
 import {createCrossroadsTutorialState} from './crossroads-tutorial-state.js';
+import {createRelationshipTutorialState} from './relationship-tutorial-state.js';
 
 export function createSpaceTutorial({layout,onModalChange}) {
   const state=createPlazaTutorialState(layout);
-  const crossroads=createCrossroadsTutorialState(layout);
-  let root=null,crossroadsRoot=null,disposed=false;
-  function updateCrossroadsTime(){
-    if(crossroads.tick(performance.now(),!document.hidden)){
-      crossroadsRoot?.remove();crossroadsRoot=null;
+  const notices=[
+    {id:'crossroads',state:createCrossroadsTutorialState(layout),title:'이곳은 교차로입니다!',body:'각자 편안한 시간을 보내다가 합석할 수 있는 곳이에요.'},
+    {id:'relationship',state:createRelationshipTutorialState(layout),title:'이곳은 관계의 방입니다!',body:'원하는 콘텐츠, 원하는 사람들과 모임을 가져보세요.'},
+  ];
+  let root=null,timedRoot=null,currentNotice=null,disposed=false;
+  function updateNoticeTime(){
+    if(currentNotice?.state.tick(performance.now(),!document.hidden)){
+      timedRoot?.remove();timedRoot=null;currentNotice=null;
     }
   }
-  document.addEventListener('visibilitychange',updateCrossroadsTime);
-  function showCrossroads(){
-    crossroadsRoot=document.createElement('section');
-    crossroadsRoot.className='entry-overlay space-tutorial-overlay crossroads-tutorial-overlay';
-    crossroadsRoot.dataset.tutorialStep='crossroads';
-    crossroadsRoot.setAttribute('role','status');crossroadsRoot.setAttribute('aria-live','polite');
-    crossroadsRoot.setAttribute('aria-atomic','true');
-    crossroadsRoot.innerHTML='<div class="entry-card space-tutorial-card crossroads-tutorial-card"><div class="space-tutorial-copy"><h1>이곳은 교차로입니다!</h1><p class="space-tutorial-body">각자 편안한 시간을 보내다가 합석할 수 있는 곳이에요.</p></div></div>';
-    document.body.append(crossroadsRoot);updateCrossroadsTime();
+  document.addEventListener('visibilitychange',updateNoticeTime);
+  function showNotice(notice){
+    currentNotice=notice;timedRoot=document.createElement('section');
+    timedRoot.className=`entry-overlay space-tutorial-overlay timed-tutorial-overlay ${notice.id}-tutorial-overlay`;
+    timedRoot.dataset.tutorialStep=notice.id;
+    timedRoot.setAttribute('role','status');timedRoot.setAttribute('aria-live','polite');
+    timedRoot.setAttribute('aria-atomic','true');
+    timedRoot.innerHTML=`<div class="entry-card space-tutorial-card timed-tutorial-card ${notice.id}-tutorial-card"><div class="space-tutorial-copy"><h1>${notice.title}</h1><p class="space-tutorial-body">${notice.body}</p></div></div>`;
+    document.body.append(timedRoot);updateNoticeTime();
   }
   const button=(label,action,secondary=false)=>`<button class="entry-button${secondary?' secondary':''}" type="button" data-tutorial-action="${action}">${label}</button>`;
   function render(){
@@ -62,15 +66,20 @@ export function createSpaceTutorial({layout,onModalChange}) {
     get active(){return state.active;},
     observe(position){
       if(disposed)return;
-      updateCrossroadsTime();
-      if(crossroads.active)return;
+      updateNoticeTime();
+      // Observe every region even while a prior notice is reading so a quick
+      // crossing is queued, with its own full reading time and no overlap.
+      for(const notice of notices)notice.state.observe(position);
+      if(currentNotice||state.active)return;
+      const pending=notices.find(notice=>notice.state.active);
+      if(pending){showNotice(pending);return;}
       if(state.observe(position)){onModalChange(true);render();}
-      if(!state.active&&crossroads.observe(position))showCrossroads();
     },
     dispose(){
       if(disposed)return;disposed=true;if(state.active)close();root?.remove();root=null;
-      crossroads.dispose();crossroadsRoot?.remove();crossroadsRoot=null;
-      document.removeEventListener('visibilitychange',updateCrossroadsTime);
+      for(const notice of notices)notice.state.dispose();
+      timedRoot?.remove();timedRoot=null;currentNotice=null;
+      document.removeEventListener('visibilitychange',updateNoticeTime);
     },
   };
 }

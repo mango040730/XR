@@ -8,7 +8,7 @@ import { demoLocationMarkup } from './demo-location-view.js';
 
 const root = document.getElementById('entry-root');
 const asset = file => `${import.meta.env.BASE_URL}ui/entry/${file}`;
-const titles = { login: '로그인', identity: '본인 인증', avatar: '아바타 설정', nickname: '아바타 설정', location: '동네가 설정되었어요!' };
+const titles = { login: '로그인', identity: '본인 인증', avatar: '아바타 설정', nickname: '아바타 설정', location: '동네가 설정되었어요!', connecting: '접속중' };
 let locationView, loadingError = false;
 let avatarRevision = 0, avatarAnimations = [];
 let navigationRevision = 0;
@@ -70,7 +70,10 @@ function render({ keepFocus = false } = {}) {
   locationView?.dispose(); locationView = null;
   const focused = keepFocus ? document.activeElement?.dataset.action : null;
   root.dataset.entryStep = state.step;
-  root.innerHTML = `<div class="entry-backdrop" aria-hidden="true"></div><form class="entry-card" data-step="${state.step}" aria-labelledby="entry-title" novalidate><h1 id="entry-title" tabindex="-1">${titles[state.step]}</h1>${content()}<p class="entry-feedback" role="status" aria-live="polite"></p></form>`;
+  const backdrop = '<div class="entry-backdrop" aria-hidden="true"></div>';
+  root.innerHTML = state.step === 'connecting'
+    ? `${backdrop}<section class="entry-card entry-notice" data-step="connecting" role="${loadingError ? 'alert' : 'status'}" aria-live="${loadingError ? 'assertive' : 'polite'}" aria-busy="${!loadingError}" aria-labelledby="entry-title"><h1 id="entry-title" tabindex="-1">${loadingError ? '접속하지 못했어요' : titles.connecting}</h1>${loadingError ? `<div class="entry-actions">${button('다시 시도', 'retry-space')}</div>` : ''}</section>`
+    : `${backdrop}<form class="entry-card" data-step="${state.step}" aria-labelledby="entry-title" novalidate><h1 id="entry-title" tabindex="-1">${titles[state.step]}</h1>${content()}<p class="entry-feedback" role="status" aria-live="polite"></p></form>`;
   if (state.step === 'avatar') {
     mountPreparedAvatar(root.querySelector('.entry-avatar'), AVATARS[state.avatar].file);
     updateAvatarNavigation();
@@ -80,14 +83,13 @@ function render({ keepFocus = false } = {}) {
     if (!state.setLocation(selected)) return;
     if (state.complete()) reveal();
     else {
-      root.querySelector('[type="submit"]').disabled = true;
-      root.querySelector('[type="submit"]').textContent = '공간을 준비하고 있어요…';
+      state.step = 'connecting'; render();
       prepareScene();
     }
   } });
   if (focused) root.querySelector(`[data-action="${focused}"]`)?.focus({ preventScroll: true });
   else if (state.step !== 'login') root.querySelector('h1').focus({ preventScroll: true });
-  if (loadingError) showLoadingError();
+  if (loadingError && state.step !== 'connecting') showLoadingError();
 }
 async function go(step) {
   const navigation = ++navigationRevision;
@@ -150,6 +152,7 @@ function reveal() {
 }
 function showLoadingError() {
   root.removeAttribute('aria-busy');
+  if (state.step === 'connecting') { render(); return; }
   root.querySelector('.entry-feedback').textContent = '공간을 불러오지 못했어요. 다시 시도해 주세요.';
   if (state.step === 'location') {
     const submit = root.querySelector('[type="submit"]'); submit.disabled = false; submit.textContent = '다시 시도';
@@ -185,6 +188,7 @@ root.addEventListener('focusout', event => {
 root.addEventListener('click', event => {
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'signup') go('identity');
+  else if (action === 'retry-space') location.reload();
   else if (action === 'pass-preview') go('avatar');
   else if (action === 'previous-avatar' || action === 'next-avatar') { void changeAvatar(action === 'next-avatar' ? 1 : -1); }
   else if (action === 'select-avatar') { void changeAvatar(Number(event.target.closest('[data-index]').dataset.index) - state.avatar); }

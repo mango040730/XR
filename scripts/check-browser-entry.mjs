@@ -262,7 +262,9 @@ try {
   const waitingPosition = await evaluate('window.spaceVR.position');
   await key('KeyW', 'w', 200);
   assert.deepEqual(await evaluate('window.spaceVR.position'), waitingPosition, '준비 중 이동 차단');
-  assert.equal(await evaluate('document.querySelector(".entry-card [type=submit]").disabled'), true);
+  assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'connecting');
+  assert.equal(await evaluate('document.querySelector(".entry-card h1").textContent'), '접속중');
+  assert.equal(await evaluate('document.querySelector(".entry-card button")'), null, '접속 안내에는 좋아요 버튼이 없습니다.');
   await capture('waiting-for-scene');
   await send('Fetch.continueRequest', { requestId: heldRequest }); await send('Fetch.disable');
   await until('window.spaceVR?.ready && window.spaceVR.entered && !document.getElementById("entry-root")', '느린 모델 준비 후 입장');
@@ -281,12 +283,12 @@ try {
   while (!heldRequest) { assert.ok(Date.now() < failureEnd); await pause(100); }
   await send('Fetch.failRequest', { requestId: heldRequest, errorReason: 'Failed' }); await send('Fetch.disable');
   await until('document.documentElement.dataset.scene === "error"', '모델 실패 처리');
-  assert.equal(await evaluate('document.querySelector(".entry-card [type=submit]").textContent'), '다시 시도');
+  assert.equal(await evaluate('document.querySelector("[data-action=retry-space]").textContent'), '다시 시도');
   assert.equal(await evaluate('window.spaceVR.entered'), false);
   await capture('load-error');
   assert.ok(errors.length > 0 && errors.every(e => e.includes('공간 모델을 불러오지 못했습니다.')));
   const expectedLoadFailures = errors.length; errors.length = 0;
-  await submit(); await until('document.querySelector(".entry-card")?.dataset.step === "login"', '재시도 후 로그인');
+  await click('retry-space'); await until('document.querySelector(".entry-card")?.dataset.step === "login"', '재시도 후 로그인');
   assert.equal(await evaluate('Boolean(window.spaceVR)'), false);
   assert.equal(errors.length, 0, errors.join('\n'));
   // Change only the catalog response in the local browser: verify real UI at

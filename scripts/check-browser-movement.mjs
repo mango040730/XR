@@ -47,6 +47,7 @@ async function key(code, key, ms = 700) {
 try {
   await send('Runtime.enable');
   await send('Page.enable');
+  await send('Page.addScriptToEvaluateOnNewDocument', { source: `window.__pointerLockRequests=0;const original=Element.prototype.requestPointerLock;if(original)Element.prototype.requestPointerLock=function(...args){window.__pointerLockRequests++;return original.apply(this,args)};` });
   await send('Page.navigate', { url });
   const deadline = Date.now() + 120000;
   while (!(await evaluate('Boolean(document.querySelector(".entry-card"))'))) {
@@ -57,7 +58,9 @@ try {
   while (!(await evaluate('Boolean(window.spaceVR?.entered) && !document.getElementById("entry-root")'))) {
     assert.ok(Date.now() < deadline, '접속 UI 완료 후 공간 진입 시간 초과'); await pause(100);
   }
-  await send('Page.bringToFront');
+  assert.equal(await evaluate('document.activeElement === document.querySelector("canvas")'), true, '입장 직후 클릭 없이 캔버스 포커스');
+  assert.equal(await evaluate('document.pointerLockElement'), null);
+  assert.equal(await evaluate('window.__pointerLockRequests'), 0);
   let woodTexture;
   const textureDeadline = Date.now() + 15000;
   while (!woodTexture) {
@@ -90,6 +93,30 @@ try {
   const left = await evaluate('window.spaceVR.position');
   assert.ok(left[0] < -0.2, `방향키 이동 실패: ${left}`);
   await key('KeyR', 'r', 30);
+  const bounds = await evaluate('document.querySelector("canvas").getBoundingClientRect().toJSON()');
+  const cx=bounds.x+bounds.width/2, cy=bounds.y+bounds.height/2;
+  const orientation=()=>evaluate('window.__spaceQA ? [window.__spaceQA.camera.rotation.x,window.__spaceQA.camera.rotation.y] : null');
+  const beforeMouse=await orientation();
+  await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:cx,y:cy});
+  if(beforeMouse)assert.deepEqual(await orientation(),beforeMouse,'커서를 움직이기만 하면 시점 유지');
+  await send('Input.dispatchMouseEvent',{type:'mousePressed',x:cx,y:cy,button:'left',clickCount:1});
+  await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:cx,y:cy,button:'left',clickCount:1});
+  assert.equal(await evaluate('document.pointerLockElement'),null,'클릭 후에도 커서 잠금 없음');
+  assert.equal(await evaluate('window.__pointerLockRequests'),0,'클릭으로 잠금을 요청하지 않음');
+  await send('Input.dispatchMouseEvent',{type:'mousePressed',x:cx,y:cy,button:'left',clickCount:1});
+  await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:cx+100,y:cy+40,button:'left',buttons:1});
+  await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:cx+100,y:cy+40,button:'left',clickCount:1});
+  const afterDrag=await orientation();
+  if(beforeMouse)assert.ok(Math.abs(afterDrag[1]-beforeMouse[1])>.1,'드래그로 시점 회전');
+  await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:cx+160,y:cy+80});
+  if(afterDrag)assert.deepEqual(await orientation(),afterDrag,'드래그 종료 후 자유 커서');
+  await send('Input.dispatchMouseEvent',{type:'mousePressed',x:cx+160,y:cy+80,button:'left',clickCount:1});
+  await evaluate('window.dispatchEvent(new Event("blur"))');
+  await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:cx+200,y:cy+100,button:'left',buttons:1});
+  if(afterDrag)assert.deepEqual(await orientation(),afterDrag,'포커스를 잃으면 진행 중인 드래그 정리');
+  await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:cx+200,y:cy+100,button:'left',clickCount:1});
+  assert.notEqual(await evaluate('getComputedStyle(document.querySelector("canvas")).cursor'),'none');
+  await key('KeyR','r',30);
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await pause(400);
   const mobile = await evaluate('({width:innerWidth,height:innerHeight,canvasWidth:document.querySelector("canvas").clientWidth,canvasHeight:document.querySelector("canvas").clientHeight})');
@@ -115,7 +142,9 @@ try {
     requestAnimationFrame(sample);
   })`);
   assert.deepEqual(errors, [], '브라우저 실행 오류가 없어야 합니다.');
-  console.log(JSON.stringify({ url, ready: true, woodTexture, start, forward, backward, left, touch, mobile, frames, errors }, null, 2));
+  assert.equal(await evaluate('document.pointerLockElement'),null);
+  assert.equal(await evaluate('window.__pointerLockRequests'),0);
+  console.log(JSON.stringify({ url, ready: true, clickToMoveRequired: false, pointerLockRequests: 0, freeCursor: true, mouseDrag: beforeMouse?'passed':'checked locally', woodTexture, start, forward, backward, left, touch, mobile, frames, errors }, null, 2));
   const screenshot = await send('Page.captureScreenshot', { format: 'png' });
   await writeFile('/private/tmp/gonggan-movement-browser.png', Buffer.from(screenshot.data, 'base64'));
 } finally { ws.close(); }

@@ -191,14 +191,13 @@ async function enterVR() {
       optionalFeatures: ['bounded-floor'],
     });
     document.exitPointerLock?.();
-    keys.clear();
-    touches.clear();
+    clearInput();
     camera.position.set(0, 0, 0);
     camera.rotation.set(0, 0, 0);
     session.addEventListener('end', () => {
       camera.position.set(0, 1.65, 0);
       camera.rotation.set(0, 0, 0);
-      keys.clear();
+      clearInput();
       snapReady = true;
     }, { once: true });
     await renderer.xr.setSession(session);
@@ -239,36 +238,40 @@ controllers.forEach(controller => {
   });
 });
 
+let mouseDrag = null;
 function look(dx, dy) {
   if (!entrySession.entered || renderer.xr.isPresenting) return;
   camera.rotation.y -= dx * 0.0022;
   camera.rotation.x = THREE.MathUtils.clamp(camera.rotation.x - dy * 0.0022, -1.45, 1.45);
 }
-document.addEventListener('mousemove', event => {
-  if (document.pointerLockElement === renderer.domElement) look(event.movementX, event.movementY);
-});
-renderer.domElement.addEventListener('click', () => {
-  if (!entrySession.entered || !ready) return;
-  if (xrSupported) { void enterVR(); return; }
-  if (matchMedia('(pointer: fine)').matches && !document.pointerLockElement) {
-    const result = renderer.domElement.requestPointerLock?.();
-    result?.catch?.(error => console.info('Pointer lock:', error.message));
-  }
-});
 renderer.domElement.addEventListener('pointerdown', event => {
-  if (!entrySession.entered) return;
-  if (event.pointerType === 'mouse') return;
+  if (!entrySession.entered || !ready || renderer.xr.isPresenting) return;
+  if (event.pointerType === 'mouse') {
+    if (event.button !== 0) return;
+    mouseDrag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    renderer.domElement.setPointerCapture(event.pointerId);
+    return;
+  }
   touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
   renderer.domElement.setPointerCapture(event.pointerId);
 });
 renderer.domElement.addEventListener('pointermove', event => {
+  if (event.pointerType === 'mouse') {
+    if (!mouseDrag || mouseDrag.id !== event.pointerId) return;
+    look(event.clientX - mouseDrag.x, event.clientY - mouseDrag.y);
+    mouseDrag.x = event.clientX; mouseDrag.y = event.clientY;
+    return;
+  }
   const previous = touches.get(event.pointerId);
   if (!previous) return;
   if (touches.size === 1) look(event.clientX - previous.x, event.clientY - previous.y);
   touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
 });
 for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) {
-  renderer.domElement.addEventListener(event, e => touches.delete(e.pointerId));
+  renderer.domElement.addEventListener(event, e => {
+    touches.delete(e.pointerId);
+    if (mouseDrag?.id === e.pointerId) mouseDrag = null;
+  });
 }
 document.addEventListener('keydown', event => {
   if (!entrySession.entered) return;
@@ -278,12 +281,18 @@ document.addEventListener('keydown', event => {
   if (event.code === 'KeyR' && !renderer.xr.isPresenting) resetPosition();
 });
 document.addEventListener('keyup', event => keys.delete(event.code));
-function clearInput() { keys.clear(); touches.clear(); }
+function clearInput() {
+  keys.clear(); touches.clear();
+  if (mouseDrag && renderer.domElement.hasPointerCapture(mouseDrag.id)) renderer.domElement.releasePointerCapture(mouseDrag.id);
+  mouseDrag = null;
+}
 window.addEventListener('blur', clearInput);
 document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
 document.addEventListener('pointerlockchange', clearInput);
 window.addEventListener('space-enter', () => {
-  clearInput(); resetPosition(); renderer.domElement.inert = false; renderer.domElement.focus({ preventScroll: true });
+  clearInput(); resetPosition(); renderer.domElement.inert = false;
+  if (document.pointerLockElement) document.exitPointerLock?.();
+  renderer.domElement.focus({ preventScroll: true });
 });
 window.addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;

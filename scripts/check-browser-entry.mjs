@@ -56,6 +56,7 @@ async function fill(values) {
 }
 async function click(action) { await evaluate(`(() => { document.querySelector('[data-action="${action}"]').click(); return true; })()`); }
 async function capture(name) {
+  await until('!document.querySelector(".entry-avatar-slot")?.hasAttribute("data-switching")', '캐릭터 전환 완료');
   await evaluate('document.fonts.ready.then(() => true)');
   const images = await evaluate(`Promise.all([...document.querySelectorAll('#entry-root img')].map(async i => {
     await i.decode(); const b = i.getBoundingClientRect();
@@ -79,6 +80,19 @@ try {
   await send('Page.navigate', { url });
   await until("document.querySelector('.entry-card')?.dataset.step === 'login'", '로그인 화면');
   await capture('login');
+  const loginStyles = () => evaluate(`['email','password'].map(name => {
+    const input = document.querySelector('[name="'+name+'"]'), s = getComputedStyle(input);
+    return {background:s.backgroundColor,border:s.borderTopColor};
+  })`);
+  const emptyStyles = await loginStyles();
+  assert.equal(emptyStyles[0].background, 'rgba(0, 0, 0, 0.4)');
+  assert.deepEqual(emptyStyles[0], emptyStyles[1]);
+  await fill({ email: 'preview@example.com', password: 'ui-preview-only' });
+  for (const s of await loginStyles()) {
+    assert.equal(s.background, 'rgba(0, 0, 0, 0)'); assert.equal(s.border, 'rgba(255, 255, 255, 0.2)');
+  }
+  await capture('login-filled');
+  await fill({ email: '', password: '' }); assert.deepEqual(await loginStyles(), emptyStyles);
   assert.ok(await evaluate(`document.fonts.check('500 18px "Wanted Sans"')`));
   const geometry = await evaluate(`(() => { const c = document.querySelector('.entry-card'), r = c.getBoundingClientRect(), h = document.querySelector('h1').getBoundingClientRect();
     return {card: [r.x,r.y,r.width,r.height], title: [h.y-r.y,h.height], font: getComputedStyle(c).fontFamily}; })()`);
@@ -96,16 +110,37 @@ try {
   await capture('identity');
   await fill({ name: '미리보기', birth: '2000.02.31', code: '123456' }); await submit();
   assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'identity');
-  await fill({ birth: '2000.01.01' }); await submit();
+  await fill({ birth: '20000101' });
+  assert.equal(await evaluate('document.querySelector("[name=birth]").value'), '2000.01.01');
+  await evaluate(`(() => { const i = document.querySelector('[name=birth]'); i.focus(); i.setSelectionRange(0,i.value.length); return true; })()`);
+  await send('Input.insertText', { text: '19991231' });
+  assert.equal(await evaluate('document.querySelector("[name=birth]").value'), '1999.12.31');
+  assert.equal(await evaluate('document.querySelector("[name=birth]").selectionStart'), 10);
+  await fill({ birth: '20000101' }); await submit();
   const avatarSlots = [];
   for (let i = 0; i < 4; i++) {
     avatarSlots.push(await capture(`avatar-${i + 1}`));
     assert.equal(await evaluate('document.querySelectorAll(".entry-avatar").length'), 1, '캐릭터는 한 명씩');
     await click('next-avatar');
   }
+  await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '마지막 캐릭터 전환');
   await click('previous-avatar');
+  await until('document.getAnimations().some(a => a.playState === "running")', '캐릭터 애니메이션 시작');
+  const motion = await evaluate(`document.getAnimations().map(a => ({duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k => ({opacity:k.opacity,transform:k.transform}))}))`);
+  assert.equal(motion.length, 2); assert.ok(motion.every(a => a.duration === 280));
+  assert.ok(motion.some(a => a.frames.some(f => f.transform.includes('translateX'))));
+  await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '이전 캐릭터 전환 완료');
   assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'violet');
-  await click('next-avatar'); await submit();
+  await evaluate(`(() => { for (let i=0;i<5;i++) document.querySelector('[data-action="next-avatar"]').click(); return true; })()`);
+  await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '연속 전환 완료');
+  assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'cream');
+  assert.equal(await evaluate('document.querySelectorAll(".entry-avatar").length'), 1);
+  await send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+  await click('next-avatar'); await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '동작 줄이기 전환');
+  assert.equal(await evaluate('document.getAnimations().length'), 0);
+  await click('previous-avatar'); await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '원래 캐릭터');
+  await send('Emulation.setEmulatedMedia', {features:[]});
+  await submit();
   await capture('nickname');
   await fill({ nickname: '   ' }); await submit();
   assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'nickname');

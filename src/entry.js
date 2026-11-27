@@ -1,10 +1,20 @@
 import './entry.css';
 import { AVATARS, entrySession as state } from './entry-state.js';
+import { formatBirthInput } from './entry-input.js';
 
 const root = document.getElementById('entry-root');
 const asset = file => `${import.meta.env.BASE_URL}ui/entry/${file}`;
 const titles = { login: '로그인', identity: '본인 인증', avatar: '아바타 설정', nickname: '아바타 설정', location: '동네가 설정되었어요!' };
 let editingLocation = false, loadingError = false;
+let avatarRevision = 0, avatarAnimations = [];
+const avatarImages = new Map();
+function preloadAvatar(file) {
+  if (!avatarImages.has(file)) {
+    const image = new Image(); image.src = asset(file);
+    avatarImages.set(file, image.decode().catch(() => {}));
+  }
+  return avatarImages.get(file);
+}
 
 function field(name, label, placeholder, attrs = '') {
   return `<label class="entry-field"><span>${label}</span><input name="${name}" placeholder="${placeholder}" ${attrs} required></label>`;
@@ -34,7 +44,41 @@ function render({ keepFocus = false } = {}) {
   else if (state.step !== 'login') root.querySelector('h1').focus({ preventScroll: true });
   if (loadingError) showLoadingError();
 }
-function go(step) { state.step = step; render(); }
+function go(step) {
+  avatarRevision++; avatarAnimations.forEach(animation => animation.cancel()); avatarAnimations = [];
+  state.step = step; render();
+  if (step === 'avatar') AVATARS.forEach(item => { void preloadAvatar(item.file); });
+}
+async function changeAvatar(delta) {
+  const revision = ++avatarRevision;
+  state.selectAvatar(delta);
+  const slot = root.querySelector('.entry-avatar-slot');
+  if (!slot) return;
+  slot.dataset.switching = 'true';
+  const template = document.createElement('template'); template.innerHTML = avatar();
+  const incoming = template.content.firstElementChild;
+  await incoming.querySelector('img').decode().catch(() => {});
+  if (revision !== avatarRevision || state.step !== 'avatar' || !slot.isConnected) return;
+  const outgoing = slot.lastElementChild;
+  const style = getComputedStyle(outgoing), opacity = style.opacity, transform = style.transform;
+  avatarAnimations.forEach(animation => animation.cancel());
+  slot.replaceChildren(outgoing, incoming);
+  outgoing.setAttribute('aria-hidden', 'true');
+  root.querySelector('.entry-carousel .entry-sr').textContent = `${state.avatar + 1} / ${AVATARS.length}`;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    slot.replaceChildren(incoming); delete slot.dataset.switching; return;
+  }
+  const options = { duration: 280, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'both' };
+  avatarAnimations = [
+    outgoing.animate([{ opacity, transform }, { opacity: 0, transform: `translateX(${-delta * 36}px)` }], options),
+    incoming.animate([{ opacity: 0, transform: `translateX(${delta * 36}px)` }, { opacity: 1, transform: 'translateX(0)' }], options),
+  ];
+  await Promise.all(avatarAnimations.map(animation => animation.finished.catch(() => {})));
+  if (revision === avatarRevision && slot.isConnected) {
+    avatarAnimations.forEach(animation => animation.cancel()); avatarAnimations = [];
+    slot.replaceChildren(incoming); delete slot.dataset.switching;
+  }
+}
 function reveal() {
   document.documentElement.dataset.entry = 'entered';
   root.classList.add('is-leaving'); root.inert = true;
@@ -68,12 +112,17 @@ root.addEventListener('submit', event => {
     else { const submit = form.querySelector('[type="submit"]'); submit.disabled = true; submit.textContent = '공간을 준비하고 있어요…'; }
   }
 });
-root.addEventListener('input', event => { if (event.target instanceof HTMLInputElement) event.target.setCustomValidity(''); });
+root.addEventListener('input', event => {
+  if (!(event.target instanceof HTMLInputElement)) return;
+  event.target.setCustomValidity('');
+  if (event.target.name === 'birth' && !event.isComposing) formatBirthInput(event.target);
+});
+root.addEventListener('compositionend', event => { if (event.target.name === 'birth') formatBirthInput(event.target); });
 root.addEventListener('click', event => {
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'signup') go('identity');
   else if (action === 'pass-preview') go('avatar');
-  else if (action === 'previous-avatar' || action === 'next-avatar') { state.selectAvatar(action === 'next-avatar' ? 1 : -1); render({ keepFocus: true }); }
+  else if (action === 'previous-avatar' || action === 'next-avatar') { void changeAvatar(action === 'next-avatar' ? 1 : -1); }
   else if (action === 'reset-location') { editingLocation = true; render(); root.querySelector('.entry-map').focus(); }
   else if (editingLocation && event.target.closest('.entry-map')) {
     const map = root.querySelector('.entry-map'), bounds = map.getBoundingClientRect();
@@ -83,7 +132,7 @@ root.addEventListener('click', event => {
 });
 root.addEventListener('keydown', event => {
   if (state.step === 'avatar' && ['ArrowLeft', 'ArrowRight'].includes(event.key)) {
-    event.preventDefault(); state.selectAvatar(event.key === 'ArrowRight' ? 1 : -1); render({ keepFocus: true });
+    event.preventDefault(); void changeAvatar(event.key === 'ArrowRight' ? 1 : -1);
   } else if (editingLocation && event.target.closest('.entry-map') && event.key.startsWith('Arrow')) {
     event.preventDefault(); state.setLocation(state.location.x + (event.key === 'ArrowRight' ? 0.02 : event.key === 'ArrowLeft' ? -0.02 : 0), state.location.y + (event.key === 'ArrowDown' ? 0.02 : event.key === 'ArrowUp' ? -0.02 : 0));
     render(); root.querySelector('.entry-map').focus();

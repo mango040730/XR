@@ -1,6 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createEntryState, AVATARS } from '../src/entry-state.js';
+import { formatBirthDate } from '../src/entry-input.js';
+
+test('숫자·점·붙여넣은 생년월일을 연월일 포맷으로 정리하고 입력 중인 숫자를 유지한다', () => {
+  for (const [value, expected] of [
+    ['', ''], ['2000', '2000'], ['20000', '2000.0'], ['200001', '2000.01'],
+    ['2000010', '2000.01.0'], ['20000101', '2000.01.01'], ['2000.01.01', '2000.01.01'],
+    ['2000-01-01', '2000.01.01'], ['2000010199', '2000.01.01'],
+  ]) assert.equal(formatBirthDate(value), expected);
+});
 
 test('접속 설정 완료와 공간 준비가 어떤 순서로 도착해도 둘 다 끝나야 한 번만 입장한다', () => {
   for (const order of [['ready', 'complete'], ['complete', 'ready']]) {

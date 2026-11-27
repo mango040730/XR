@@ -85,6 +85,11 @@ try {
   const forward = await evaluate('window.spaceVR.position');
   assert.ok(start[2] - forward[2] > 0.2, `W 전진 실패: ${start} -> ${forward}`);
   assert.ok(forward[2] < ENTRY_RADIUS - 0.1, '입구를 실제로 통과해 블루길 안으로 진입해야 합니다.');
+  if(await evaluate('Boolean(document.querySelector("[data-tutorial-step=plaza]"))')) {
+    await evaluate('document.querySelector("[data-tutorial-action=next]").click()');
+    await evaluate('document.querySelector("[data-tutorial-action=close]").click()');
+    assert.equal(await evaluate('document.activeElement===document.querySelector("canvas")'),true,'튜토리얼 종료 후 추가 클릭 없이 이동');
+  }
   await key('KeyS', 's');
   const backward = await evaluate('window.spaceVR.position');
   assert.ok(backward[2] - forward[2] > 0.2, 'S 후진 실패');

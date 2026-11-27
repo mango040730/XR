@@ -9,8 +9,9 @@ import { prepareGatheringSpace } from './compact-space.js';
 import { GATHERING_LAYOUT, GATHERING_ENTRY } from './gathering-layout.js';
 import { resetToEntrance, withinWalkBoundary } from './entrance.js';
 import { entrySession } from './entry-state.js';
+import { createSpaceTutorial } from './space-tutorial.js';
 
-// Entry UI is separate from the scene; after entry the canvas has no HUD.
+// Entry and first-visit tutorial UI stay separate from the 3D scene.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#d8d3c9');
@@ -183,7 +184,7 @@ if (navigator.xr) navigator.xr.isSessionSupported('immersive-vr')
   .catch(error => console.info('WebXR:', error.message));
 
 async function enterVR() {
-  if (!entrySession.entered || !ready || !xrSupported || xrStarting || renderer.xr.isPresenting) return;
+  if (!entrySession.entered || !ready || tutorial.active || !xrSupported || xrStarting || renderer.xr.isPresenting) return;
   xrStarting = true;
   try {
     const session = await navigator.xr.requestSession('immersive-vr', {
@@ -240,12 +241,12 @@ controllers.forEach(controller => {
 
 let mouseDrag = null;
 function look(dx, dy) {
-  if (!entrySession.entered || renderer.xr.isPresenting) return;
+  if (!entrySession.entered || tutorial.active || renderer.xr.isPresenting) return;
   camera.rotation.y -= dx * 0.0022;
   camera.rotation.x = THREE.MathUtils.clamp(camera.rotation.x - dy * 0.0022, -1.45, 1.45);
 }
 renderer.domElement.addEventListener('pointerdown', event => {
-  if (!entrySession.entered || !ready || renderer.xr.isPresenting) return;
+  if (!entrySession.entered || !ready || tutorial.active || renderer.xr.isPresenting) return;
   if (event.pointerType === 'mouse') {
     if (event.button !== 0) return;
     mouseDrag = { id: event.pointerId, x: event.clientX, y: event.clientY };
@@ -274,7 +275,7 @@ for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) {
   });
 }
 document.addEventListener('keydown', event => {
-  if (!entrySession.entered) return;
+  if (!entrySession.entered || tutorial.active) return;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
   keys.add(event.code);
   if (event.code === 'KeyV' && !event.repeat) void enterVR();
@@ -282,10 +283,20 @@ document.addEventListener('keydown', event => {
 });
 document.addEventListener('keyup', event => keys.delete(event.code));
 function clearInput() {
-  keys.clear(); touches.clear();
+  keys.clear();
+  for (const id of touches.keys()) if (renderer.domElement.hasPointerCapture(id)) renderer.domElement.releasePointerCapture(id);
+  touches.clear();
   if (mouseDrag && renderer.domElement.hasPointerCapture(mouseDrag.id)) renderer.domElement.releasePointerCapture(mouseDrag.id);
   mouseDrag = null;
 }
+const tutorial = createSpaceTutorial({
+  layout: GATHERING_LAYOUT,
+  onModalChange(active) {
+    clearInput(); renderer.domElement.inert = active;
+    if (!active && entrySession.entered) renderer.domElement.focus({ preventScroll: true });
+  },
+});
+window.addEventListener('pagehide', event => { clearInput(); if (!event.persisted) tutorial.dispose(); });
 window.addEventListener('blur', clearInput);
 document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
 document.addEventListener('pointerlockchange', clearInput);
@@ -339,13 +350,19 @@ window.spaceVR = Object.freeze({
 renderer.setAnimationLoop(time => {
   const delta = Math.min((time - (lastTime || time)) / 1000, 0.04);
   lastTime = time;
-  if (ready && entrySession.entered) {
+  if (ready && entrySession.entered && !tutorial.active) {
     if (renderer.xr.isPresenting) xrInput(delta);
     else {
       const x = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft'));
       const z = Number(keys.has('KeyW') || keys.has('ArrowUp') || touches.size >= 2) - Number(keys.has('KeyS') || keys.has('ArrowDown'));
       moveRelative(x, z, delta, keys.has('ShiftLeft') || keys.has('ShiftRight') ? 4 : 2.5);
     }
+  }
+  // Sample the actual camera world position after movement/collision resolves.
+  // DOM tutorials are deferred while an immersive XR session is presenting.
+  if (ready && entrySession.entered && !renderer.xr.isPresenting) {
+    camera.getWorldPosition(head);
+    tutorial.observe({ x: head.x, y: rig.position.y, z: head.z });
   }
   renderer.info.reset();
   studio.render();

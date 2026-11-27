@@ -143,6 +143,15 @@ try {
     const dots = await evaluate('[...document.querySelectorAll(".entry-dot")].map(d => ({active:d.getAttribute("aria-current"),width:d.firstElementChild.getBoundingClientRect().width}))');
     assert.equal(dots.length, 4);
     dots.forEach((dot, index) => { assert.equal(dot.active, String(index === i)); assert.equal(dot.width, index === i ? 24 : 8); });
+    const spacing = await evaluate(`(() => {
+      const dots = [...document.querySelectorAll('.entry-dot > span')].map(d => d.getBoundingClientRect());
+      const bar = document.querySelector('.entry-pagination').getBoundingClientRect();
+      const image = document.querySelector('.entry-carousel').getBoundingClientRect();
+      const button = document.querySelector('.entry-card [type=submit]').getBoundingClientRect();
+      return {gaps: dots.slice(1).map((d,j) => d.left - dots[j].right), above: bar.top-image.bottom, below: button.top-bar.bottom};
+    })()`);
+    assert.ok(spacing.gaps.every(g => Math.abs(g - 12) < 0.01));
+    assert.ok(Math.abs(spacing.above - 40) < 0.01 && Math.abs(spacing.below - 40) < 0.01);
     await click('next-avatar');
   }
   await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '마지막 캐릭터 전환');

@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createEntryState, AVATARS } from '../src/entry-state.js';
 import { formatBirthDate } from '../src/entry-input.js';
+const selectedLocation = {lat:37.56,lng:126.97,address:'위치 테스트 주소',placeId:'test-place',source:'manual',accuracy:null,confirmedAt:null};
 
 test('숫자·점·붙여넣은 생년월일을 연월일 포맷으로 정리하고 입력 중인 숫자를 유지한다', () => {
   for (const [value, expected] of [
@@ -14,6 +15,7 @@ test('숫자·점·붙여넣은 생년월일을 연월일 포맷으로 정리하
 test('접속 설정 완료와 공간 준비가 어떤 순서로 도착해도 둘 다 끝나야 한 번만 입장한다', () => {
   for (const order of [['ready', 'complete'], ['complete', 'ready']]) {
     const state = createEntryState();
+    state.setLocation(selectedLocation);
     assert.equal(state[order[0]](), false); assert.equal(state.entered, false);
     assert.equal(state[order[1]](), true); assert.equal(state.entered, true);
     assert.equal(state.ready(), false); assert.equal(state.complete(), false);
@@ -27,10 +29,18 @@ test('선택한 캐릭터·닉네임·위치가 접속 프로필에 유지된다
   assert.equal(state.setNickname('   '), false);
   assert.equal(state.setNickname('a'.repeat(21)), false);
   assert.equal(state.setNickname('  우리 동네  '), true);
-  state.setLocation(1.2, -0.5);
-  assert.deepEqual(state.profile, { avatar: 'yellow', nickname: '우리 동네', location: { x: .95, y: .05 } });
-  const copy = state.profile; copy.location.x = 0;
-  assert.equal(state.location.x, .95);
+  assert.equal(state.setLocation({lat:91,lng:0,address:'잘못된 좌표'}),false);
+  assert.equal(state.setLocation(selectedLocation),true);
+  assert.deepEqual(state.profile, { avatar: 'yellow', nickname: '우리 동네', location:selectedLocation });
+  const copy = state.profile; copy.location.lat = 0;
+  assert.equal(state.location.lat, selectedLocation.lat);
+});
+
+test('실제 좌표와 주소가 확보되기 전에는 접속 설정을 완료하지 않는다',()=>{
+  const state=createEntryState();
+  assert.equal(state.location,null); assert.equal(state.complete(),false);
+  assert.equal(state.setLocation({lat:0,lng:0}),false);
+  assert.equal(state.complete(),false);
 });
 
 test('아바타 개수에 따라 양끝 탐색을 제한하고 단일 아바타는 양쪽 이동을 막는다', () => {

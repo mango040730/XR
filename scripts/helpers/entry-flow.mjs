@@ -1,5 +1,5 @@
 // Exercise the actual forms rather than bypassing the entry gate in tests.
-export async function finishEntryPreview(evaluate, { nickname = '공간 확인', avatar = 0 } = {}) {
+export async function finishEntryPreview(evaluate, { nickname = '공간 확인', avatar = 0, confirmLocation = true } = {}) {
   if (!(await evaluate('Boolean(document.getElementById("entry-root"))'))) return;
   await evaluate(`(() => {
     const form = document.querySelector('.entry-card');
@@ -24,6 +24,13 @@ export async function finishEntryPreview(evaluate, { nickname = '공간 확인',
   })()`);
   await evaluate(`(() => {
     const form = document.querySelector('.entry-card'); form.elements.nickname.value = ${JSON.stringify(nickname)};
-    form.requestSubmit(); document.querySelector('.entry-card').requestSubmit(); return true;
+    form.requestSubmit(); return true;
   })()`);
+  if (!confirmLocation) return;
+  const locationDeadline = Date.now()+30000;
+  while (!(await evaluate('document.querySelector(".entry-map")?.dataset.status === "ready"'))) {
+    if (Date.now()>locationDeadline) throw new Error('실제 위치·주소 준비 시간 초과 (Google Maps 키와 위치 권한을 확인하세요)');
+    await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  await evaluate('document.querySelector(".entry-card").requestSubmit()');
 }

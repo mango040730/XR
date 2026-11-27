@@ -1,11 +1,12 @@
 import './entry.css';
 import { AVATARS, entrySession as state } from './entry-state.js';
 import { formatBirthInput } from './entry-input.js';
+import { mountLocationView } from './location-view.js';
 
 const root = document.getElementById('entry-root');
 const asset = file => `${import.meta.env.BASE_URL}ui/entry/${file}`;
 const titles = { login: '로그인', identity: '본인 인증', avatar: '아바타 설정', nickname: '아바타 설정', location: '동네가 설정되었어요!' };
-let editingLocation = false, loadingError = false;
+let locationView, loadingError = false;
 let avatarRevision = 0, avatarAnimations = [];
 let navigationRevision = 0;
 let sceneStarted = false;
@@ -59,10 +60,11 @@ function content() {
     case 'identity': return `<div class="entry-fields">${field('name', '이름', '홍길동', 'autocomplete="off" maxlength="40"')}${field('birth', '생년월일', '2000.01.01', 'inputmode="numeric" pattern="[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}" maxlength="10" autocomplete="off"')}${field('phone', '전화번호', '01012345678', 'type="tel" inputmode="tel" autocomplete="off" maxlength="20"')}${field('code', '인증번호', '숫자 6자리', 'inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off"')}</div><div class="entry-actions">${button('다음')}${button('PASS로 인증하기', 'pass-preview', true)}</div>`;
     case 'avatar': return `<div class="entry-avatar-picker"><div class="entry-carousel" role="group" tabindex="-1" aria-label="캐릭터 선택"><button class="entry-arrow" type="button" data-action="previous-avatar" aria-label="이전 캐릭터"><img src="${asset('caret-left.svg')}" alt="" width="40" height="40"></button><div class="entry-avatar-slot">${avatar()}</div><button class="entry-arrow" type="button" data-action="next-avatar" aria-label="다음 캐릭터"><img src="${asset('caret-right.svg')}" alt="" width="40" height="40"></button><span class="entry-sr" aria-live="polite">${state.avatar + 1} / ${AVATARS.length}</span></div><div class="entry-pagination" role="group" aria-label="아바타 페이지">${AVATARS.map((item, index) => `<button class="entry-dot" type="button" data-action="select-avatar" data-index="${index}" aria-label="${index + 1}번째 아바타 선택" aria-current="${index === state.avatar}"><span></span></button>`).join('')}</div></div><div class="entry-actions">${button('다음')}</div>`;
     case 'nickname': return `<div class="entry-nickname"><div class="entry-summary">${avatar(true)}</div>${field('nickname', '닉네임', '억울한 머쉬룸', 'maxlength="20" autocomplete="off"')}</div><div class="entry-actions">${button('생성')}</div>`;
-    case 'location': return `<div class="entry-map${editingLocation ? ' is-editing' : ''}" tabindex="0" role="group" aria-label="동네 지도${editingLocation ? ', 클릭하거나 방향키로 위치를 선택하세요' : ''}"><img class="entry-map-image" src="${asset('neighborhood-map.png')}" alt="건대입구역 주변 동네 지도" draggable="false"><img class="entry-map-marker" src="${asset('map-marker.svg')}" alt="선택한 위치" width="24" height="24" style="left:${state.location.x * 100}%;top:${state.location.y * 100}%"></div><div class="entry-actions">${button(editingLocation ? '이 위치로 설정' : '좋아요')}${button('위치 재설정', 'reset-location', true)}</div>`;
+    case 'location': return `<div class="entry-map" role="group" aria-label="동네 지도"><div class="entry-google-map"></div><div class="entry-map-shade" aria-hidden="true"></div><img class="entry-map-marker" src="${asset('map-marker.svg')}" alt="선택한 위치" width="24" height="24" hidden><div class="entry-map-tools" hidden><input name="location-search" aria-label="동네 주소 검색" placeholder="동·도로명·주소 검색" autocomplete="off" maxlength="200"><button type="button" data-action="search-location" aria-label="주소 검색">검색</button><button type="button" data-action="current-location" aria-label="현재 위치 다시 찾기">현재 위치</button></div><div class="entry-map-state" role="status" aria-live="polite"><span class="entry-map-message">지도를 불러오고 있어요…</span><button type="button" data-action="retry-location" hidden>다시 시도</button></div><p class="entry-map-address" hidden></p></div><div class="entry-actions">${button('좋아요')}${button('위치 재설정', 'reset-location', true)}</div><p class="entry-map-policies"><a href="${import.meta.env.BASE_URL}location-privacy.html" target="_blank" rel="noopener">위치정보 안내</a> · <a href="${import.meta.env.BASE_URL}terms.html" target="_blank" rel="noopener">이용약관</a></p>`;
   }
 }
 function render({ keepFocus = false } = {}) {
+  locationView?.dispose(); locationView = null;
   const focused = keepFocus ? document.activeElement?.dataset.action : null;
   root.dataset.entryStep = state.step;
   root.innerHTML = `<div class="entry-backdrop" aria-hidden="true"></div><form class="entry-card" data-step="${state.step}" aria-labelledby="entry-title"><h1 id="entry-title" tabindex="-1">${titles[state.step]}</h1>${content()}<p class="entry-feedback" role="status" aria-live="polite"></p></form>`;
@@ -71,6 +73,15 @@ function render({ keepFocus = false } = {}) {
     updateAvatarNavigation();
   }
   if (state.step === 'nickname') root.querySelector('[name="nickname"]').value = state.nickname;
+  if (state.step === 'location') locationView = mountLocationView(root, { onConfirm: selected => {
+    if (!state.setLocation(selected)) return;
+    if (state.complete()) reveal();
+    else {
+      root.querySelector('[type="submit"]').disabled = true;
+      root.querySelector('[type="submit"]').textContent = '공간을 준비하고 있어요…';
+      prepareScene();
+    }
+  } });
   if (focused) root.querySelector(`[data-action="${focused}"]`)?.focus({ preventScroll: true });
   else if (state.step !== 'login') root.querySelector('h1').focus({ preventScroll: true });
   if (loadingError) showLoadingError();
@@ -128,6 +139,7 @@ async function changeAvatar(delta) {
   }
 }
 function reveal() {
+  locationView?.dispose();
   document.documentElement.dataset.entry = 'entered';
   root.classList.add('is-leaving'); root.inert = true;
   window.dispatchEvent(new CustomEvent('space-enter', { detail: state.profile }));
@@ -155,13 +167,8 @@ root.addEventListener('submit', event => {
     if (!state.setNickname(form.elements.nickname.value)) { form.elements.nickname.setCustomValidity('닉네임을 입력해 주세요.'); form.elements.nickname.reportValidity(); return; }
     go('location');
   } else if (state.step === 'location') {
-    if (editingLocation) { editingLocation = false; render(); return; }
     if (loadingError) { location.reload(); return; }
-    if (state.complete()) reveal();
-    else {
-      const submit = form.querySelector('[type="submit"]'); submit.disabled = true; submit.textContent = '공간을 준비하고 있어요…';
-      prepareScene();
-    }
+    void locationView?.confirm();
   }
 });
 root.addEventListener('input', event => {
@@ -176,21 +183,14 @@ root.addEventListener('click', event => {
   else if (action === 'pass-preview') go('avatar');
   else if (action === 'previous-avatar' || action === 'next-avatar') { void changeAvatar(action === 'next-avatar' ? 1 : -1); }
   else if (action === 'select-avatar') { void changeAvatar(Number(event.target.closest('[data-index]').dataset.index) - state.avatar); }
-  else if (action === 'reset-location') { editingLocation = true; render(); root.querySelector('.entry-map').focus(); }
-  else if (editingLocation && event.target.closest('.entry-map')) {
-    const map = root.querySelector('.entry-map'), bounds = map.getBoundingClientRect();
-    state.setLocation((event.clientX - bounds.left) / bounds.width, (event.clientY - bounds.top) / bounds.height);
-    const marker = map.querySelector('.entry-map-marker'); marker.style.left = `${state.location.x * 100}%`; marker.style.top = `${state.location.y * 100}%`;
-  }
 });
 root.addEventListener('keydown', event => {
   if (state.step === 'avatar' && ['ArrowLeft', 'ArrowRight'].includes(event.key)) {
     event.preventDefault(); void changeAvatar(event.key === 'ArrowRight' ? 1 : -1);
-  } else if (editingLocation && event.target.closest('.entry-map') && event.key.startsWith('Arrow')) {
-    event.preventDefault(); state.setLocation(state.location.x + (event.key === 'ArrowRight' ? 0.02 : event.key === 'ArrowLeft' ? -0.02 : 0), state.location.y + (event.key === 'ArrowDown' ? 0.02 : event.key === 'ArrowUp' ? -0.02 : 0));
-    render(); root.querySelector('.entry-map').focus();
   }
 });
+window.addEventListener('pagehide', () => locationView?.dispose());
+window.addEventListener('pageshow', event => { if (event.persisted && state.step === 'location' && !state.completed) render(); });
 window.addEventListener('space-ready', () => { if (state.ready()) reveal(); });
 window.addEventListener('space-error', () => { loadingError = true; showLoadingError(); });
 window.addEventListener('space-backdrop', event => { root.style.setProperty('--entry-backdrop', `url("${event.detail}")`); });

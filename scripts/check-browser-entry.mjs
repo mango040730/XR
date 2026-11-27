@@ -3,8 +3,10 @@
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { AVATARS } from '../src/entry-state.js';
+import { mapsFixturePattern, mapsFixtureSource } from './helpers/maps-fixture.mjs';
 
 const url = process.argv[2] ?? 'http://127.0.0.1:4173/';
+let useMapsFixture = process.argv.includes('--maps-fixture');
 const targets = await (await fetch('http://127.0.0.1:9223/json/list')).json();
 const target = targets.find(target => target.type === 'page');
 assert.ok(target, 'Chrome 테스트 페이지가 필요합니다.');
@@ -17,7 +19,9 @@ let id = 0;
 ws.onmessage = ({ data }) => {
   const message = JSON.parse(data);
   if (message.method === 'Fetch.requestPaused') {
-    if (avatarModuleOverride && message.params.request.url.includes('/src/entry-state.js')) {
+    if (useMapsFixture && message.params.request.url.startsWith('https://maps.googleapis.com/maps/api/js')) {
+      void send('Fetch.fulfillRequest',{requestId:message.params.requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'text/javascript'}],body:Buffer.from(mapsFixtureSource).toString('base64')});
+    } else if (avatarModuleOverride && message.params.request.url.includes('/src/entry-state.js')) {
       void send('Fetch.fulfillRequest', {requestId:message.params.requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'text/javascript'}],body:Buffer.from(avatarModuleOverride).toString('base64')});
     } else heldRequest = message.params.requestId;
   }
@@ -31,6 +35,8 @@ ws.onmessage = ({ data }) => {
   if (message.error) handlers.reject(new Error(message.error.message)); else handlers.resolve(message.result);
 };
 function send(method, params = {}) {
+  if (useMapsFixture && method === 'Fetch.enable') params = {...params,patterns:[...(params.patterns??[]),mapsFixturePattern]};
+  if (useMapsFixture && method === 'Fetch.disable') { method='Fetch.enable'; params={patterns:[mapsFixturePattern]}; }
   return new Promise((resolve, reject) => {
     const request = ++id;
     pending.set(request, { resolve, reject });
@@ -80,7 +86,7 @@ async function checkAvatarNavigation(index, count = AVATARS.length) {
 async function capture(name) {
   await until('!document.querySelector(".entry-avatar-slot")?.hasAttribute("data-switching")', '캐릭터 전환 완료');
   await evaluate('document.fonts.ready.then(() => true)');
-  const images = await evaluate(`Promise.all([...document.querySelectorAll('#entry-root img')].filter(i=>!i.closest('[hidden]')).map(async i => {
+  const images = await evaluate(`Promise.all([...document.querySelectorAll('#entry-root img')].filter(i=>!i.closest('[hidden],.entry-google-map')).map(async i => {
     await i.decode(); const b = i.getBoundingClientRect();
     return {src: i.currentSrc, natural: [i.naturalWidth, i.naturalHeight], box: [b.width, b.height]};
   }))`);
@@ -98,6 +104,10 @@ async function capture(name) {
 
 try {
   await send('Runtime.enable'); await send('Page.enable');
+  if (useMapsFixture) {
+    await send('Browser.grantPermissions',{origin:new URL(url).origin,permissions:['geolocation']});
+    await send('Emulation.setGeolocationOverride',{latitude:37.56,longitude:126.97,accuracy:12});
+  }
   await send('Network.enable'); await send('Network.clearBrowserCache');
   await send('Fetch.enable', { patterns: [{ urlPattern: '*ui/entry/avatar-default.png*', requestStage: 'Request' }] });
   heldRequest = null;
@@ -216,10 +226,15 @@ try {
   await fill({ nickname: '   ' }); await submit();
   assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'nickname');
   await fill({ nickname: '우리 동네' }); await submit();
+  await until('document.querySelector(".entry-map")?.dataset.status === "ready"', '좌표와 주소 준비');
   await capture('location');
-  await click('reset-location'); await key('ArrowRight', 'ArrowRight', 30); await key('ArrowUp', 'ArrowUp', 30);
-  const marker = await evaluate('({x:document.querySelector(".entry-map-marker").style.left,y:document.querySelector(".entry-map-marker").style.top})');
-  assert.notEqual(marker.x, '50%'); assert.notEqual(marker.y, '50%'); await submit();
+  await click('reset-location');
+  const mapBounds=await evaluate('document.querySelector(".entry-map").getBoundingClientRect().toJSON()');
+  await send('Input.dispatchMouseEvent',{type:'mousePressed',x:mapBounds.x+mapBounds.width/2,y:mapBounds.y+mapBounds.height/2,button:'left',clickCount:1});
+  await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:mapBounds.x+mapBounds.width/2+50,y:mapBounds.y+mapBounds.height/2+25,button:'left',buttons:1});
+  await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:mapBounds.x+mapBounds.width/2+50,y:mapBounds.y+mapBounds.height/2+25,button:'left',clickCount:1});
+  await until('document.querySelector(".entry-map")?.dataset.status === "ready"','드래그 후 주소 준비');
+  assert.ok(await evaluate(`(()=>{const m=document.querySelector('.entry-map').getBoundingClientRect(),p=document.querySelector('.entry-map-marker').getBoundingClientRect();return Math.abs(p.x+p.width/2-m.x-m.width/2)<1&&Math.abs(p.y+p.height/2-m.y-m.height/2)<1})()`),'지도 이동 후 아이콘은 중앙 고정');
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await capture('mobile-location');
   assert.ok(await evaluate(`(() => { const b = document.querySelector('.entry-card').getBoundingClientRect(); return b.left >= 0 && b.right <= innerWidth && b.bottom <= innerHeight; })()`));
@@ -237,7 +252,8 @@ try {
   await until('document.querySelector(".entry-card")?.dataset.step === "login"', '느린 모델 확인 전 로그인');
   await click('signup'); await click('pass-preview');
   await until('document.querySelector(".entry-card")?.dataset.step === "avatar"', 'PASS 미리보기 후 캐릭터 준비');
-  await submit(); await fill({ nickname: '느린 로딩 확인' }); await submit(); await submit();
+  await submit(); await fill({ nickname: '느린 로딩 확인' }); await submit();
+  await until('document.querySelector(".entry-map")?.dataset.status === "ready"','느린 공간 검사 전 위치 준비'); await submit();
   const interceptEnd = Date.now() + 30000;
   while (!heldRequest) { assert.ok(Date.now() < interceptEnd, '모델 요청 대기'); await pause(100); }
   assert.equal(await evaluate('window.spaceVR.entered'), false);
@@ -258,7 +274,8 @@ try {
   await until('document.querySelector(".entry-card")?.dataset.step === "login"', '실패 검사 전 로그인');
   await click('signup'); await click('pass-preview');
   await until('document.querySelector(".entry-card")?.dataset.step === "avatar"', '재시도 흐름 캐릭터 준비');
-  await submit(); await fill({ nickname: '재시도 확인' }); await submit(); await submit();
+  await submit(); await fill({ nickname: '재시도 확인' }); await submit();
+  await until('document.querySelector(".entry-map")?.dataset.status === "ready"','모델 실패 검사 전 위치 준비'); await submit();
   const failureEnd = Date.now() + 30000;
   while (!heldRequest) { assert.ok(Date.now() < failureEnd); await pause(100); }
   await send('Fetch.failRequest', { requestId: heldRequest, errorReason: 'Failed' }); await send('Fetch.disable');
@@ -295,5 +312,5 @@ try {
       await send('Fetch.disable'); avatarModuleOverride=null; dynamicCounts.push(count);
     }
   }
-  console.log(JSON.stringify({ url, figmaCard: geometry, firstAvatar, avatarAssets: avatarSlots, navigation: 'bounded', dynamicCounts, dots: 'passed', delayedSceneGate: 'passed', retry: 'passed', expectedLoadFailures, errors }, null, 2));
-} finally { await send('Fetch.disable').catch(() => {}); ws.close(); }
+  console.log(JSON.stringify({ url, maps:useMapsFixture?'test SDK / Chrome Geolocation override':'live Google Maps', figmaCard: geometry, firstAvatar, avatarAssets: avatarSlots, navigation: 'bounded', dynamicCounts, dots: 'passed', delayedSceneGate: 'passed', retry: 'passed', expectedLoadFailures, errors }, null, 2));
+} finally { const cleanupFixture=useMapsFixture; useMapsFixture=false; await send('Fetch.disable').catch(() => {}); if(cleanupFixture) await send('Browser.resetPermissions').catch(()=>{}); ws.close(); }

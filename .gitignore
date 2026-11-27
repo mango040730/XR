@@ -3,3 +3,6 @@ dist/
 .sites-runtime/
 .DS_Store
 *.zip
+.env
+.env.*
+!.env.example

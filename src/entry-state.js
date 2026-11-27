@@ -1,3 +1,5 @@
+import { copyLocation, validLocation } from './location-data.js';
+
 export const AVATARS = Object.freeze([
   { id: 'cream', file: 'avatar-default.png', summary: 'avatar-summary.png', ratio: 1107 / 1421, crop: null, label: '크림색 니트 캐릭터' },
   { id: 'hoodie', file: 'avatar-2-sheet.png', ratio: 1107 / 1441, crop: 'left', label: '베이지 후드 캐릭터' },
@@ -9,7 +11,7 @@ export const AVATARS = Object.freeze([
 // Completion and scene readiness can arrive in either order.
 export function createEntryState(avatars = AVATARS) {
   return {
-    step: 'login', avatar: 0, nickname: '', location: { x: 0.5, y: 0.5 },
+    step: 'login', avatar: 0, nickname: '', location: null,
     sceneReady: false, completed: false, entered: false,
     get canPreviousAvatar() { return this.avatar > 0; },
     get canNextAvatar() { return this.avatar < avatars.length - 1; },
@@ -19,14 +21,14 @@ export function createEntryState(avatars = AVATARS) {
       this.avatar = next; return true;
     },
     setNickname(value) { this.nickname = value.trim(); return this.nickname.length > 0 && this.nickname.length <= 20; },
-    setLocation(x, y) { this.location = { x: Math.max(0.05, Math.min(0.95, x)), y: Math.max(0.05, Math.min(0.95, y)) }; },
-    complete() { this.completed = true; return this.enterIfReady(); },
+    setLocation(value) { if (!validLocation(value)) return false; this.location = copyLocation(value); return true; },
+    complete() { if (!validLocation(this.location)) return false; this.completed = true; return this.enterIfReady(); },
     ready() { this.sceneReady = true; return this.enterIfReady(); },
     enterIfReady() {
       if (this.entered || !this.completed || !this.sceneReady) return false;
       this.entered = true; return true;
     },
-    get profile() { return { avatar: avatars[this.avatar].id, nickname: this.nickname, location: { ...this.location } }; },
+    get profile() { return { avatar: avatars[this.avatar].id, nickname: this.nickname, location: copyLocation(this.location) }; },
   };
 }
 export const entrySession = createEntryState();

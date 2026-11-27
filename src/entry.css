@@ -118,7 +118,7 @@
 .entry-demo-areas button[aria-pressed='true'] { background: #48534c; border-color: #48534c; color: #fff; }
 .entry-demo-caption { position: absolute; bottom: 9px; left: 8px; right: 8px; margin: 0; z-index: 3; text-align: center; font-size: 10px; line-height: 15px; color: #fff; text-shadow: 0 1px 3px #333; pointer-events: none; }
 .entry-card.entry-notice { width: max-content; max-width: calc(100vw - 32px); height: auto; min-height: 0; padding: 40px 48px; margin: 0; gap: 24px; justify-content: center; }
-.entry-card.entry-notice h1 { font-size: 28px; font-weight: 600; line-height: 36px; letter-spacing: .04px; white-space: nowrap; }
+.entry-card.entry-notice h1 { font-size: 28px; font-weight: 600; line-height: 36px; letter-spacing: .04px; white-space: normal; word-break: keep-all; }
 .entry-card.entry-notice[role='alert'] h1 { white-space: normal; }
 .entry-overlay:has(.entry-notice) { place-items: center; }
 .entry-feedback { position: absolute; left: 48px; right: 48px; bottom: 16px; text-align: center; font-size: 13px; line-height: 18px; margin: 0; color: #efeeec; }

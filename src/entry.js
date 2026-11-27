@@ -8,7 +8,7 @@ import { demoLocationMarkup } from './demo-location-view.js';
 
 const root = document.getElementById('entry-root');
 const asset = file => `${import.meta.env.BASE_URL}ui/entry/${file}`;
-const titles = { login: '로그인', identity: '본인 인증', avatar: '아바타 설정', nickname: '아바타 설정', location: '동네가 설정되었어요!', connecting: '접속중' };
+const titles = { login: '로그인', identity: '본인 인증', avatar: '아바타 설정', nickname: '아바타 설정', location: '동네가 설정되었어요!', connecting: '공간에 접속하고 있어요' };
 let locationView, loadingError = false;
 let avatarRevision = 0, avatarAnimations = [];
 let navigationRevision = 0;

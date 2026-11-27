@@ -263,7 +263,7 @@ try {
   await key('KeyW', 'w', 200);
   assert.deepEqual(await evaluate('window.spaceVR.position'), waitingPosition, '준비 중 이동 차단');
   assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'connecting');
-  assert.equal(await evaluate('document.querySelector(".entry-card h1").textContent'), '접속중');
+  assert.equal(await evaluate('document.querySelector(".entry-card h1").textContent'), '공간에 접속하고 있어요');
   assert.equal(await evaluate('document.querySelector(".entry-card button")'), null, '접속 안내에는 좋아요 버튼이 없습니다.');
   await capture('waiting-for-scene');
   await send('Fetch.continueRequest', { requestId: heldRequest }); await send('Fetch.disable');

@@ -1,9 +1,26 @@
 import './space-tutorial.css';
 import {createPlazaTutorialState} from './plaza-tutorial-state.js';
+import {createCrossroadsTutorialState} from './crossroads-tutorial-state.js';
 
 export function createSpaceTutorial({layout,onModalChange}) {
   const state=createPlazaTutorialState(layout);
-  let root=null,disposed=false;
+  const crossroads=createCrossroadsTutorialState(layout);
+  let root=null,crossroadsRoot=null,disposed=false;
+  function updateCrossroadsTime(){
+    if(crossroads.tick(performance.now(),!document.hidden)){
+      crossroadsRoot?.remove();crossroadsRoot=null;
+    }
+  }
+  document.addEventListener('visibilitychange',updateCrossroadsTime);
+  function showCrossroads(){
+    crossroadsRoot=document.createElement('section');
+    crossroadsRoot.className='entry-overlay space-tutorial-overlay crossroads-tutorial-overlay';
+    crossroadsRoot.dataset.tutorialStep='crossroads';
+    crossroadsRoot.setAttribute('role','status');crossroadsRoot.setAttribute('aria-live','polite');
+    crossroadsRoot.setAttribute('aria-atomic','true');
+    crossroadsRoot.innerHTML='<div class="entry-card space-tutorial-card crossroads-tutorial-card"><div class="space-tutorial-copy"><h1>이곳은 교차로입니다!</h1><p class="space-tutorial-body">각자 편안한 시간을 보내다가 합석할 수 있는 곳이에요.</p></div></div>';
+    document.body.append(crossroadsRoot);updateCrossroadsTime();
+  }
   const button=(label,action,secondary=false)=>`<button class="entry-button${secondary?' secondary':''}" type="button" data-tutorial-action="${action}">${label}</button>`;
   function render(){
     if(!root){
@@ -44,9 +61,16 @@ export function createSpaceTutorial({layout,onModalChange}) {
   return {
     get active(){return state.active;},
     observe(position){
-      if(disposed||!state.observe(position))return;
-      onModalChange(true);render();
+      if(disposed)return;
+      updateCrossroadsTime();
+      if(crossroads.active)return;
+      if(state.observe(position)){onModalChange(true);render();}
+      if(!state.active&&crossroads.observe(position))showCrossroads();
     },
-    dispose(){if(disposed)return;disposed=true;if(state.active)close();root?.remove();root=null;},
+    dispose(){
+      if(disposed)return;disposed=true;if(state.active)close();root?.remove();root=null;
+      crossroads.dispose();crossroadsRoot?.remove();crossroadsRoot=null;
+      document.removeEventListener('visibilitychange',updateCrossroadsTime);
+    },
   };
 }

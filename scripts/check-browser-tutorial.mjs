@@ -45,6 +45,26 @@ try{
   await send('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});await start();await key('KeyW','w',900);await until('document.querySelector(".space-tutorial-overlay")?.dataset.tutorialStep==="plaza"','새 접속의 안내');
   await click('next');await click('calendar');assert.equal(await evaluate('document.querySelector(".space-tutorial-overlay").dataset.tutorialStep'),'calendar');
   assert.equal(await evaluate('document.querySelector("#space-tutorial-title").textContent'),'캘린더 기능은 준비 중이에요.');await capture('calendar');await click('close');
-  assert.equal(await evaluate('Boolean(document.querySelector(".space-tutorial-overlay"))'),false);assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({url,trigger:'real blue-rail entry',plaza,gathering,mobile:'passed',sequence:'passed',pauseAndResume:'passed',oncePerSession:'passed',calendarNotice:'passed',errors},null,2));
+  assert.equal(await evaluate('Boolean(document.querySelector(".space-tutorial-overlay"))'),false);
+  // Enter the real gray access stairs by walking, without teleporting the rig.
+  await evaluate(`window.__crossroadsTiming={};window.__crossroadsObserver=new MutationObserver(()=>{const shown=Boolean(document.querySelector('[data-tutorial-step="crossroads"]'));if(shown&&!window.__crossroadsTiming.opened)window.__crossroadsTiming.opened=performance.now();if(!shown&&window.__crossroadsTiming.opened&&!window.__crossroadsTiming.closed)window.__crossroadsTiming.closed=performance.now();});window.__crossroadsObserver.observe(document.body,{childList:true});`);
+  await send('Input.dispatchKeyEvent',{type:'keyDown',code:'KeyW',key:'w'});
+  await until('Boolean(document.querySelector("[data-tutorial-step=crossroads]"))','실제 회색 계단 진입');
+  await send('Input.dispatchKeyEvent',{type:'keyUp',code:'KeyW',key:'w'});
+  const crossroads=await evaluate(`(()=>{const root=document.querySelector('[data-tutorial-step="crossroads"]'),c=root.querySelector('.entry-card'),b=c.getBoundingClientRect(),s=getComputedStyle(c),h=getComputedStyle(c.querySelector('h1')),p=getComputedStyle(c.querySelector('p'));return{box:[b.width,b.height],padding:[s.paddingTop,s.paddingRight],gap:getComputedStyle(c.querySelector('.space-tutorial-copy')).gap,title:c.querySelector('h1').textContent,body:c.querySelector('p').textContent,typography:[h.fontSize,h.lineHeight,h.fontWeight,p.fontSize,p.lineHeight,p.fontWeight],background:s.backgroundColor,blur:s.backdropFilter,role:root.getAttribute('role'),pointerEvents:getComputedStyle(root).pointerEvents,inert:document.querySelector('canvas').inert,focus:document.activeElement===document.querySelector('canvas'),position:window.spaceVR.position};})()`);
+  assert.deepEqual(crossroads.box,[594,154]);assert.deepEqual(crossroads.padding,['40px','48px']);assert.equal(crossroads.gap,'12px');
+  assert.equal(crossroads.title,'이곳은 교차로입니다!');assert.equal(crossroads.body,'각자 편안한 시간을 보내다가 합석할 수 있는 곳이에요.');
+  assert.deepEqual(crossroads.typography,['28px','36px','600','18px','26px','400']);assert.equal(crossroads.background,'rgba(23, 24, 26, 0.6)');assert.equal(crossroads.blur,'blur(25px)');
+  assert.equal(crossroads.role,'status');assert.equal(crossroads.pointerEvents,'none');assert.equal(crossroads.inert,false);assert.equal(crossroads.focus,true);
+  assert.ok(crossroads.position[1]<3.73&&Math.hypot(crossroads.position[0],crossroads.position[2])<20.9);
+  await capture('crossroads');await key('KeyW','w',300);
+  assert.ok((await evaluate('window.spaceVR.position'))[2]<crossroads.position[2]-.2,'팝업 표시 중에도 이동');
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await pause(100);await capture('mobile-crossroads');
+  assert.ok(await evaluate(`(()=>{const b=document.querySelector('.crossroads-tutorial-card').getBoundingClientRect();return b.left>=0&&b.right<=innerWidth&&b.top>=0&&b.bottom<=innerHeight})()`));
+  await until('!document.querySelector("[data-tutorial-step=crossroads]")','교차로 5초 자동 닫힘');
+  const duration=await evaluate('window.__crossroadsTiming.closed-window.__crossroadsTiming.opened');assert.ok(duration>=4990&&duration<5500,`읽기 시간 5초: ${duration}`);
+  assert.equal(await evaluate('document.pointerLockElement'),null);assert.equal(await evaluate('document.activeElement===document.querySelector("canvas")'),true);
+  await key('KeyR','r',30);await key('KeyW','w',3800);assert.equal(await evaluate('Boolean(document.querySelector(".space-tutorial-overlay"))'),false,'교차로도 같은 접속에서 반복 없음');
+  await evaluate('window.__crossroadsObserver.disconnect()');assert.deepEqual(errors,[]);
+  console.log(JSON.stringify({url,trigger:'real blue-rail and gray stair entry',plaza,gathering,mobile:'passed',sequence:'passed',pauseAndResume:'passed',oncePerSession:'passed',calendarNotice:'passed',crossroads:{...crossroads,duration,movement:'passed',mobile:'passed',repeat:'none'},errors},null,2));
 }finally{ws.close();}

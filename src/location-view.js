@@ -1,6 +1,7 @@
 import { createLocationController } from './location-controller.js';
 import { readSavedLocation, saveLocation } from './location-data.js';
 import { googleMapProvider, onMapsAuthError } from './google-maps.js';
+import { showFieldError, validateField } from './entry-validation.js';
 
 export function mountLocationView(root, { onConfirm }) {
   const host = root.querySelector('.entry-google-map'), panel = root.querySelector('.entry-map');
@@ -24,6 +25,8 @@ export function mountLocationView(root, { onConfirm }) {
     message.textContent = value.message;
     status.hidden = !value.message;
     address.hidden = !value.location?.address; address.textContent = value.location?.address ?? ''; address.title = address.textContent;
+    if (value.error === 'SEARCH_FAILED') showFieldError(search, value.message);
+    else if (value.status === 'ready') showFieldError(search, '');
     marker.hidden = !value.center;
     if (value.center && controller?.provider && !map && value.status !== 'map-error') {
       try {
@@ -44,10 +47,11 @@ export function mountLocationView(root, { onConfirm }) {
     geolocation: navigator.geolocation, onChange: update, save: saveLocation, restore: readSavedLocation,
   });
   const unsubscribeAuth = onMapsAuthError(() => controller.failMap());
+  function searchLocation() { if (validateField(search, { required: true })) void controller.search(search.value); }
   function click(event) {
     const action = event.target.closest('[data-action]')?.dataset.action;
     if (action === 'reset-location') { controller.beginManual(); search.focus({preventScroll:true}); }
-    else if (action === 'search-location') void controller.search(search.value);
+    else if (action === 'search-location') searchLocation();
     else if (action === 'current-location') controller.startGPS();
     else if (action === 'retry-location') {
       if (controller.snapshot.error === 'MAP_AUTH_FAILED') window.location.reload();
@@ -55,7 +59,7 @@ export function mountLocationView(root, { onConfirm }) {
     }
   }
   function key(event) {
-    if (event.target === search && event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); void controller.search(search.value); }
+    if (event.target === search && event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); searchLocation(); }
   }
   root.addEventListener('click', click); root.addEventListener('keydown', key);
   const observer = new ResizeObserver(() => {

@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createEntryState, AVATARS } from '../src/entry-state.js';
 import { formatBirthDate } from '../src/entry-input.js';
+import { fieldError } from '../src/entry-validation.js';
 const selectedLocation = {lat:37.56,lng:126.97,address:'위치 테스트 주소',placeId:'test-place',source:'manual',accuracy:null,confirmedAt:null};
 
 test('숫자·점·붙여넣은 생년월일을 연월일 포맷으로 정리하고 입력 중인 숫자를 유지한다', () => {
@@ -65,4 +66,31 @@ test('아바타 개수에 따라 양끝 탐색을 제한하고 단일 아바타�
     state.selectAvatar(100); assert.equal(state.avatar, count - 1);
     state.selectAvatar(-100); assert.equal(state.avatar, 0);
   }
+});
+
+test('아바타별 기본 닉네임을 실제 값으로 부여하고 편집한 닉네임은 같은 선택에서 유지한다',()=>{
+  const state=createEntryState();
+  for(const [index,name] of ['롤리','시론','마이','뮤티'].entries()) {
+    if(index)state.selectAvatar(1);
+    assert.equal(state.nickname,name);
+    assert.equal(state.profile.nickname,name);
+  }
+  state.setNickname('직접 정한 이름');state.selectAvatar(1);
+  assert.equal(state.nickname,'직접 정한 이름');
+  state.selectAvatar(-1);assert.equal(state.nickname,'마이');
+});
+
+test('필수 입력·이메일·날짜·전화번호·인증번호·길이 조건을 필드별로 검증한다',()=>{
+  for(const name of ['email','password','name','birth','phone','code','nickname']) {
+    assert.ok(fieldError({name,value:'   ',required:true}));
+  }
+  for(const [name,value] of [['email','wrong-email'],['birth','2000.02.31'],['birth','2999.01.01'],['phone','abcdefghi'],['phone','01012'],['code','12345'],['code','12345a']]) {
+    assert.ok(fieldError({name,value,required:true}));
+  }
+  for(const [name,value] of [['email','preview@example.com'],['birth','2000.02.29'],['phone','010-1234-5678'],['phone','+82 10 1234 5678'],['code','123456'],['nickname','롤리'],['password','preview']]) {
+    assert.equal(fieldError({name,value,required:true}),'');
+  }
+  assert.ok(fieldError({name:'nickname',value:'a'.repeat(21),maxLength:20,required:true}));
+  assert.equal(fieldError({name:'location-search',value:'',required:false}),'');
+  assert.ok(fieldError({name:'location-search',value:''},{required:true}));
 });

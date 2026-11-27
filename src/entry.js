@@ -2,6 +2,7 @@ import './entry.css';
 import { AVATARS, entrySession as state } from './entry-state.js';
 import { formatBirthInput } from './entry-input.js';
 import { mountLocationView } from './location-view.js';
+import { validateEntryForm, validateField } from './entry-validation.js';
 
 const root = document.getElementById('entry-root');
 const asset = file => `${import.meta.env.BASE_URL}ui/entry/${file}`;
@@ -45,7 +46,7 @@ function updateAvatarNavigation() {
 }
 
 function field(name, label, placeholder, attrs = '') {
-  return `<label class="entry-field"><span>${label}</span><input name="${name}" placeholder="${placeholder}" ${attrs} required></label>`;
+  return `<label class="entry-field"><span>${label}</span><input data-entry-input name="${name}" placeholder="${placeholder}" ${attrs} required><span class="entry-field-error" id="entry-error-${name}" hidden></span></label>`;
 }
 function button(label, action, secondary = false) {
   return `<button class="entry-button${secondary ? ' secondary' : ''}" ${action ? `type="button" data-action="${action}"` : 'type="submit"'}>${label}</button>`;
@@ -59,15 +60,15 @@ function content() {
     case 'login': return `<div class="entry-fields">${field('email', '이메일', 'example@email.com', 'type="email" autocomplete="off"')}${field('password', '비밀번호', '비밀번호', 'type="password" autocomplete="off"')}</div><div class="entry-actions">${button('로그인')}${button('회원가입', 'signup', true)}</div>`;
     case 'identity': return `<div class="entry-fields">${field('name', '이름', '홍길동', 'autocomplete="off" maxlength="40"')}${field('birth', '생년월일', '2000.01.01', 'inputmode="numeric" pattern="[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}" maxlength="10" autocomplete="off"')}${field('phone', '전화번호', '01012345678', 'type="tel" inputmode="tel" autocomplete="off" maxlength="20"')}${field('code', '인증번호', '숫자 6자리', 'inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off"')}</div><div class="entry-actions">${button('다음')}${button('PASS로 인증하기', 'pass-preview', true)}</div>`;
     case 'avatar': return `<div class="entry-avatar-picker"><div class="entry-carousel" role="group" tabindex="-1" aria-label="캐릭터 선택"><button class="entry-arrow" type="button" data-action="previous-avatar" aria-label="이전 캐릭터"><img src="${asset('caret-left.svg')}" alt="" width="40" height="40"></button><div class="entry-avatar-slot">${avatar()}</div><button class="entry-arrow" type="button" data-action="next-avatar" aria-label="다음 캐릭터"><img src="${asset('caret-right.svg')}" alt="" width="40" height="40"></button><span class="entry-sr" aria-live="polite">${state.avatar + 1} / ${AVATARS.length}</span></div><div class="entry-pagination" role="group" aria-label="아바타 페이지">${AVATARS.map((item, index) => `<button class="entry-dot" type="button" data-action="select-avatar" data-index="${index}" aria-label="${index + 1}번째 아바타 선택" aria-current="${index === state.avatar}"><span></span></button>`).join('')}</div></div><div class="entry-actions">${button('다음')}</div>`;
-    case 'nickname': return `<div class="entry-nickname"><div class="entry-summary">${avatar(true)}</div>${field('nickname', '닉네임', '억울한 머쉬룸', 'maxlength="20" autocomplete="off"')}</div><div class="entry-actions">${button('생성')}</div>`;
-    case 'location': return `<div class="entry-map" role="group" aria-label="동네 지도"><div class="entry-google-map"></div><div class="entry-map-shade" aria-hidden="true"></div><img class="entry-map-marker" src="${asset('map-marker.svg')}" alt="선택한 위치" width="24" height="24" hidden><div class="entry-map-tools" hidden><input name="location-search" aria-label="동네 주소 검색" placeholder="동·도로명·주소 검색" autocomplete="off" maxlength="200"><button type="button" data-action="search-location" aria-label="주소 검색">검색</button><button type="button" data-action="current-location" aria-label="현재 위치 다시 찾기">현재 위치</button></div><div class="entry-map-state" role="status" aria-live="polite"><span class="entry-map-message">지도를 불러오고 있어요…</span><button type="button" data-action="retry-location" hidden>다시 시도</button></div><p class="entry-map-address" hidden></p></div><div class="entry-actions">${button('좋아요')}${button('위치 재설정', 'reset-location', true)}</div><p class="entry-map-policies"><a href="${import.meta.env.BASE_URL}location-privacy.html" target="_blank" rel="noopener">위치정보 안내</a> · <a href="${import.meta.env.BASE_URL}terms.html" target="_blank" rel="noopener">이용약관</a></p>`;
+    case 'nickname': return `<div class="entry-nickname"><div class="entry-summary">${avatar(true)}</div>${field('nickname', '닉네임', '닉네임을 입력해 주세요.', 'maxlength="20" autocomplete="off"')}</div><div class="entry-actions">${button('생성')}</div>`;
+    case 'location': return `<div class="entry-map" role="group" aria-label="동네 지도"><div class="entry-google-map"></div><div class="entry-map-shade" aria-hidden="true"></div><img class="entry-map-marker" src="${asset('map-marker.svg')}" alt="선택한 위치" width="24" height="24" hidden><div class="entry-map-tools" hidden><div class="entry-map-search-field entry-field"><input data-entry-input name="location-search" aria-label="동네 주소 검색" placeholder="동·도로명·주소 검색" autocomplete="off" maxlength="200"><span class="entry-field-error" id="entry-error-location-search" hidden></span></div><button type="button" data-action="search-location" aria-label="주소 검색">검색</button><button type="button" data-action="current-location" aria-label="현재 위치 다시 찾기">현재 위치</button></div><div class="entry-map-state" role="status" aria-live="polite"><span class="entry-map-message">지도를 불러오고 있어요…</span><button type="button" data-action="retry-location" hidden>다시 시도</button></div><p class="entry-map-address" hidden></p></div><div class="entry-actions">${button('좋아요')}${button('위치 재설정', 'reset-location', true)}</div><p class="entry-map-policies"><a href="${import.meta.env.BASE_URL}location-privacy.html" target="_blank" rel="noopener">위치정보 안내</a> · <a href="${import.meta.env.BASE_URL}terms.html" target="_blank" rel="noopener">이용약관</a></p>`;
   }
 }
 function render({ keepFocus = false } = {}) {
   locationView?.dispose(); locationView = null;
   const focused = keepFocus ? document.activeElement?.dataset.action : null;
   root.dataset.entryStep = state.step;
-  root.innerHTML = `<div class="entry-backdrop" aria-hidden="true"></div><form class="entry-card" data-step="${state.step}" aria-labelledby="entry-title"><h1 id="entry-title" tabindex="-1">${titles[state.step]}</h1>${content()}<p class="entry-feedback" role="status" aria-live="polite"></p></form>`;
+  root.innerHTML = `<div class="entry-backdrop" aria-hidden="true"></div><form class="entry-card" data-step="${state.step}" aria-labelledby="entry-title" novalidate><h1 id="entry-title" tabindex="-1">${titles[state.step]}</h1>${content()}<p class="entry-feedback" role="status" aria-live="polite"></p></form>`;
   if (state.step === 'avatar') {
     mountPreparedAvatar(root.querySelector('.entry-avatar'), AVATARS[state.avatar].file);
     updateAvatarNavigation();
@@ -154,17 +155,13 @@ function showLoadingError() {
 }
 root.addEventListener('submit', event => {
   event.preventDefault();
-  const form = event.target; if (!form.reportValidity()) return;
+  const form = event.target; if (!validateEntryForm(form)) return;
   if (state.step === 'login') { form.reset(); go('identity'); }
   else if (state.step === 'identity') {
-    const date = form.elements.birth.value.split('.').map(Number), actual = new Date(date[0], date[1] - 1, date[2]);
-    if (actual.getFullYear() !== date[0] || actual.getMonth() !== date[1] - 1 || actual.getDate() !== date[2] || actual > new Date()) {
-      form.elements.birth.setCustomValidity('올바른 생년월일을 입력해 주세요.'); form.elements.birth.reportValidity(); return;
-    }
     void go('avatar');
   } else if (state.step === 'avatar') go('nickname');
   else if (state.step === 'nickname') {
-    if (!state.setNickname(form.elements.nickname.value)) { form.elements.nickname.setCustomValidity('닉네임을 입력해 주세요.'); form.elements.nickname.reportValidity(); return; }
+    if (!state.setNickname(form.elements.nickname.value)) return;
     go('location');
   } else if (state.step === 'location') {
     if (loadingError) { location.reload(); return; }
@@ -173,10 +170,16 @@ root.addEventListener('submit', event => {
 });
 root.addEventListener('input', event => {
   if (!(event.target instanceof HTMLInputElement)) return;
-  event.target.setCustomValidity('');
   if (event.target.name === 'birth' && !event.isComposing) formatBirthInput(event.target);
+  if (!event.isComposing && event.target.getAttribute('aria-invalid') === 'true') validateField(event.target, { required: event.target.name === 'location-search' || event.target.required });
 });
-root.addEventListener('compositionend', event => { if (event.target.name === 'birth') formatBirthInput(event.target); });
+root.addEventListener('compositionend', event => {
+  if (event.target.name === 'birth') formatBirthInput(event.target);
+  if (event.target.matches('[data-entry-input][aria-invalid="true"]')) validateField(event.target);
+});
+root.addEventListener('focusout', event => {
+  if (event.target.matches('[data-entry-input]')) validateField(event.target);
+});
 root.addEventListener('click', event => {
   const action = event.target.closest('[data-action]')?.dataset.action;
   if (action === 'signup') go('identity');

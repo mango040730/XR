@@ -1,5 +1,5 @@
 // Exercise the actual forms rather than bypassing the entry gate in tests.
-export async function finishEntryPreview(evaluate, { nickname = '공간 확인', avatar = 0, confirmLocation = true } = {}) {
+export async function finishEntryPreview(evaluate, { nickname = '공간 확인', avatar = 0, confirmLocation = true, stopAtNickname = false } = {}) {
   if (!(await evaluate('Boolean(document.getElementById("entry-root"))'))) return;
   await evaluate(`(() => {
     const form = document.querySelector('.entry-card');
@@ -22,6 +22,7 @@ export async function finishEntryPreview(evaluate, { nickname = '공간 확인',
     for (let i = 0; i < ${avatar}; i++) document.querySelector('[data-action="next-avatar"]').click();
     document.querySelector('.entry-card').requestSubmit(); return true;
   })()`);
+  if (stopAtNickname) return;
   await evaluate(`(() => {
     const form = document.querySelector('.entry-card'); form.elements.nickname.value = ${JSON.stringify(nickname)};
     form.requestSubmit(); return true;

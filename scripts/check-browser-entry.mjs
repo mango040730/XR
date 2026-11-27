@@ -76,6 +76,9 @@ async function capture(name) {
 
 try {
   await send('Runtime.enable'); await send('Page.enable');
+  await send('Network.enable'); await send('Network.clearBrowserCache');
+  await send('Fetch.enable', { patterns: [{ urlPattern: '*ui/entry/avatar-default.png*', requestStage: 'Request' }] });
+  heldRequest = null;
   await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
   await send('Page.navigate', { url });
   await until("document.querySelector('.entry-card')?.dataset.step === 'login'", '로그인 화면');
@@ -108,7 +111,9 @@ try {
   assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'login', '빈 로그인 양식 검증');
   await fill({ email: 'preview@example.com', password: 'ui-preview-only' }); await submit();
   await capture('identity');
-  await fill({ name: '미리보기', birth: '2000.02.31', code: '123456' }); await submit();
+  assert.deepEqual(await evaluate('[...document.querySelectorAll(".entry-fields input")].map(i => i.name)'), ['name','birth','phone','code']);
+  assert.equal(await evaluate('document.querySelector("[name=phone]").type'), 'tel');
+  await fill({ name: '미리보기', birth: '2000.02.31', phone: '01012345678', code: '123456' }); await submit();
   assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'identity');
   await fill({ birth: '20000101' });
   assert.equal(await evaluate('document.querySelector("[name=birth]").value'), '2000.01.01');
@@ -116,17 +121,34 @@ try {
   await send('Input.insertText', { text: '19991231' });
   assert.equal(await evaluate('document.querySelector("[name=birth]").value'), '1999.12.31');
   assert.equal(await evaluate('document.querySelector("[name=birth]").selectionStart'), 10);
+  const avatarRequestEnd = Date.now() + 15000;
+  while (!heldRequest) { assert.ok(Date.now() < avatarRequestEnd, '로그인 단계부터 캐릭터 미리 로딩'); await pause(50); }
+  await evaluate(`(() => { window.__avatarFirstPaint = new Promise(resolve => {
+    const observer = new MutationObserver(() => {
+      if (document.querySelector('.entry-card')?.dataset.step !== 'avatar') return;
+      const image = document.querySelector('.entry-avatar img'); observer.disconnect();
+      resolve({complete:image.complete,width:image.naturalWidth});
+    }); observer.observe(document.getElementById('entry-root'),{childList:true,subtree:true});
+  }); return true; })()`);
   await fill({ birth: '20000101' }); await submit();
+  assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'identity', '이미지가 준비되기 전 빈 선택 화면을 띄우면 안 됩니다.');
+  await send('Fetch.continueRequest', {requestId:heldRequest}); await send('Fetch.disable');
+  const firstAvatar = await evaluate('window.__avatarFirstPaint');
+  assert.ok(firstAvatar.complete && firstAvatar.width > 0, '선택 화면의 첫 표시부터 디코딩된 원본 캐릭터가 있어야 합니다.');
+  await until('document.querySelector(".entry-card")?.dataset.step === "avatar"', '아바타 화면 준비');
   const avatarSlots = [];
   for (let i = 0; i < 4; i++) {
     avatarSlots.push(await capture(`avatar-${i + 1}`));
     assert.equal(await evaluate('document.querySelectorAll(".entry-avatar").length'), 1, '캐릭터는 한 명씩');
+    const dots = await evaluate('[...document.querySelectorAll(".entry-dot")].map(d => ({active:d.getAttribute("aria-current"),width:d.firstElementChild.getBoundingClientRect().width}))');
+    assert.equal(dots.length, 4);
+    dots.forEach((dot, index) => { assert.equal(dot.active, String(index === i)); assert.equal(dot.width, index === i ? 24 : 8); });
     await click('next-avatar');
   }
   await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '마지막 캐릭터 전환');
   await click('previous-avatar');
-  await until('document.getAnimations().some(a => a.playState === "running")', '캐릭터 애니메이션 시작');
-  const motion = await evaluate(`document.getAnimations().map(a => ({duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k => ({opacity:k.opacity,transform:k.transform}))}))`);
+  await until('document.getAnimations().some(a => a.effect.target.matches(".entry-avatar") && a.playState === "running")', '캐릭터 애니메이션 시작');
+  const motion = await evaluate(`document.getAnimations().filter(a => a.effect.target.matches('.entry-avatar')).map(a => ({duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k => ({opacity:k.opacity,transform:k.transform}))}))`);
   assert.equal(motion.length, 2); assert.ok(motion.every(a => a.duration === 280));
   assert.ok(motion.some(a => a.frames.some(f => f.transform.includes('translateX'))));
   await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '이전 캐릭터 전환 완료');
@@ -135,6 +157,12 @@ try {
   await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '연속 전환 완료');
   assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'cream');
   assert.equal(await evaluate('document.querySelectorAll(".entry-avatar").length'), 1);
+  await evaluate(`(() => { document.querySelector('.entry-dot[data-index="2"]').click(); return true; })()`);
+  await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '점 표시 직접 선택');
+  assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'yellow');
+  assert.equal(await evaluate('document.querySelector(".entry-dot[aria-current=true]").dataset.index'), '2');
+  await evaluate(`(() => { document.querySelector('.entry-dot[data-index="0"]').click(); return true; })()`);
+  await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '첫 아바타 직접 선택');
   await send('Emulation.setEmulatedMedia', {features:[{name:'prefers-reduced-motion',value:'reduce'}]});
   await click('next-avatar'); await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '동작 줄이기 전환');
   assert.equal(await evaluate('document.getAnimations().length'), 0);
@@ -166,6 +194,7 @@ try {
   const interceptEnd = Date.now() + 30000;
   while (!heldRequest) { assert.ok(Date.now() < interceptEnd, '모델 요청 대기'); await pause(100); }
   await click('signup'); await click('pass-preview');
+  await until('document.querySelector(".entry-card")?.dataset.step === "avatar"', 'PASS 미리보기 후 캐릭터 준비');
   await submit(); await fill({ nickname: '느린 로딩 확인' }); await submit(); await submit();
   assert.equal(await evaluate('window.spaceVR.entered'), false);
   assert.equal(await evaluate('document.querySelector(".entry-card [type=submit]").disabled'), true);
@@ -182,7 +211,9 @@ try {
   while (!heldRequest) { assert.ok(Date.now() < failureEnd); await pause(100); }
   await send('Fetch.failRequest', { requestId: heldRequest, errorReason: 'Failed' }); await send('Fetch.disable');
   await until('document.documentElement.dataset.scene === "error"', '모델 실패 처리');
-  await click('signup'); await click('pass-preview'); await submit();
+  await click('signup'); await click('pass-preview');
+  await until('document.querySelector(".entry-card")?.dataset.step === "avatar"', '재시도 흐름 캐릭터 준비');
+  await submit();
   await fill({ nickname: '재시도 확인' }); await submit();
   assert.equal(await evaluate('document.querySelector(".entry-card [type=submit]").textContent'), '다시 시도');
   assert.equal(await evaluate('window.spaceVR.entered'), false);
@@ -192,5 +223,5 @@ try {
   await submit(); await until('window.spaceVR?.ready && document.querySelector(".entry-card")?.dataset.step === "login"', '재시도 후 로그인과 공간 준비');
   assert.equal(await evaluate('window.spaceVR.entered'), false);
   assert.equal(errors.length, 0, errors.join('\n'));
-  console.log(JSON.stringify({ url, figmaCard: geometry, avatarAssets: avatarSlots, delayedSceneGate: 'passed', retry: 'passed', expectedLoadFailures, errors }, null, 2));
+  console.log(JSON.stringify({ url, figmaCard: geometry, firstAvatar, avatarAssets: avatarSlots, dots: 'passed', delayedSceneGate: 'passed', retry: 'passed', expectedLoadFailures, errors }, null, 2));
 } finally { await send('Fetch.disable').catch(() => {}); ws.close(); }

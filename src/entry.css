@@ -30,6 +30,7 @@
   background: rgba(23,24,26,.6); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
 }
 .entry-card[data-step='avatar'], .entry-card[data-step='nickname'] { height: 600px; }
+.entry-card[data-step='identity'] { height: 707px; }
 .entry-card[data-step='login'], .entry-card[data-step='identity'] { transform: translateY(-0.5px); }
 .entry-card[data-step='location'] { height: 648px; gap: 24px; }
 .entry-card h1 { font-size: 36px; font-weight: 700; line-height: 44px; margin: 0; text-align: center; outline: none; }
@@ -68,6 +69,10 @@
 .entry-avatar[data-crop='right'] > img { left: -101.27%; }
 .entry-arrow { position: relative; z-index: 1; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: 50%; }
 .entry-arrow > img { display: block; }
+.entry-pagination { position: absolute; left: 50%; bottom: -24px; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; height: 28px; }
+.entry-dot { display: grid; place-items: center; width: 32px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: transparent; cursor: pointer; }
+.entry-dot > span { width: 8px; height: 8px; border-radius: 999px; background: rgba(255,255,255,.35); transition: width 200ms ease, background-color 200ms ease; }
+.entry-dot[aria-current='true'] > span { width: 24px; background: #efeeec; }
 .entry-nickname { width: 100%; display: flex; flex-direction: column; gap: 24px; align-items: center; }
 .entry-summary { position: relative; width: 206px; height: 211px; display: flex; justify-content: center; }
 .entry-map { width: 100%; height: 360px; position: relative; border-radius: 8px; overflow: hidden; flex: none; outline: none; }
@@ -91,6 +96,7 @@
   .entry-card { margin-block: auto; min-height: 560px; height: auto; gap: 24px; }
   .entry-card[data-step='avatar'], .entry-card[data-step='nickname'] { height: auto; min-height: 560px; }
   .entry-card[data-step='location'] { height: auto; }
+  .entry-card[data-step='identity'] { height: auto; min-height: 692px; }
   .entry-carousel { height: 300px; }
 }
-@media (prefers-reduced-motion: reduce) { .entry-overlay { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .entry-overlay, .entry-dot > span { transition: none; } }

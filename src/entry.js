@@ -8,6 +8,17 @@ const titles = { login: '로그인', identity: '본인 인증', avatar: '아바�
 let editingLocation = false, loadingError = false;
 let avatarRevision = 0, avatarAnimations = [];
 let navigationRevision = 0;
+let sceneStarted = false;
+function prepareScene() {
+  if (sceneStarted) return;
+  sceneStarted = true;
+  root.setAttribute('aria-busy', 'true');
+  // Paint the waiting state before starting synchronous geometry/BVH/GPU work.
+  // Keep that work out of every editable step, including the first login keystroke.
+  requestAnimationFrame(() => setTimeout(() => {
+    void import('./main.js').catch(() => { loadingError = true; showLoadingError(); });
+  }, 0));
+}
 const avatarImages = new Map();
 function preloadAvatar(file) {
   if (!avatarImages.has(file)) {
@@ -116,6 +127,7 @@ function reveal() {
   setTimeout(() => { root.remove(); }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 250);
 }
 function showLoadingError() {
+  root.removeAttribute('aria-busy');
   root.querySelector('.entry-feedback').textContent = '공간을 불러오지 못했어요. 다시 시도해 주세요.';
   if (state.step === 'location') {
     const submit = root.querySelector('[type="submit"]'); submit.disabled = false; submit.textContent = '다시 시도';
@@ -139,7 +151,10 @@ root.addEventListener('submit', event => {
     if (editingLocation) { editingLocation = false; render(); return; }
     if (loadingError) { location.reload(); return; }
     if (state.complete()) reveal();
-    else { const submit = form.querySelector('[type="submit"]'); submit.disabled = true; submit.textContent = '공간을 준비하고 있어요…'; }
+    else {
+      const submit = form.querySelector('[type="submit"]'); submit.disabled = true; submit.textContent = '공간을 준비하고 있어요…';
+      prepareScene();
+    }
   }
 });
 root.addEventListener('input', event => {
@@ -174,7 +189,6 @@ window.addEventListener('space-error', () => { loadingError = true; showLoadingE
 window.addEventListener('space-backdrop', event => { root.style.setProperty('--entry-backdrop', `url("${event.detail}")`); });
 document.documentElement.dataset.entry = 'pending';
 render();
-// Start all character requests during login, ahead of the heavy scene import.
+// Only lightweight UI assets prepare during editable steps. The scene starts
+// after the final confirmation, so rendering cannot stall text input.
 void prepareAvatars().catch(() => {});
-// Show the light DOM UI before parsing and preparing the large WebGL scene.
-requestAnimationFrame(() => setTimeout(() => { void import('./main.js').catch(() => { loadingError = true; showLoadingError(); }); }, 0));

@@ -101,12 +101,11 @@ try {
     return {card: [r.x,r.y,r.width,r.height], title: [h.y-r.y,h.height], font: getComputedStyle(c).fontFamily}; })()`);
   assert.deepEqual(geometry.card, [663, 239, 594, 601]);
   assert.deepEqual(geometry.title, [40, 44]);
-  await until('window.spaceVR?.ready', '공간 로딩');
-  assert.equal(await evaluate('window.spaceVR.entered'), false);
-  assert.equal(await evaluate('document.querySelector("canvas").inert'), true);
-  const original = await evaluate('window.spaceVR.position');
+  assert.equal(await evaluate('Boolean(window.spaceVR)'), false, '입력 중 공간 생성은 시작하지 않습니다.');
+  assert.equal(await evaluate('document.querySelectorAll("canvas").length'), 0);
+  const original = [0, 3.875, 26.6];
   await key('KeyW', 'w', 400);
-  assert.deepEqual(await evaluate('window.spaceVR.position'), original, '접속 전 이동 금지');
+  assert.equal(await evaluate('Boolean(window.spaceVR)'), false, '접속 전 이동·공간 초기화 금지');
   await submit();
   assert.equal(await evaluate('document.querySelector(".entry-card").dataset.step'), 'login', '빈 로그인 양식 검증');
   await fill({ email: 'preview@example.com', password: 'ui-preview-only' }); await submit();
@@ -189,7 +188,7 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
   await capture('mobile-location');
   assert.ok(await evaluate(`(() => { const b = document.querySelector('.entry-card').getBoundingClientRect(); return b.left >= 0 && b.right <= innerWidth && b.bottom <= innerHeight; })()`));
-  await submit(); await until('window.spaceVR.entered && !document.getElementById("entry-root")', 'UI 완료 후 입장');
+  await submit(); await until('window.spaceVR?.entered && !document.getElementById("entry-root")', 'UI 완료 후 입장');
   assert.equal(await evaluate('document.querySelector("canvas").inert'), false);
   assert.equal(await evaluate('window.spaceVR.profile.nickname'), '우리 동네');
   assert.equal(await evaluate('window.spaceVR.profile.avatar'), 'cream');
@@ -200,12 +199,17 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
   await send('Fetch.enable', { patterns: [{ urlPattern: '*models/space.glb*', requestStage: 'Request' }] });
   heldRequest = null; await send('Page.navigate', { url });
-  const interceptEnd = Date.now() + 30000;
-  while (!heldRequest) { assert.ok(Date.now() < interceptEnd, '모델 요청 대기'); await pause(100); }
+  await until('document.querySelector(".entry-card")?.dataset.step === "login"', '느린 모델 확인 전 로그인');
   await click('signup'); await click('pass-preview');
   await until('document.querySelector(".entry-card")?.dataset.step === "avatar"', 'PASS 미리보기 후 캐릭터 준비');
   await submit(); await fill({ nickname: '느린 로딩 확인' }); await submit(); await submit();
+  const interceptEnd = Date.now() + 30000;
+  while (!heldRequest) { assert.ok(Date.now() < interceptEnd, '모델 요청 대기'); await pause(100); }
   assert.equal(await evaluate('window.spaceVR.entered'), false);
+  assert.equal(await evaluate('document.querySelector("canvas").inert'), true);
+  const waitingPosition = await evaluate('window.spaceVR.position');
+  await key('KeyW', 'w', 200);
+  assert.deepEqual(await evaluate('window.spaceVR.position'), waitingPosition, '준비 중 이동 차단');
   assert.equal(await evaluate('document.querySelector(".entry-card [type=submit]").disabled'), true);
   await capture('waiting-for-scene');
   await send('Fetch.continueRequest', { requestId: heldRequest }); await send('Fetch.disable');
@@ -216,21 +220,21 @@ try {
   // A failed model must leave the UI usable, with a real reload retry.
   await send('Fetch.enable', { patterns: [{ urlPattern: '*models/space.glb*', requestStage: 'Request' }] });
   heldRequest = null; await send('Page.navigate', { url });
+  await until('document.querySelector(".entry-card")?.dataset.step === "login"', '실패 검사 전 로그인');
+  await click('signup'); await click('pass-preview');
+  await until('document.querySelector(".entry-card")?.dataset.step === "avatar"', '재시도 흐름 캐릭터 준비');
+  await submit(); await fill({ nickname: '재시도 확인' }); await submit(); await submit();
   const failureEnd = Date.now() + 30000;
   while (!heldRequest) { assert.ok(Date.now() < failureEnd); await pause(100); }
   await send('Fetch.failRequest', { requestId: heldRequest, errorReason: 'Failed' }); await send('Fetch.disable');
   await until('document.documentElement.dataset.scene === "error"', '모델 실패 처리');
-  await click('signup'); await click('pass-preview');
-  await until('document.querySelector(".entry-card")?.dataset.step === "avatar"', '재시도 흐름 캐릭터 준비');
-  await submit();
-  await fill({ nickname: '재시도 확인' }); await submit();
   assert.equal(await evaluate('document.querySelector(".entry-card [type=submit]").textContent'), '다시 시도');
   assert.equal(await evaluate('window.spaceVR.entered'), false);
   await capture('load-error');
   assert.ok(errors.length > 0 && errors.every(e => e.includes('공간 모델을 불러오지 못했습니다.')));
   const expectedLoadFailures = errors.length; errors.length = 0;
-  await submit(); await until('window.spaceVR?.ready && document.querySelector(".entry-card")?.dataset.step === "login"', '재시도 후 로그인과 공간 준비');
-  assert.equal(await evaluate('window.spaceVR.entered'), false);
+  await submit(); await until('document.querySelector(".entry-card")?.dataset.step === "login"', '재시도 후 로그인');
+  assert.equal(await evaluate('Boolean(window.spaceVR)'), false);
   assert.equal(errors.length, 0, errors.join('\n'));
   console.log(JSON.stringify({ url, figmaCard: geometry, firstAvatar, avatarAssets: avatarSlots, dots: 'passed', delayedSceneGate: 'passed', retry: 'passed', expectedLoadFailures, errors }, null, 2));
 } finally { await send('Fetch.disable').catch(() => {}); ws.close(); }

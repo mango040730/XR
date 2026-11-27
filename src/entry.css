@@ -17,7 +17,7 @@
 .entry-backdrop {
   position: fixed; inset: -24px; z-index: -1;
   background: linear-gradient(#d8d3c9 45%, #304e8b 50%);
-  background-image: var(--entry-backdrop, linear-gradient(#d8d3c9 45%, #304e8b 50%));
+  background-image: var(--entry-backdrop, url('/ui/entry/space-backdrop.png'));
   background-size: cover; background-position: center; filter: blur(14px);
   pointer-events: none;
 }

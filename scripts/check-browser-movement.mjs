@@ -49,9 +49,9 @@ try {
   await send('Page.enable');
   await send('Page.navigate', { url });
   const deadline = Date.now() + 120000;
-  while (!(await evaluate('Boolean(window.spaceVR?.ready)'))) {
-    assert.ok(Date.now() < deadline, `이동 준비 시간 초과: ${errors.join('\n')}`);
-    await pause(500);
+  while (!(await evaluate('Boolean(document.querySelector(".entry-card"))'))) {
+    assert.ok(Date.now() < deadline, '로그인 표시 시간 초과');
+    await pause(100);
   }
   await finishEntryPreview(evaluate);
   while (!(await evaluate('Boolean(window.spaceVR?.entered) && !document.getElementById("entry-root")'))) {

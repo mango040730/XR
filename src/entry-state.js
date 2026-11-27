@@ -7,11 +7,17 @@ export const AVATARS = Object.freeze([
 
 // UI preview only: credentials and identity fields never leave their forms.
 // Completion and scene readiness can arrive in either order.
-export function createEntryState() {
+export function createEntryState(avatars = AVATARS) {
   return {
     step: 'login', avatar: 0, nickname: '', location: { x: 0.5, y: 0.5 },
     sceneReady: false, completed: false, entered: false,
-    selectAvatar(delta) { this.avatar = (this.avatar + delta % AVATARS.length + AVATARS.length) % AVATARS.length; },
+    get canPreviousAvatar() { return this.avatar > 0; },
+    get canNextAvatar() { return this.avatar < avatars.length - 1; },
+    selectAvatar(delta) {
+      const next = Math.max(0, Math.min(avatars.length - 1, this.avatar + delta));
+      if (next === this.avatar) return false;
+      this.avatar = next; return true;
+    },
     setNickname(value) { this.nickname = value.trim(); return this.nickname.length > 0 && this.nickname.length <= 20; },
     setLocation(x, y) { this.location = { x: Math.max(0.05, Math.min(0.95, x)), y: Math.max(0.05, Math.min(0.95, y)) }; },
     complete() { this.completed = true; return this.enterIfReady(); },
@@ -20,7 +26,7 @@ export function createEntryState() {
       if (this.entered || !this.completed || !this.sceneReady) return false;
       this.entered = true; return true;
     },
-    get profile() { return { avatar: AVATARS[this.avatar].id, nickname: this.nickname, location: { ...this.location } }; },
+    get profile() { return { avatar: avatars[this.avatar].id, nickname: this.nickname, location: { ...this.location } }; },
   };
 }
 export const entrySession = createEntryState();

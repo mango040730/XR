@@ -1,7 +1,8 @@
 // Runs against a separate Chrome launched with --remote-debugging-port=9223.
 // No browser dependencies or application-only testing hooks are required.
 import assert from 'node:assert/strict';
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+import { AVATARS } from '../src/entry-state.js';
 
 const url = process.argv[2] ?? 'http://127.0.0.1:4173/';
 const targets = await (await fetch('http://127.0.0.1:9223/json/list')).json();
@@ -11,10 +12,15 @@ const ws = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((resolve, reject) => { ws.onopen = resolve; ws.onerror = reject; });
 const pending = new Map(), errors = [];
 let heldRequest = null;
+let avatarModuleOverride = null;
 let id = 0;
 ws.onmessage = ({ data }) => {
   const message = JSON.parse(data);
-  if (message.method === 'Fetch.requestPaused') heldRequest = message.params.requestId;
+  if (message.method === 'Fetch.requestPaused') {
+    if (avatarModuleOverride && message.params.request.url.includes('/src/entry-state.js')) {
+      void send('Fetch.fulfillRequest', {requestId:message.params.requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:'text/javascript'}],body:Buffer.from(avatarModuleOverride).toString('base64')});
+    } else heldRequest = message.params.requestId;
+  }
   if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails.exception?.description ?? message.params.exceptionDetails.text);
   if (message.method === 'Runtime.consoleAPICalled' && message.params.type === 'error') {
     errors.push(message.params.args.map(arg => arg.value ?? arg.description ?? '').join(' '));
@@ -55,10 +61,26 @@ async function fill(values) {
     return true; })()`);
 }
 async function click(action) { await evaluate(`(() => { document.querySelector('[data-action="${action}"]').click(); return true; })()`); }
+async function checkAvatarNavigation(index, count = AVATARS.length) {
+  const nav = await evaluate(`(() => {
+    const carousel = document.querySelector('.entry-carousel').getBoundingClientRect();
+    const slot = document.querySelector('.entry-avatar-slot').getBoundingClientRect();
+    const image = document.querySelector('.entry-avatar-slot > .entry-avatar:last-child').getBoundingClientRect();
+    return {center:slot.x+slot.width/2, imageCenter:image.x+image.width/2, expectedCenter:carousel.x+carousel.width/2,
+      arrows:[...document.querySelectorAll('.entry-arrow')].map(b=>({hidden:b.hidden,display:getComputedStyle(b).display,disabled:b.disabled,box:b.getBoundingClientRect().toJSON()}))};
+  })()`);
+  assert.ok(Math.abs(nav.center-nav.expectedCenter)<0.01 && Math.abs(nav.imageCenter-nav.expectedCenter)<0.01, '화살표와 무관하게 아바타 중앙 정렬 유지');
+  nav.arrows.forEach((arrow,i)=>{
+    const hidden=i===0 ? index===0 : index===count-1;
+    assert.equal(arrow.hidden,hidden); assert.equal(arrow.disabled,false);
+    assert.equal(arrow.display==='none',hidden,'경계 화살표는 비활성화가 아닌 완전 숨김');
+    assert.equal(arrow.box.width,hidden?0:40);
+  });
+}
 async function capture(name) {
   await until('!document.querySelector(".entry-avatar-slot")?.hasAttribute("data-switching")', '캐릭터 전환 완료');
   await evaluate('document.fonts.ready.then(() => true)');
-  const images = await evaluate(`Promise.all([...document.querySelectorAll('#entry-root img')].map(async i => {
+  const images = await evaluate(`Promise.all([...document.querySelectorAll('#entry-root img')].filter(i=>!i.closest('[hidden]')).map(async i => {
     await i.decode(); const b = i.getBoundingClientRect();
     return {src: i.currentSrc, natural: [i.naturalWidth, i.naturalHeight], box: [b.width, b.height]};
   }))`);
@@ -138,6 +160,7 @@ try {
   const avatarSlots = [];
   for (let i = 0; i < 4; i++) {
     avatarSlots.push(await capture(`avatar-${i + 1}`));
+    await checkAvatarNavigation(i);
     assert.equal(await evaluate('document.querySelectorAll(".entry-avatar").length'), 1, '캐릭터는 한 명씩');
     const dots = await evaluate('[...document.querySelectorAll(".entry-dot")].map(d => ({active:d.getAttribute("aria-current"),width:d.firstElementChild.getBoundingClientRect().width}))');
     assert.equal(dots.length, 4);
@@ -154,17 +177,29 @@ try {
     await click('next-avatar');
   }
   await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '마지막 캐릭터 전환');
+  assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'violet', '마지막 다음 클릭은 순환하지 않음');
+  await key('ArrowRight','ArrowRight',30);
+  assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'violet', '마지막 오른쪽 키는 순환하지 않음');
   await click('previous-avatar');
   await until('document.getAnimations().some(a => a.effect.target.matches(".entry-avatar") && a.playState === "running")', '캐릭터 애니메이션 시작');
   const motion = await evaluate(`document.getAnimations().filter(a => a.effect.target.matches('.entry-avatar')).map(a => ({duration:a.effect.getTiming().duration,frames:a.effect.getKeyframes().map(k => ({opacity:k.opacity,transform:k.transform}))}))`);
   assert.equal(motion.length, 2); assert.ok(motion.every(a => a.duration === 280));
   assert.ok(motion.some(a => a.frames.some(f => f.transform.includes('translateX'))));
   await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '이전 캐릭터 전환 완료');
-  assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'violet');
+  assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'yellow');
   await evaluate(`(() => { for (let i=0;i<5;i++) document.querySelector('[data-action="next-avatar"]').click(); return true; })()`);
   await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '연속 전환 완료');
-  assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'cream');
+  assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'violet', '연속 이동도 마지막에서 멈춤');
   assert.equal(await evaluate('document.querySelectorAll(".entry-avatar").length'), 1);
+  for (let i=2;i>=0;i--) {
+    await key('ArrowLeft','ArrowLeft',30);
+    await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")','역방향 전환 완료');
+    await checkAvatarNavigation(i);
+    assert.equal(await evaluate('document.querySelector(".entry-dot[aria-current=true]").dataset.index'),String(i));
+  }
+  await key('ArrowLeft','ArrowLeft',30); await click('previous-avatar');
+  assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'cream', '첫 이전 클릭·키는 순환하지 않음');
+  assert.equal(await evaluate('document.getAnimations().filter(a=>a.effect.target.matches(".entry-avatar")).length'),0,'경계에서는 불필요한 애니메이션 없음');
   await evaluate(`(() => { document.querySelector('.entry-dot[data-index="2"]').click(); return true; })()`);
   await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")', '점 표시 직접 선택');
   assert.equal(await evaluate('document.querySelector(".entry-avatar").dataset.avatar'), 'yellow');
@@ -236,5 +271,29 @@ try {
   await submit(); await until('document.querySelector(".entry-card")?.dataset.step === "login"', '재시도 후 로그인');
   assert.equal(await evaluate('Boolean(window.spaceVR)'), false);
   assert.equal(errors.length, 0, errors.join('\n'));
-  console.log(JSON.stringify({ url, figmaCard: geometry, firstAvatar, avatarAssets: avatarSlots, dots: 'passed', delayedSceneGate: 'passed', retry: 'passed', expectedLoadFailures, errors }, null, 2));
+  // Change only the catalog response in the local browser: verify real UI at
+  // one and three avatars without editing production assets or adding hooks.
+  const dynamicCounts = [];
+  if (new URL(url).hostname === '127.0.0.1') {
+    const source = await readFile(new URL('../src/entry-state.js',import.meta.url),'utf8');
+    for (const count of [1,3]) {
+      avatarModuleOverride = source.replace(/export const AVATARS = Object.freeze\(\[[\s\S]*?\]\);/,`export const AVATARS = Object.freeze(${JSON.stringify(AVATARS.slice(0,count))});`);
+      await send('Fetch.enable',{patterns:[{urlPattern:'*/src/entry-state.js*',requestStage:'Request'}]});
+      await send('Network.clearBrowserCache'); await send('Page.navigate',{url});
+      await until('document.querySelector(".entry-card")?.dataset.step === "login"','개수 변경 후 로그인');
+      await click('signup'); await click('pass-preview');
+      await until('document.querySelector(".entry-card")?.dataset.step === "avatar"','변경된 아바타 선택');
+      assert.equal(await evaluate('document.querySelectorAll(".entry-dot").length'),count);
+      await checkAvatarNavigation(0,count); await capture(`avatar-count-${count}-first`);
+      for(let i=1;i<count;i++) {
+        await click('next-avatar'); await until('!document.querySelector(".entry-avatar-slot").hasAttribute("data-switching")','동적 개수 전환');
+        await checkAvatarNavigation(i,count);
+      }
+      await click('next-avatar'); await key('ArrowRight','ArrowRight',30);
+      assert.equal(await evaluate('document.querySelector(".entry-dot[aria-current=true]").dataset.index'),String(count-1));
+      await capture(`avatar-count-${count}-last`);
+      await send('Fetch.disable'); avatarModuleOverride=null; dynamicCounts.push(count);
+    }
+  }
+  console.log(JSON.stringify({ url, figmaCard: geometry, firstAvatar, avatarAssets: avatarSlots, navigation: 'bounded', dynamicCounts, dots: 'passed', delayedSceneGate: 'passed', retry: 'passed', expectedLoadFailures, errors }, null, 2));
 } finally { await send('Fetch.disable').catch(() => {}); ws.close(); }

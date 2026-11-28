@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
 import {finishEntryPreview} from './helpers/entry-flow.mjs';
 import {gatheringStepBoundary} from '../src/gathering-floor.js';
+import {gatheringEntrances} from '../src/gathering-entrances.js';
+const grand=gatheringEntrances().find(e=>e.id==='grand-lounge');
+const grandPoint=(distance,side=0)=>({x:grand.x+grand.dx*distance+grand.dz*side,z:grand.z+grand.dz*distance-grand.dx*side});
+const grandView=grandPoint(3.1);
 const url=process.argv[2]??'http://127.0.0.1:4173/';
 const target=(await(await fetch('http://127.0.0.1:9223/json/list')).json()).find(t=>t.type==='page');
 assert.ok(target,'별도 테스트 Chrome 페이지 필요');
@@ -54,7 +58,7 @@ try{
     await walkTo(0,13.25,true);assert.equal(await step(),'crossroads','반대 이동에서 이미 본 교차로도 즉시 표시');
     await walkTo(0,11,true);assert.equal(await step(),'relationship','다시 중앙으로 바로 교체');
     assert.deepEqual((await evaluate('window.__noticeEvents')).slice(0,4).map(e=>e.step),['crossroads','relationship','crossroads','relationship'],'양방향 경계에서 빈 화면 없이 교체');
-    await walkTo(-3,10,true);await walkTo(-5.2,9.2,true);
+    await walkTo(-3,10,true);await walkTo(grandView.x,grandView.z,true);
     assert.equal(await step(),'room-selection','중앙 안내 중에도 가구 입구 선택 안내로 교체');
     await walkTo(-3,10,true);await walkTo(0,11,true);
     assert.equal(await step(),'relationship','가구 입구에서 나가면 중앙 안내로 교체');
@@ -82,7 +86,7 @@ try{
       assert.equal(view.color,'rgb(239, 238, 236)');assert.equal(view.background,'rgba(23, 24, 26, 0.6)');assert.equal(view.radius,'12px');assert.equal(view.blur,'blur(25px)');
       assert.equal(view.role,'status');assert.equal(view.pointer,'none');assert.equal(view.inert,false);assert.equal(view.focus,true);assert.equal(view.overlays,1);
       if(first){
-        await shot('room-selection');const before=await evaluate('window.spaceVR.position');await walkTo(-4.5,9.2);
+        await shot('room-selection');const before=await evaluate('window.spaceVR.position'),moved=grandPoint(3.1,.6);await walkTo(moved.x,moved.z);
         assert.ok(Math.hypot((await evaluate('window.spaceVR.position'))[0]-before[0],(await evaluate('window.spaceVR.position'))[2]-before[2])>.3,'안내 중 이동 유지');
         await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
         assert.ok(await evaluate(`(()=>{const b=document.querySelector('.room-selection-tutorial-card').getBoundingClientRect();return b.left>=0&&b.right<=innerWidth&&b.top>=0&&b.bottom<=innerHeight})()`));
@@ -94,13 +98,13 @@ try{
       visits.push({zone:id,duration:closed.time-opened.time});
       console.log(`${id}: 실제 입구 접근·5초 안내·스타일 확인`);
     };
-    await walkTo(-3,10);await walkTo(-5.2,9.2);await notice('grand-lounge',true);
+    await walkTo(-3,10);await walkTo(grandView.x,grandView.z);await notice('grand-lounge',true);
     await walkTo(-3,10);await walkTo(-1.8,4.5);await walkTo(-2.4,1.2);await walkTo(-4.5,1.2);await walkTo(-5.18,.82);await notice('reading-nook');
     await walkTo(-4.5,1.2);await walkTo(-4.6,-.3);await notice('tiered-forum');
     await walkTo(-2.4,1.2);await walkTo(-.5,-3.5);await walkTo(4.8,-3.5);await notice('round-meeting');
     await walkTo(-.5,-3.5);await walkTo(-2.4,1.2);await walkTo(-1.8,4.5);await walkTo(0,4.8);await walkTo(1.6,4.25);await notice('s-curve-meeting');
     await walkTo(1.6,8);await walkTo(5.5,7);await walkTo(5.5,4.9);await walkTo(5.56,1.74);await notice('conversation-nook');
-    await walkTo(5.5,4.9);await walkTo(5.5,7);await walkTo(1.6,8);await walkTo(-3,10);await walkTo(-5.2,9.2);
+    await walkTo(5.5,4.9);await walkTo(5.5,7);await walkTo(1.6,8);await walkTo(-3,10);await walkTo(grandView.x,grandView.z);
     await notice('grand-lounge');
     await walkTo(-3,10);await walkTo(0,11);
     await send('Input.dispatchMouseEvent',{type:'mousePressed',x:960,y:540,button:'left',clickCount:1});
@@ -180,18 +184,21 @@ try{
     assert.equal(await evaluate('document.pointerLockElement'),null);
     console.log(JSON.stringify({url,inwardSofa:true,actualEntranceMovement:true,inside,errors},null,2));
   }else if(process.argv.includes('--coffee-table')||process.argv.includes('--reverse-lounge')){
-    await walkTo(-3,10);await walkTo(-5.2,9);await walkTo(-5.2,7.3);
-    const inside=await evaluate('window.spaceVR.position');assert.ok(inside[2]<7.4&&inside[2]>7.2,'반대쪽 새 입구로 진입');
-    await walkTo(-5.2,9);
+    const view=grandPoint(3.4),entry=grandPoint(1.3);
+    await walkTo(view.x,view.z);await walkTo(entry.x,entry.z);
+    const inside=await evaluate('window.spaceVR.position');assert.ok(Math.hypot(inside[0]-entry.x,inside[2]-entry.z)<.1,'비스듬한 안쪽 새 입구로 진입');
+    assert.equal(await evaluate('document.querySelector("[data-tutorial-step=room-selection]")?.dataset.gatheringZone'),'grand-lounge','회전한 실제 입구와 안내 위치가 일치');
+    await walkTo(view.x,view.z);
     await until('!document.querySelector(".space-tutorial-overlay")','안내 종료 후 낮은 테이블 확인');
     // Use the ordinary drag-to-look interaction to face the lounge opening.
+    const yaw=Math.atan2(grand.dx,grand.dz),dragX=960-yaw/.0022;
     await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:540});
     await send('Input.dispatchMouseEvent',{type:'mousePressed',x:960,y:540,button:'left',clickCount:1});
-    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:645,button:'left',buttons:1});
-    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:960,y:645,button:'left',clickCount:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:dragX,y:645,button:'left',buttons:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:dragX,y:645,button:'left',clickCount:1});
     await pause(250);await shot('reverse-lounge');
     const position=await evaluate('window.spaceVR.position');
-    assert.ok(Math.hypot(position[0]+5.2,position[2]-9)<.1);
+    assert.ok(Math.hypot(position[0]-view.x,position[2]-view.z)<.1);
     assert.equal(await evaluate('document.pointerLockElement'),null);assert.deepEqual(errors,[]);
     console.log(JSON.stringify({url,coffeeTableView:true,reverseLounge:true,actualEntranceMovement:true,inside,actualKeyboardMovement:true,position,errors},null,2));
   }else{

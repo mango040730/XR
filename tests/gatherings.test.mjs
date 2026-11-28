@@ -53,7 +53,7 @@ test('대형 곡선 소파 중앙 좌석은 낮은 원형 테이블로 바뀌고
   const coffee=group.root.getObjectByName('Clay_low_coffee_table');assert.ok(coffee);
   assert.equal(group.seats.length,8);
   assert.equal(group.root.getObjectByName('Clay_Clay_orange'),undefined);
-  const bounds=new Box3().setFromObject(coffee),size=bounds.getSize(new Vector3()),centre=bounds.getCenter(new Vector3());
+  const bounds=new Box3().setFromObject(coffee,true),size=bounds.getSize(new Vector3()),centre=bounds.getCenter(new Vector3());
   assert.ok(Math.abs(size.x-1.56)<.001&&Math.abs(size.z-1.56)<.001);
   assert.ok(Math.abs(size.y-.42)<.001&&Math.abs(bounds.min.y-group.floorY)<.001);
   const expectedCentre=new Vector3(0,0,.1).applyMatrix4(group.root.matrixWorld);
@@ -68,12 +68,14 @@ test('대형 곡선 소파 중앙 좌석은 낮은 원형 테이블로 바뀌고
   assert.equal(ray.intersectObject(coffee,true).length,0,'두꺼운 원통 좌석 대신 상판 아래가 비어 있는 테이블');
 });
 
-test('낮은 노란 테이블의 8인 소파는 같은 자리에서 입구가 반대편을 향하도록 180도 회전한다',()=>{
+test('낮은 노란 테이블의 8인 소파는 같은 자리에서 입구가 캡처 시점 쪽의 비스듬한 안쪽을 향한다',()=>{
   const group=edited.furniture.groups.find(g=>g.id==='grand-lounge');
   assert.deepEqual(group.root.position.toArray(),[-5.2,group.floorY,6]);assert.deepEqual(group.root.scale.toArray(),[1,1,1]);
-  assert.equal(group.root.rotation.y,Math.PI);assert.equal(group.radius,2.35);assert.equal(group.seats.length,8);
+  assert.equal(group.root.rotation.y,245*Math.PI/180);assert.equal(group.radius,2.35);assert.equal(group.seats.length,8);
   const opening=new Vector3(0,0,-1).transformDirection(group.root.matrixWorld);
-  assert.ok(opening.z>1-1e-12&&Math.abs(opening.x)<1e-12,'기존 -Z 입구를 반대 +Z 방향으로 회전');
+  assert.ok(opening.distanceTo(new Vector3(Math.sin(65*Math.PI/180),0,Math.cos(65*Math.PI/180)))<1e-12,'기존 +Z 입구를 안쪽으로 65도 돌린다');
+  const central=new Vector3(-group.x,0,-group.z).normalize();
+  assert.ok(opening.dot(central)>.2&&opening.dot(central)<.5,'공간 안쪽이되 중앙 정면만 바라보지 않는 사선 방향');
   const plant=new Vector3(...group.root.userData.planters[0].base).applyMatrix4(group.root.matrixWorld);
   assert.ok(Math.abs(plant.x+8.38)<1e-8&&Math.abs(plant.z-6.1)<1e-8,'옆 화분은 닫힌 소파 옆에서 낮은 통로를 비워 둔다');
 });
@@ -630,6 +632,7 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
     if (file === 'src/clay-gatherings.js') {
       let text = source.toString();
       text=text.slice(0,text.indexOf('\n// Move the existing planter')).replace("import { CENTRAL_PLANTER_LAYOUT } from './central-planter-layout.js';\n",'').replaceAll('centralPlanter(', 'planter(');
+      text=text.replace('const plantAngle = -Math.PI,','const plantAngle = -(zone.rotationY ?? 0),');
       const coffeeStart=text.indexOf('    // Keep the low table independent');
       text=text.slice(0,coffeeStart)+text.slice(text.indexOf('    const floorY =',coffeeStart));
       text=text.replace("      if (zone.id === 'grand-lounge') {\n", "      if (zone.id === 'grand-lounge') {\n        add(root, 'Clay_large_orange_ottoman', roundedCylinder(0.78, 0.38, 0.08), materials.orange, 0, 0, 0.1);\n");
@@ -652,7 +655,7 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
       continue;
     }
     if (file === 'src/terrace-pill-desk.js') source = Buffer.from(source.toString().replace('\nexport const PILL_LEG_INSET = 0.24;\n', '').replace('const inset = PILL_LEG_INSET;', 'const inset = Math.max(0.32, length * 0.13);'));
-    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55').replace('x: -7.6, z: 1.2, radius: 1.75','x: -9.1, z: 2.7, radius: 1.4').replaceAll(', faceCenter: true','').replace(', rotationY: Math.PI','').replace("import { gatheringIsRaised } from './gathering-floor.js';","import { centralIsRaised } from './central-room.js';").replace('  return GATHERING_LAYOUT.floorY + (gatheringIsRaised(x, z) ? 0.28 : 0);','  const scale = GATHERING_LAYOUT.floorScale;\n  return GATHERING_LAYOUT.floorY + (centralIsRaised(x / scale, z / scale) ? 0.28 : 0);'));
+    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55').replace('x: -7.6, z: 1.2, radius: 1.75','x: -9.1, z: 2.7, radius: 1.4').replaceAll(', faceCenter: true','').replace(', rotationY: 245 * Math.PI / 180','').replace("import { gatheringIsRaised } from './gathering-floor.js';","import { centralIsRaised } from './central-room.js';").replace('  return GATHERING_LAYOUT.floorY + (gatheringIsRaised(x, z) ? 0.28 : 0);','  const scale = GATHERING_LAYOUT.floorScale;\n  return GATHERING_LAYOUT.floorY + (centralIsRaised(x / scale, z / scale) ? 0.28 : 0);'));
     if (file === 'src/space-colors.js') source = Buffer.from(source.toString().replace("stairs: '#B8B8B8'", "stairs: '#CBCBCB'"));
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", '').replace("import { gatheringPlatformContour } from './gathering-floor.js';\n",'').replace(', contour: gatheringPlatformContour(L.centralRadius)',''));
     if (file === 'src/central-room.js') source=Buffer.from(source.toString().replace(', contour = null','').replace('new THREE.Shape(contour ?? points)','new THREE.Shape(points)'));

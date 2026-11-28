@@ -192,7 +192,7 @@ export function createGatheringFurniture(model) {
       }
       if (zone.table) table(root, 0.68);
       if (zone.id === 'grand-lounge') {
-        const plantAngle = -(zone.rotationY ?? 0), plantX = -R - 0.47, plantZ = 0.35;
+        const plantAngle = -Math.PI, plantX = -R - 0.47, plantZ = 0.35;
         const x = plantX * Math.cos(plantAngle) + plantZ * Math.sin(plantAngle);
         const z = -plantX * Math.sin(plantAngle) + plantZ * Math.cos(plantAngle);
         centralPlanter(root, 1.5, 0.66, x, z, 0, 1.4);

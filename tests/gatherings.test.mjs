@@ -55,15 +55,26 @@ test('대형 곡선 소파 중앙 좌석은 낮은 원형 테이블로 바뀌고
   const bounds=new Box3().setFromObject(coffee),size=bounds.getSize(new Vector3()),centre=bounds.getCenter(new Vector3());
   assert.ok(Math.abs(size.x-1.56)<.001&&Math.abs(size.z-1.56)<.001);
   assert.ok(Math.abs(size.y-.42)<.001&&Math.abs(bounds.min.y-group.floorY)<.001);
-  assert.ok(Math.abs(centre.x-group.x)<.001&&Math.abs(centre.z-group.z-.1)<.001);
+  const expectedCentre=new Vector3(0,0,.1).applyMatrix4(group.root.matrixWorld);
+  assert.ok(Math.abs(centre.x-expectedCentre.x)<.001&&Math.abs(centre.z-expectedCentre.z)<.001);
   const top=coffee.getObjectByName('Clay_coffee_table_top');
   assert.equal(top.material.color.getHexString(),'e99804');
   assert.equal(top.material.flatShading,false);
-  const ray=new Raycaster(new Vector3(group.x+.6,group.floorY+.8,group.z+.1),new Vector3(0,-1,0),0,1);
+  const ray=new Raycaster(new Vector3(centre.x+.6,group.floorY+.8,centre.z),new Vector3(0,-1,0),0,1);
   const hit=ray.intersectObject(coffee,true)[0];
   assert.ok(hit&&Math.abs(hit.point.y-group.floorY-.42)<.001,'사용할 수 있는 평평한 실제 상판');
-  ray.set(new Vector3(group.x+.9,group.floorY+.18,group.z+.1),new Vector3(-1,0,0));ray.far=.3;
+  ray.set(new Vector3(centre.x+.9,group.floorY+.18,centre.z),new Vector3(-1,0,0));ray.far=.3;
   assert.equal(ray.intersectObject(coffee,true).length,0,'두꺼운 원통 좌석 대신 상판 아래가 비어 있는 테이블');
+});
+
+test('낮은 노란 테이블의 8인 소파는 같은 자리에서 입구가 반대편을 향하도록 180도 회전한다',()=>{
+  const group=edited.furniture.groups.find(g=>g.id==='grand-lounge');
+  assert.deepEqual(group.root.position.toArray(),[-5.2,group.floorY,6]);assert.deepEqual(group.root.scale.toArray(),[1,1,1]);
+  assert.equal(group.root.rotation.y,Math.PI);assert.equal(group.radius,2.35);assert.equal(group.seats.length,8);
+  const opening=new Vector3(0,0,-1).transformDirection(group.root.matrixWorld);
+  assert.ok(opening.z>1-1e-12&&Math.abs(opening.x)<1e-12,'기존 -Z 입구를 반대 +Z 방향으로 회전');
+  const plant=new Vector3(...group.root.userData.planters[0].base).applyMatrix4(group.root.matrixWorld);
+  assert.ok(Math.abs(plant.x+8.02)<1e-8&&Math.abs(plant.z-6.35)<1e-8,'옆 화분은 기존 자리에서 낮은 통로를 비워 둔다');
 });
 
 test('노란 테이블이 있는 6인 곡선 소파 입구는 중앙을 향하고 위치·크기는 유지한다', () => {
@@ -578,6 +589,8 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
       text=text.slice(0,coffeeStart)+text.slice(text.indexOf('    const floorY =',coffeeStart));
       text=text.replace("      if (zone.id === 'grand-lounge') {\n", "      if (zone.id === 'grand-lounge') {\n        add(root, 'Clay_large_orange_ottoman', roundedCylinder(0.78, 0.38, 0.08), materials.orange, 0, 0, 0.1);\n");
       text=text.replace('    if (zone.faceCenter) root.rotation.y = Math.atan2(-zone.x, -zone.z);\n','');
+      text=text.replace('    if (zone.rotationY !== undefined) root.rotation.y = zone.rotationY;\n','');
+      text=text.replace('        const plantAngle = -(zone.rotationY ?? 0), plantX = -R - 0.47, plantZ = 0.35;\n        const x = plantX * Math.cos(plantAngle) + plantZ * Math.sin(plantAngle);\n        const z = -plantX * Math.sin(plantAngle) + plantZ * Math.cos(plantAngle);\n        planter(root, 1.5, 0.66, x, z, 0, 1.4);','        planter(root, 1.5, 0.66, -R - 0.47, 0.35, 0, 1.4);');
       const marker="    } else {\n      arc(root, 'Clay_meeting_partition'";
       const preserved = text.slice(0,text.indexOf(marker))+text.slice(text.indexOf('    root.userData.capacity'));
       assert.equal(createHash('sha256').update(preserved).digest('hex'), meetingBaseline.furnitureSource, '수정 대상 외 화분·중앙 가구 생성 코드 보존');
@@ -594,13 +607,13 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
       continue;
     }
     if (file === 'src/terrace-pill-desk.js') source = Buffer.from(source.toString().replace('\nexport const PILL_LEG_INSET = 0.24;\n', '').replace('const inset = PILL_LEG_INSET;', 'const inset = Math.max(0.32, length * 0.13);'));
-    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55').replace(', faceCenter: true','').replace("import { gatheringIsRaised } from './gathering-floor.js';","import { centralIsRaised } from './central-room.js';").replace('  return GATHERING_LAYOUT.floorY + (gatheringIsRaised(x, z) ? 0.28 : 0);','  const scale = GATHERING_LAYOUT.floorScale;\n  return GATHERING_LAYOUT.floorY + (centralIsRaised(x / scale, z / scale) ? 0.28 : 0);'));
+    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55').replace(', faceCenter: true','').replace(', rotationY: Math.PI','').replace("import { gatheringIsRaised } from './gathering-floor.js';","import { centralIsRaised } from './central-room.js';").replace('  return GATHERING_LAYOUT.floorY + (gatheringIsRaised(x, z) ? 0.28 : 0);','  const scale = GATHERING_LAYOUT.floorScale;\n  return GATHERING_LAYOUT.floorY + (centralIsRaised(x / scale, z / scale) ? 0.28 : 0);'));
     if (file === 'src/space-colors.js') source = Buffer.from(source.toString().replace("stairs: '#B8B8B8'", "stairs: '#CBCBCB'"));
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", '').replace("import { gatheringPlatformContour } from './gathering-floor.js';\n",'').replace(', contour: gatheringPlatformContour(L.centralRadius)',''));
     if (file === 'src/central-room.js') source=Buffer.from(source.toString().replace(', contour = null','').replace('new THREE.Shape(contour ?? points)','new THREE.Shape(points)'));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }
-  const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions,'Gathering_conversation-nook','Clay_low_coffee_table']);
+  const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions,'Gathering_grand-lounge','Gathering_conversation-nook','Clay_low_coffee_table']);
   let excludedTransform=false;
   const unchangedTransforms = transforms.filter(object=>{if(object.name.startsWith('Gathering_')||object.name==='Clay_front_oval_planter')excludedTransform=excludedTransformNames.has(object.name);return !excludedTransform&&object.name!=='Clay_Clay_orange';});
   let count = 0;

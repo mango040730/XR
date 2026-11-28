@@ -97,19 +97,21 @@ try{
     await pause(250);await shot('inward-sofa');assert.deepEqual(errors,[]);
     assert.equal(await evaluate('document.pointerLockElement'),null);
     console.log(JSON.stringify({url,inwardSofa:true,actualEntranceMovement:true,inside,errors},null,2));
-  }else if(process.argv.includes('--coffee-table')){
-    await walkTo(-1.8,4.5);await walkTo(-2.4,1.2);await walkTo(-5.2,1.2);await walkTo(-5.2,3.6);
+  }else if(process.argv.includes('--coffee-table')||process.argv.includes('--reverse-lounge')){
+    await walkTo(-3,10);await walkTo(-5.2,9);await walkTo(-5.2,7.3);
+    const inside=await evaluate('window.spaceVR.position');assert.ok(inside[2]<7.4&&inside[2]>7.2,'반대쪽 새 입구로 진입');
+    await walkTo(-5.2,9);
     await until('!document.querySelector(".space-tutorial-overlay")','안내 종료 후 낮은 테이블 확인');
     // Use the ordinary drag-to-look interaction to face the lounge opening.
     await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:540});
     await send('Input.dispatchMouseEvent',{type:'mousePressed',x:960,y:540,button:'left',clickCount:1});
-    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960-Math.PI/.0022,y:690,button:'left',buttons:1});
-    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:960-Math.PI/.0022,y:690,button:'left',clickCount:1});
-    await pause(250);await shot('low-coffee-table');
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:645,button:'left',buttons:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:960,y:645,button:'left',clickCount:1});
+    await pause(250);await shot('reverse-lounge');
     const position=await evaluate('window.spaceVR.position');
-    assert.ok(Math.hypot(position[0]+5.2,position[2]-3.6)<.1);
+    assert.ok(Math.hypot(position[0]+5.2,position[2]-9)<.1);
     assert.equal(await evaluate('document.pointerLockElement'),null);assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({url,coffeeTableView:true,actualKeyboardMovement:true,position,errors},null,2));
+    console.log(JSON.stringify({url,coffeeTableView:true,reverseLounge:true,actualEntranceMovement:true,inside,actualKeyboardMovement:true,position,errors},null,2));
   }else{
   await walkTo(1.6,8);await walkTo(1.6,4.25);await until('!document.querySelector(".space-tutorial-overlay")','안내 종료 후 가구 확인');await shot('ten-seat-entrance');
   const ten=await circuit('10인 모듈',1.6,.4,2.44);

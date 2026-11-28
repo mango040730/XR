@@ -191,7 +191,10 @@ export function createGatheringFurniture(model) {
       }
       if (zone.table) table(root, 0.68);
       if (zone.id === 'grand-lounge') {
-        planter(root, 1.5, 0.66, -R - 0.47, 0.35, 0, 1.4);
+        const plantAngle = -(zone.rotationY ?? 0), plantX = -R - 0.47, plantZ = 0.35;
+        const x = plantX * Math.cos(plantAngle) + plantZ * Math.sin(plantAngle);
+        const z = -plantX * Math.sin(plantAngle) + plantZ * Math.cos(plantAngle);
+        planter(root, 1.5, 0.66, x, z, 0, 1.4);
       } else {
         planter(root, 1.12, 0.58, -0.2, -R - 0.48, 0, 1.1);
       }
@@ -225,6 +228,7 @@ export function createGatheringFurniture(model) {
     }
     const floorY = gatheringFloorY(zone.x, zone.z);
     if (zone.faceCenter) root.rotation.y = Math.atan2(-zone.x, -zone.z);
+    if (zone.rotationY !== undefined) root.rotation.y = zone.rotationY;
     root.position.set(zone.x, floorY, zone.z); model.add(root);
     groups.push({ ...zone, root, seats, floorY });
   }

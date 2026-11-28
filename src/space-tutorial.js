@@ -1,28 +1,27 @@
 import './space-tutorial.css';
 import {createPlazaTutorialState} from './plaza-tutorial-state.js';
-import {createCrossroadsTutorialState} from './crossroads-tutorial-state.js';
-import {createRelationshipTutorialState} from './relationship-tutorial-state.js';
-import {createRoomSelectionTutorialState} from './room-selection-tutorial-state.js';
+import {createSpatialNoticeState} from './spatial-notice-state.js';
 
 export function createSpaceTutorial({layout,onModalChange}) {
   const state=createPlazaTutorialState(layout);
+  const spatial=createSpatialNoticeState(layout);
   const notices=[
-    {id:'crossroads',state:createCrossroadsTutorialState(layout),title:'이곳은 교차로입니다!',body:'각자 편안한 시간을 보내다가 합석할 수 있는 곳이에요.'},
-    {id:'relationship',state:createRelationshipTutorialState(layout),title:'이곳은 관계의 방입니다!',body:'원하는 콘텐츠, 원하는 사람들과 모임을 가져보세요.'},
-    {id:'room-selection',state:createRoomSelectionTutorialState(),title:'원하는 것을 골라보세요',body:'원하는 모임 형태를 컨트롤러로 탐색하세요.'},
+    {id:'crossroads',title:'이곳은 교차로입니다!',body:'각자 편안한 시간을 보내다가 합석할 수 있는 곳이에요.'},
+    {id:'relationship',title:'이곳은 관계의 방입니다!',body:'원하는 콘텐츠, 원하는 사람들과 모임을 가져보세요.'},
+    {id:'room-selection',title:'원하는 것을 골라보세요',body:'원하는 모임 형태를 컨트롤러로 탐색하세요.'},
   ];
   let root=null,timedRoot=null,currentNotice=null,disposed=false;
   function updateNoticeTime(){
-    if(currentNotice?.state.tick(performance.now(),!document.hidden)){
+    if(spatial.tick(performance.now(),!document.hidden)){
       timedRoot?.remove();timedRoot=null;currentNotice=null;
     }
   }
   document.addEventListener('visibilitychange',updateNoticeTime);
-  function showNotice(notice){
+  function showNotice(notice,zoneId){
     currentNotice=notice;timedRoot=document.createElement('section');
     timedRoot.className=`entry-overlay space-tutorial-overlay timed-tutorial-overlay ${notice.id}-tutorial-overlay`;
     timedRoot.dataset.tutorialStep=notice.id;
-    if(notice.state.zoneId)timedRoot.dataset.gatheringZone=notice.state.zoneId;
+    if(zoneId)timedRoot.dataset.gatheringZone=zoneId;
     timedRoot.setAttribute('role','status');timedRoot.setAttribute('aria-live','polite');
     timedRoot.setAttribute('aria-atomic','true');
     timedRoot.innerHTML=`<div class="entry-card space-tutorial-card timed-tutorial-card ${notice.id}-tutorial-card"><div class="space-tutorial-copy"><h1>${notice.title}</h1><p class="space-tutorial-body">${notice.body}</p></div></div>`;
@@ -70,17 +69,19 @@ export function createSpaceTutorial({layout,onModalChange}) {
     observe(position){
       if(disposed)return;
       updateNoticeTime();
-      // Observe every region even while a prior notice is reading so a quick
-      // crossing is queued, with its own full reading time and no overlap.
-      for(const notice of notices)notice.state.observe(position,{blocked:Boolean(currentNotice||state.active||notices.some(other=>other!==notice&&other.state.active))});
+      // A region change replaces the previous notice in this frame, including
+      // return trips and module entrances. Never resume an old timer later.
+      if(spatial.observe(position,{blocked:state.active})){
+        timedRoot?.remove();timedRoot=null;currentNotice=null;
+        const next=spatial.current;
+        if(next)showNotice(notices.find(notice=>notice.id===next.id),next.zoneId);
+      }
       if(currentNotice||state.active)return;
-      const pending=notices.find(notice=>notice.state.active);
-      if(pending){showNotice(pending);return;}
       if(state.observe(position)){onModalChange(true);render();}
     },
     dispose(){
       if(disposed)return;disposed=true;if(state.active)close();root?.remove();root=null;
-      for(const notice of notices)notice.state.dispose();
+      spatial.dispose();
       timedRoot?.remove();timedRoot=null;currentNotice=null;
       document.removeEventListener('visibilitychange',updateNoticeTime);
     },

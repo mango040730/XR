@@ -13,17 +13,18 @@ async function evaluate(expression){const r=await send('Runtime.evaluate',{expre
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(expression,message){const end=Date.now()+120000;while(!await evaluate(expression)){assert.ok(Date.now()<end,message+': '+errors.join('\n'));await pause(75);}}
 async function keys(next){
-  for(const code of [...held])if(!next.includes(code)){await send('Input.dispatchKeyEvent',{type:'keyUp',code,key:code.slice(-1).toLowerCase()});held.delete(code);}
-  for(const code of next)if(!held.has(code)){await send('Input.dispatchKeyEvent',{type:'keyDown',code,key:code.slice(-1).toLowerCase()});held.add(code);}
+  const key=code=>code.startsWith('Shift')?'Shift':code.slice(-1).toLowerCase();
+  for(const code of [...held])if(!next.includes(code)){await send('Input.dispatchKeyEvent',{type:'keyUp',code,key:key(code)});held.delete(code);}
+  for(const code of next)if(!held.has(code)){await send('Input.dispatchKeyEvent',{type:'keyDown',code,key:key(code)});held.add(code);}
 }
-async function walkTo(x,z){
+async function walkTo(x,z,fast=false){
   const deadline=Date.now()+12000;let last=null,movedAt=Date.now();
   while(true){
     const p=await evaluate('window.spaceVR.position'),dx=x-p[0],dz=z-p[2];
     if(Math.hypot(dx,dz)<.085){await keys([]);return p;}
     if(!last||Math.hypot(p[0]-last[0],p[2]-last[2])>.015){last=p;movedAt=Date.now();}
     assert.ok(Date.now()<deadline&&Date.now()-movedAt<2200,`실제 이동 막힘: ${p} -> ${x},${z}`);
-    const next=[];if(Math.abs(dx)>.035)next.push(dx>0?'KeyD':'KeyA');if(Math.abs(dz)>.035)next.push(dz>0?'KeyS':'KeyW');
+    const next=fast?['ShiftLeft']:[];if(Math.abs(dx)>.035)next.push(dx>0?'KeyD':'KeyA');if(Math.abs(dz)>.035)next.push(dz>0?'KeyS':'KeyW');
     await keys(next);await pause(25);
   }
 }
@@ -42,8 +43,32 @@ try{
   await until('window.spaceVR?.entered&&!document.getElementById("entry-root")','입장');
   await keys(['KeyW']);await until('Boolean(document.querySelector("[data-tutorial-step=plaza]"))','광장 안내');await keys([]);
   await evaluate('document.querySelector("[data-tutorial-action=next]").click();document.querySelector("[data-tutorial-action=close]").click()');
-  await walkTo(0,11);await walkTo(0,8);
-  if(process.argv.includes('--room-selection')){
+  const transitions=process.argv.includes('--notice-transitions');
+  if(transitions)await evaluate(`window.__noticeEvents=[];window.__noticeOverlap=false;window.__noticeObserver=new MutationObserver(()=>{const e=document.querySelector('.timed-tutorial-overlay');window.__noticeEvents.push({step:e?.dataset.tutorialStep??null,zone:e?.dataset.gatheringZone??null,time:performance.now(),position:window.spaceVR.position});if(document.querySelectorAll('.space-tutorial-overlay').length>1)window.__noticeOverlap=true;});window.__noticeObserver.observe(document.body,{childList:true});`);
+  await walkTo(0,11,transitions);if(!transitions)await walkTo(0,8);
+  if(transitions){
+    const step=()=>evaluate('document.querySelector(".timed-tutorial-overlay")?.dataset.tutorialStep??null');
+    assert.equal(await step(),'relationship','교차로가 끝나기 전 중앙 안내로 즉시 교체');
+    let events=await evaluate('window.__noticeEvents');const firstGray=events.find(e=>e.step==='crossroads'),firstCentral=events.find(e=>e.step==='relationship');
+    assert.ok(firstGray&&firstCentral&&firstCentral.time-firstGray.time<4900,'교차로 5초가 차기 전 중앙 진입');
+    await walkTo(0,13.25,true);assert.equal(await step(),'crossroads','반대 이동에서 이미 본 교차로도 즉시 표시');
+    await walkTo(0,11,true);assert.equal(await step(),'relationship','다시 중앙으로 바로 교체');
+    assert.deepEqual((await evaluate('window.__noticeEvents')).slice(0,4).map(e=>e.step),['crossroads','relationship','crossroads','relationship'],'양방향 경계에서 빈 화면 없이 교체');
+    await walkTo(-3,10,true);await walkTo(-5.2,9.2,true);
+    assert.equal(await step(),'room-selection','중앙 안내 중에도 가구 입구 선택 안내로 교체');
+    await walkTo(-3,10,true);await walkTo(0,11,true);
+    assert.equal(await step(),'relationship','가구 입구에서 나가면 중앙 안내로 교체');
+    await until('!document.querySelector(".timed-tutorial-overlay")','새 중앙 안내의 5초 자동 닫힘');
+    events=await evaluate('window.__noticeEvents');const last=events.findLast(e=>e.step==='relationship'),closed=events.find(e=>e.time>last.time&&e.step===null);
+    assert.ok(closed.time-last.time>=4990&&closed.time-last.time<5600,'교체된 안내는 이전 타이머와 무관하게 새 5초');
+    await pause(300);assert.equal(await step(),null,'같은 공간에 멈춰 있으면 반복하지 않음');
+    await walkTo(0,13.25,true);assert.equal(await step(),'crossroads','읽기를 마친 뒤 역방향 진입도 현재 공간 안내');
+    await shot('notice-transitions');assert.equal(await evaluate('window.__noticeOverlap'),false);
+    assert.equal(await evaluate('document.pointerLockElement'),null);assert.equal(await evaluate('document.querySelector("canvas").inert'),false);
+    assert.equal(await evaluate('document.activeElement===document.querySelector("canvas")'),true);
+    events=await evaluate('window.__noticeEvents');await evaluate('window.__noticeObserver.disconnect()');assert.deepEqual(errors,[]);
+    console.log(JSON.stringify({url,events,immediateBothDirections:true,moduleTransitions:true,freshTimer:closed.time-last.time,noOverlap:true,errors},null,2));
+  }else if(process.argv.includes('--room-selection')){
     await until('!document.querySelector(".space-tutorial-overlay")','중앙 첫 안내 종료');
     await evaluate(`window.__selectionEvents=[];window.__selectionObserver=new MutationObserver(()=>{const e=document.querySelector('[data-tutorial-step="room-selection"]');window.__selectionEvents.push({zone:e?.dataset.gatheringZone??null,time:performance.now()});});window.__selectionObserver.observe(document.body,{childList:true});`);
     const inspect=()=>evaluate(`(()=>{const root=document.querySelector('[data-tutorial-step="room-selection"]');if(!root)return null;const c=root.querySelector('.entry-card'),b=c.getBoundingClientRect(),s=getComputedStyle(c),h=getComputedStyle(c.querySelector('h1')),p=getComputedStyle(c.querySelector('p'));return {zone:root.dataset.gatheringZone,box:[b.width,b.height],center:[b.x+b.width/2,b.y+b.height/2],padding:[s.paddingTop,s.paddingRight],gap:getComputedStyle(c.querySelector('.space-tutorial-copy')).gap,text:c.innerText,typography:[h.fontFamily,h.fontSize,h.lineHeight,h.fontWeight,p.fontSize,p.lineHeight,p.fontWeight],color:p.color,background:s.backgroundColor,radius:s.borderRadius,blur:s.backdropFilter,role:root.getAttribute('role'),pointer:getComputedStyle(root).pointerEvents,inert:document.querySelector('canvas').inert,focus:document.activeElement===document.querySelector('canvas'),overlays:document.querySelectorAll('.space-tutorial-overlay').length};})()`);
@@ -64,7 +89,7 @@ try{
         await shot('room-selection-mobile');await send('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});
       }
       await until('!document.querySelector("[data-tutorial-step=room-selection]")','5초 후 안내 닫힘');
-      const events=await evaluate('window.__selectionEvents'),opened=events.find(e=>e.zone===id),closed=events.find(e=>e.time>opened.time&&e.zone===null);
+      const events=await evaluate('window.__selectionEvents'),opened=events.findLast(e=>e.zone===id),closed=events.find(e=>e.time>opened.time&&e.zone===null);
       assert.ok(closed.time-opened.time>=4990&&closed.time-opened.time<5600,'표시된 읽기 시간 5초');
       visits.push({zone:id,duration:closed.time-opened.time});
       console.log(`${id}: 실제 입구 접근·5초 안내·스타일 확인`);
@@ -76,13 +101,13 @@ try{
     await walkTo(-.5,-3.5);await walkTo(-2.4,1.2);await walkTo(-1.8,4.5);await walkTo(0,4.8);await walkTo(1.6,4.25);await notice('s-curve-meeting');
     await walkTo(1.6,8);await walkTo(5.5,7);await walkTo(5.5,4.9);await walkTo(5.56,1.74);await notice('conversation-nook');
     await walkTo(5.5,4.9);await walkTo(5.5,7);await walkTo(1.6,8);await walkTo(-3,10);await walkTo(-5.2,9.2);
-    assert.equal(await evaluate('Boolean(document.querySelector("[data-tutorial-step=room-selection]"))'),false,'같은 입구 재접근은 반복 없음');
+    await notice('grand-lounge');
     await walkTo(-3,10);await walkTo(0,11);
     await send('Input.dispatchMouseEvent',{type:'mousePressed',x:960,y:540,button:'left',clickCount:1});
     await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:660,button:'left',buttons:1});
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:960,y:660,button:'left',clickCount:1});await pause(250);await shot('central-planters');
     await evaluate('window.__selectionObserver.disconnect()');assert.deepEqual(errors,[]);assert.equal(await evaluate('document.pointerLockElement'),null);
-    console.log(JSON.stringify({url,visits,realKeyboardMovement:true,mobile:true,repeat:false,errors},null,2));
+    console.log(JSON.stringify({url,visits,realKeyboardMovement:true,mobile:true,reentry:true,errors},null,2));
   }else if(process.argv.includes('--lower-passage')){
     const lanePoint=z=>{
       const slope=(gatheringStepBoundary(z+.001)-gatheringStepBoundary(z-.001))/.002,n=Math.hypot(1,slope);

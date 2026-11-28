@@ -6,6 +6,7 @@ import {createTimedRegionTutorialState} from './timed-region-tutorial-state.js';
 // Location owns the notice, not a queue of unfinished reading timers.
 export function createSpatialNoticeState(layout,zones){
   const entrances=gatheringEntrances(zones);
+  const seen=new Set();
   let region=null,current=null,timer=null,anchor=null,disposed=false;
   function locate(position){
     if(isOnGrayTerrace(position,layout))return {id:'crossroads'};
@@ -36,7 +37,8 @@ export function createSpatialNoticeState(layout,zones){
       if(key(next)===region||Math.hypot(position.x-anchor.x,position.z-anchor.z)<.05)return false;
       timer?.dispose();timer=null;current=null;
       region=key(next);anchor={...position};
-      if(next){
+      if(next&&!seen.has(next.id)){
+        seen.add(next.id);
         current=next;timer=createTimedRegionTutorialState(()=>true);timer.start();
       }
       return true;

@@ -82,6 +82,23 @@ try{
     await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:dragX,y:622,button:'left',clickCount:1});
     await pause(250);await shot('three-three-floor');assert.deepEqual(errors,[]);
     console.log(JSON.stringify({url,forum,lower,upper,returned,bidirectionalStep:true,errors},null,2));
+  }else if(process.argv.includes('--four-seat-lounge')){
+    await walkTo(-1.8,4.5);await walkTo(-2.4,1.2);await walkTo(-4.5,1.2);
+    const centre={x:-7.6,z:1.2},direction={x:7.6/Math.hypot(7.6,1.2),z:-1.2/Math.hypot(7.6,1.2)};
+    const view={x:centre.x+direction.x*3,z:centre.z+direction.z*3};
+    await walkTo(view.x,view.z);
+    await walkTo(centre.x+direction.x,centre.z+direction.z);
+    const inside=await evaluate('window.spaceVR.position');
+    assert.ok(Math.abs(inside[1]-1.175)<.012,'넓어진 4인 소파는 낮은 바닥에 접지');
+    await walkTo(view.x,view.z);await until('!document.querySelector(".space-tutorial-overlay")','안내 종료 후 4인 소파 확인');
+    const yaw=Math.atan2(direction.x,direction.z),dragX=960-yaw/.0022;
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:540});
+    await send('Input.dispatchMouseEvent',{type:'mousePressed',x:960,y:540,button:'left',clickCount:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:dragX,y:613,button:'left',buttons:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:dragX,y:613,button:'left',clickCount:1});
+    await pause(250);await shot('four-seat-lounge');assert.deepEqual(errors,[]);
+    assert.equal(await evaluate('document.pointerLockElement'),null);
+    console.log(JSON.stringify({url,fourSeatLounge:true,actualEntranceMovement:true,inside,errors},null,2));
   }else if(process.argv.includes('--inward-sofa')){
     await walkTo(1.6,8);await walkTo(5.5,7);await walkTo(5.5,4.9);
     const direction={x:-8/Math.hypot(8,2.5),z:-2.5/Math.hypot(8,2.5)};

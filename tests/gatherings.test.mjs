@@ -77,6 +77,27 @@ test('낮은 노란 테이블의 8인 소파는 같은 자리에서 입구가 �
   assert.ok(Math.abs(plant.x+8.02)<1e-8&&Math.abs(plant.z-6.35)<1e-8,'옆 화분은 기존 자리에서 낮은 통로를 비워 둔다');
 });
 
+test('4인 소파는 넓어진 실제 좌판을 유지하고 두 모듈 사이 중앙 쪽으로 이동해 안쪽을 향한다',()=>{
+  const group=edited.furniture.groups.find(g=>g.id==='reading-nook');
+  assert.deepEqual(group.root.position.toArray(),[-7.6,L.floorY,1.2]);assert.deepEqual(group.root.scale.toArray(),[1,1,1]);
+  assert.equal(group.radius,1.75);assert.equal(group.seats.length,4);
+  assert.ok(Math.hypot(group.x,group.z)<Math.hypot(-9.1,2.7)-1.7,'중심까지의 거리를 약 1.8m 줄인다');
+  const inward=new Vector3(-group.x,0,-group.z).normalize();assert.ok(group.root.getWorldDirection(new Vector3()).dot(inward)>1-1e-12);
+  const ray=new Raycaster(new Vector3(),new Vector3(0,-1,0),0,.25);
+  for(const seat of group.seats){
+    const radial=new Vector3(seat.position[0],0,seat.position[2]).normalize(),along=new Vector3(radial.z,0,-radial.x);
+    for(const offset of [-.45,0,.45]){
+      const point=radial.clone().multiplyScalar(group.radius-.59).addScaledVector(along,offset).setY(.60).applyMatrix4(group.root.matrixWorld);
+      ray.ray.origin.copy(point);const hit=ray.intersectObject(seat.mesh,false)[0];
+      assert.ok(hit&&Math.abs(hit.point.y-group.floorY-.46)<.015,'4개 좌판 각각 안쪽에 폭 90cm의 실제 앉는 상면');
+    }
+  }
+  for(const id of ['tiered-forum','grand-lounge']){
+    const other=edited.furniture.groups.find(g=>g.id===id);
+    assert.ok(Math.hypot(group.x-other.x,group.z-other.z)-(group.radius+.1)-(other.radius+(other.kind==='sofa'?.1:0))>1,'두 이웃 모듈과 1m 이상 여유');
+  }
+});
+
 test('노란 테이블이 있는 6인 곡선 소파 입구는 중앙을 향하고 위치·크기는 유지한다', () => {
   const group=edited.furniture.groups.find(g=>g.id==='conversation-nook');
   assert.deepEqual(group.root.position.toArray(),[8,group.floorY,2.5]);
@@ -319,12 +340,13 @@ test('실제 병합 충돌 장면에서 새 입구·계단·중앙 통로를 연
         check(Math.sin(angle)*aisleRadius,Math.cos(angle)*aisleRadius,Math.cos(angle),-Math.sin(angle),1.0,.15);
       }
     }
-    const conversation=edited.furniture.groups.find(g=>g.id==='conversation-nook');
-    const inward=new Vector3(0,0,-1).transformDirection(conversation.root.matrixWorld);
-    for(let z=conversation.radius+.7;z>=1.05;z-=.05)for(const offset of [-.5,0,.5])for(const h of [.4,.95,1.5]) {
-      const point=new Vector3(offset,h+.025,z).applyMatrix4(conversation.root.matrixWorld);
-      ray.set(point,inward);ray.far=.27;
-      assert.equal(ray.intersectObject(body).length,0,'중앙에서 회전한 소파 입구까지 1m 폭 통로');
+    for(const sofa of edited.furniture.groups.filter(g=>g.faceCenter)){
+      const inward=new Vector3(0,0,-1).transformDirection(sofa.root.matrixWorld);
+      for(let z=sofa.radius+.7;z>=1.05;z-=.05)for(const offset of [-.5,0,.5])for(const h of [.4,.95,1.5]) {
+        const point=new Vector3(offset,h+.025,z).applyMatrix4(sofa.root.matrixWorld);
+        ray.set(point,inward);ray.far=.27;
+        assert.equal(ray.intersectObject(body).length,0,`${sofa.id} 중앙에서 회전한 소파 입구까지 1m 폭 통로`);
+      }
     }
   } finally { for (const mesh of [body, floor]) { mesh.geometry.dispose(); mesh.material.dispose(); } }
 });
@@ -607,13 +629,13 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
       continue;
     }
     if (file === 'src/terrace-pill-desk.js') source = Buffer.from(source.toString().replace('\nexport const PILL_LEG_INSET = 0.24;\n', '').replace('const inset = PILL_LEG_INSET;', 'const inset = Math.max(0.32, length * 0.13);'));
-    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55').replace(', faceCenter: true','').replace(', rotationY: Math.PI','').replace("import { gatheringIsRaised } from './gathering-floor.js';","import { centralIsRaised } from './central-room.js';").replace('  return GATHERING_LAYOUT.floorY + (gatheringIsRaised(x, z) ? 0.28 : 0);','  const scale = GATHERING_LAYOUT.floorScale;\n  return GATHERING_LAYOUT.floorY + (centralIsRaised(x / scale, z / scale) ? 0.28 : 0);'));
+    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55').replace('x: -7.6, z: 1.2, radius: 1.75','x: -9.1, z: 2.7, radius: 1.4').replaceAll(', faceCenter: true','').replace(', rotationY: Math.PI','').replace("import { gatheringIsRaised } from './gathering-floor.js';","import { centralIsRaised } from './central-room.js';").replace('  return GATHERING_LAYOUT.floorY + (gatheringIsRaised(x, z) ? 0.28 : 0);','  const scale = GATHERING_LAYOUT.floorScale;\n  return GATHERING_LAYOUT.floorY + (centralIsRaised(x / scale, z / scale) ? 0.28 : 0);'));
     if (file === 'src/space-colors.js') source = Buffer.from(source.toString().replace("stairs: '#B8B8B8'", "stairs: '#CBCBCB'"));
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", '').replace("import { gatheringPlatformContour } from './gathering-floor.js';\n",'').replace(', contour: gatheringPlatformContour(L.centralRadius)',''));
     if (file === 'src/central-room.js') source=Buffer.from(source.toString().replace(', contour = null','').replace('new THREE.Shape(contour ?? points)','new THREE.Shape(points)'));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }
-  const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions,'Gathering_grand-lounge','Gathering_conversation-nook','Clay_low_coffee_table']);
+  const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions,'Gathering_grand-lounge','Gathering_reading-nook','Gathering_conversation-nook','Clay_low_coffee_table']);
   let excludedTransform=false;
   const unchangedTransforms = transforms.filter(object=>{if(object.name.startsWith('Gathering_')||object.name==='Clay_front_oval_planter')excludedTransform=excludedTransformNames.has(object.name);return !excludedTransform&&object.name!=='Clay_Clay_orange';});
   let count = 0;

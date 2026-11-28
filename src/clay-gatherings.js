@@ -191,7 +191,6 @@ export function createGatheringFurniture(model) {
       }
       if (zone.table) table(root, 0.68);
       if (zone.id === 'grand-lounge') {
-        add(root, 'Clay_large_orange_ottoman', roundedCylinder(0.78, 0.38, 0.08), materials.orange, 0, 0, 0.1);
         planter(root, 1.5, 0.66, -R - 0.47, 0.35, 0, 1.4);
       } else {
         planter(root, 1.12, 0.58, -0.2, -R - 0.48, 0, 1.1);
@@ -216,6 +215,14 @@ export function createGatheringFurniture(model) {
     }
     root.userData.capacity = zone.capacity; root.userData.kind = zone.kind;
     batchClayProps(root);
+    // Keep the low table independent of the sofa and its original finishes.
+    if (zone.id === 'grand-lounge') {
+      const coffee = new THREE.Group(); coffee.name = 'Clay_low_coffee_table'; root.add(coffee);
+      add(coffee, 'Clay_coffee_table_top', roundedCylinder(0.78, 0.08, 0.03), materials.gold, 0, 0.34, 0.1);
+      add(coffee, 'Clay_coffee_table_pedestal', roundedCylinder(0.1, 0.34, 0.025), materials.shell, 0, 0, 0.1);
+      add(coffee, 'Clay_coffee_table_foot', roundedCylinder(0.42, 0.06, 0.02), materials.shell, 0, 0, 0.1);
+      for (const part of coffee.children) part.geometry.normalizeNormals();
+    }
     const floorY = gatheringFloorY(zone.x, zone.z);
     root.position.set(zone.x, floorY, zone.z); model.add(root);
     groups.push({ ...zone, root, seats, floorY });

@@ -46,6 +46,25 @@ test('각 모임 구역에 실제 4~10개의 독립된 1인 좌석이 있고 좌
   assert.equal(GATHERING_ZONES.length, 6);
 });
 
+test('대형 곡선 소파 중앙 좌석은 낮은 원형 테이블로 바뀌고 8석과 통로는 유지된다', () => {
+  const group=edited.furniture.groups.find(g=>g.id==='grand-lounge');
+  const coffee=group.root.getObjectByName('Clay_low_coffee_table');assert.ok(coffee);
+  assert.equal(group.seats.length,8);
+  assert.equal(group.root.getObjectByName('Clay_Clay_orange'),undefined);
+  const bounds=new Box3().setFromObject(coffee),size=bounds.getSize(new Vector3()),centre=bounds.getCenter(new Vector3());
+  assert.ok(Math.abs(size.x-1.56)<.001&&Math.abs(size.z-1.56)<.001);
+  assert.ok(Math.abs(size.y-.42)<.001&&Math.abs(bounds.min.y-group.floorY)<.001);
+  assert.ok(Math.abs(centre.x-group.x)<.001&&Math.abs(centre.z-group.z-.1)<.001);
+  const top=coffee.getObjectByName('Clay_coffee_table_top');
+  assert.equal(top.material.color.getHexString(),'e99804');
+  assert.equal(top.material.flatShading,false);
+  const ray=new Raycaster(new Vector3(group.x+.6,group.floorY+.8,group.z+.1),new Vector3(0,-1,0),0,1);
+  const hit=ray.intersectObject(coffee,true)[0];
+  assert.ok(hit&&Math.abs(hit.point.y-group.floorY-.42)<.001,'사용할 수 있는 평평한 실제 상판');
+  ray.set(new Vector3(group.x+.9,group.floorY+.18,group.z+.1),new Vector3(-1,0,0));ray.far=.3;
+  assert.equal(ray.intersectObject(coffee,true).length,0,'두꺼운 원통 좌석 대신 상판 아래가 비어 있는 테이블');
+});
+
 test('중앙 계단형 라운지는 넓어진 두 층에 5석씩 배치해 총 10석을 유지한다', () => {
   const group = edited.furniture.groups.find(g => g.kind === 'forum');
   const treads = group.root.children.filter(m => m.name === 'Clay_forum_tread');
@@ -433,18 +452,20 @@ test('각 책상의 모든 의자가 두 지지 다리 사이에 여유 있게 �
   for (const material of materials) { if (!material.userData.smokedWood) material.bumpMap?.dispose();material.dispose(); }
 });
 
-test('수정 대상 미팅 모듈 외 주변 가구·조명·카메라·재질과 테이블 디자인은 보존된다', async () => {
+test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계단 테이블 디자인은 보존된다', async () => {
   const { commit, sourceFiles, transforms, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
   assert.equal(commit, '767bdf9');
   const photoBaseline = JSON.parse(await readFile(new URL('./helpers/wood-photo-baseline.json', import.meta.url)));
   const planterBaseline = JSON.parse(await readFile(new URL('./helpers/open-planter-baseline.json', import.meta.url)));
   const meetingBaseline = JSON.parse(await readFile(new URL('./helpers/meeting-clearance-baseline.json', import.meta.url)));
+  const coffeeBaseline = JSON.parse(await readFile(new URL('./helpers/lounge-coffee-baseline.json', import.meta.url)));
   assert.equal(edited.stairs.material[0].color.getHexString(), 'b8b8b8');
   const meetingExclusions=['Gathering_round-meeting','Gathering_s-curve-meeting'];
-  const snapshot = appearanceSnapshot(model, { materialExclusions: [], subtreeExclusions: ['Gathering_tiered-forum',...meetingExclusions] });
-  assert.equal(snapshot.meshes, meetingBaseline.exceptForum.meshes); assert.equal(snapshot.surroundings, meetingBaseline.exceptForum.surroundings);
-  const unmodified=appearanceSnapshot(model,{materialExclusions:[],subtreeExclusions:meetingExclusions});
-  assert.equal(unmodified.meshes,meetingBaseline.unmodified.meshes);assert.equal(unmodified.surroundings,meetingBaseline.unmodified.surroundings);
+  const tableExclusions=['Clay_Clay_orange','Clay_low_coffee_table'];
+  const snapshot = appearanceSnapshot(model, { materialExclusions: [], subtreeExclusions: ['Gathering_tiered-forum',...meetingExclusions,...tableExclusions] });
+  assert.equal(snapshot.meshes, coffeeBaseline.exceptOlderEdits.meshes); assert.equal(snapshot.surroundings, coffeeBaseline.exceptOlderEdits.surroundings);
+  const unmodified=appearanceSnapshot(model,{materialExclusions:[],subtreeExclusions:tableExclusions});
+  assert.equal(unmodified.meshes,coffeeBaseline.outsideTable.meshes);assert.equal(unmodified.surroundings,coffeeBaseline.outsideTable.surroundings);
   // CPU/V8 versions can differ at the last floating-point bit. Preserve all
   // unchanged geometry/light/camera source bytes, then compare table buffers against the
   // untouched original geometry factory in the same execution environment.
@@ -462,7 +483,10 @@ test('수정 대상 미팅 모듈 외 주변 가구·조명·카메라·재질�
       continue;
     }
     if (file === 'src/clay-gatherings.js') {
-      const text = source.toString();
+      let text = source.toString();
+      const coffeeStart=text.indexOf('    // Keep the low table independent');
+      text=text.slice(0,coffeeStart)+text.slice(text.indexOf('    const floorY =',coffeeStart));
+      text=text.replace("      if (zone.id === 'grand-lounge') {\n", "      if (zone.id === 'grand-lounge') {\n        add(root, 'Clay_large_orange_ottoman', roundedCylinder(0.78, 0.38, 0.08), materials.orange, 0, 0, 0.1);\n");
       const marker="    } else {\n      arc(root, 'Clay_meeting_partition'";
       const preserved = text.slice(0,text.indexOf(marker))+text.slice(text.indexOf('    root.userData.capacity'));
       assert.equal(createHash('sha256').update(preserved).digest('hex'), meetingBaseline.furnitureSource, '수정 대상 외 화분·중앙 가구 생성 코드 보존');
@@ -484,9 +508,9 @@ test('수정 대상 미팅 모듈 외 주변 가구·조명·카메라·재질�
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", ''));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }
-  const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions]);
+  const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions,'Clay_low_coffee_table']);
   let excludedTransform=false;
-  const unchangedTransforms = transforms.filter(object=>{if(object.name.startsWith('Gathering_')||object.name==='Clay_front_oval_planter')excludedTransform=excludedTransformNames.has(object.name);return !excludedTransform;});
+  const unchangedTransforms = transforms.filter(object=>{if(object.name.startsWith('Gathering_')||object.name==='Clay_front_oval_planter')excludedTransform=excludedTransformNames.has(object.name);return !excludedTransform&&object.name!=='Clay_Clay_orange';});
   let count = 0;
   model.traverse(object => {
     for (let ancestor = object; ancestor; ancestor = ancestor.parent) if (excludedTransformNames.has(ancestor.name)) return;

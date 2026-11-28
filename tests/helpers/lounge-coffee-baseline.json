@@ -1,0 +1,13 @@
+{
+  "commit": "78b5644",
+  "outsideTable": {
+    "meshes": 144,
+    "geometry": "47f4d8decb7cd883a359b1df47720871d6f3e5258c1eb0e2b5ad3080378dcb70",
+    "surroundings": "9066a9134d29c824c216ab6ee6c2ba3708f1223216f346fa68c69af4779d7295"
+  },
+  "exceptOlderEdits": {
+    "meshes": 93,
+    "geometry": "f4241d906f1f176606bfbe39a1e62e7e735769bc2997560716459635a1f6f525",
+    "surroundings": "067164258b95999860fd22b87c8262b5368d8bc25e6a96c0835bf1b9b32e513d"
+  }
+}

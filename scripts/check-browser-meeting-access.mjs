@@ -43,7 +43,47 @@ try{
   await keys(['KeyW']);await until('Boolean(document.querySelector("[data-tutorial-step=plaza]"))','광장 안내');await keys([]);
   await evaluate('document.querySelector("[data-tutorial-action=next]").click();document.querySelector("[data-tutorial-action=close]").click()');
   await walkTo(0,11);await walkTo(0,8);
-  if(process.argv.includes('--lower-passage')){
+  if(process.argv.includes('--room-selection')){
+    await until('!document.querySelector(".space-tutorial-overlay")','중앙 첫 안내 종료');
+    await evaluate(`window.__selectionEvents=[];window.__selectionObserver=new MutationObserver(()=>{const e=document.querySelector('[data-tutorial-step="room-selection"]');window.__selectionEvents.push({zone:e?.dataset.gatheringZone??null,time:performance.now()});});window.__selectionObserver.observe(document.body,{childList:true});`);
+    const inspect=()=>evaluate(`(()=>{const root=document.querySelector('[data-tutorial-step="room-selection"]');if(!root)return null;const c=root.querySelector('.entry-card'),b=c.getBoundingClientRect(),s=getComputedStyle(c),h=getComputedStyle(c.querySelector('h1')),p=getComputedStyle(c.querySelector('p'));return {zone:root.dataset.gatheringZone,box:[b.width,b.height],center:[b.x+b.width/2,b.y+b.height/2],padding:[s.paddingTop,s.paddingRight],gap:getComputedStyle(c.querySelector('.space-tutorial-copy')).gap,text:c.innerText,typography:[h.fontFamily,h.fontSize,h.lineHeight,h.fontWeight,p.fontSize,p.lineHeight,p.fontWeight],color:p.color,background:s.backgroundColor,radius:s.borderRadius,blur:s.backdropFilter,role:root.getAttribute('role'),pointer:getComputedStyle(root).pointerEvents,inert:document.querySelector('canvas').inert,focus:document.activeElement===document.querySelector('canvas'),overlays:document.querySelectorAll('.space-tutorial-overlay').length};})()`);
+    const visits=[];
+    const notice=async(id,first=false)=>{
+      await until(`document.querySelector('[data-tutorial-step="room-selection"]')?.dataset.gatheringZone===${JSON.stringify(id)}`,'실제 '+id+' 입구 안내');
+      const view=await inspect();assert.equal(view.zone,id);assert.deepEqual(view.box,[594,158]);
+      assert.deepEqual(view.center,[960,540]);assert.deepEqual(view.padding,['40px','48px']);assert.equal(view.gap,'12px');
+      assert.equal(view.text,'원하는 것을 골라보세요\n\n원하는 모임 형태를 컨트롤러로 탐색하세요.');
+      assert.ok(view.typography[0].includes('Wanted Sans'));assert.deepEqual(view.typography.slice(1),['28px','36px','600','22px','30px','600']);
+      assert.equal(view.color,'rgb(239, 238, 236)');assert.equal(view.background,'rgba(23, 24, 26, 0.6)');assert.equal(view.radius,'12px');assert.equal(view.blur,'blur(25px)');
+      assert.equal(view.role,'status');assert.equal(view.pointer,'none');assert.equal(view.inert,false);assert.equal(view.focus,true);assert.equal(view.overlays,1);
+      if(first){
+        await shot('room-selection');const before=await evaluate('window.spaceVR.position');await walkTo(-4.5,9.2);
+        assert.ok(Math.hypot((await evaluate('window.spaceVR.position'))[0]-before[0],(await evaluate('window.spaceVR.position'))[2]-before[2])>.3,'안내 중 이동 유지');
+        await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+        assert.ok(await evaluate(`(()=>{const b=document.querySelector('.room-selection-tutorial-card').getBoundingClientRect();return b.left>=0&&b.right<=innerWidth&&b.top>=0&&b.bottom<=innerHeight})()`));
+        await shot('room-selection-mobile');await send('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});
+      }
+      await until('!document.querySelector("[data-tutorial-step=room-selection]")','5초 후 안내 닫힘');
+      const events=await evaluate('window.__selectionEvents'),opened=events.find(e=>e.zone===id),closed=events.find(e=>e.time>opened.time&&e.zone===null);
+      assert.ok(closed.time-opened.time>=4990&&closed.time-opened.time<5600,'표시된 읽기 시간 5초');
+      visits.push({zone:id,duration:closed.time-opened.time});
+      console.log(`${id}: 실제 입구 접근·5초 안내·스타일 확인`);
+    };
+    await walkTo(-3,10);await walkTo(-5.2,9.2);await notice('grand-lounge',true);
+    await walkTo(-3,10);await walkTo(-1.8,4.5);await walkTo(-2.4,1.2);await walkTo(-4.5,1.2);await walkTo(-5.18,.82);await notice('reading-nook');
+    await walkTo(-4.5,1.2);await walkTo(-4.6,-.3);await notice('tiered-forum');
+    await walkTo(-2.4,1.2);await walkTo(-.5,-3.5);await walkTo(4.8,-3.5);await notice('round-meeting');
+    await walkTo(-.5,-3.5);await walkTo(-2.4,1.2);await walkTo(-1.8,4.5);await walkTo(0,4.8);await walkTo(1.6,4.25);await notice('s-curve-meeting');
+    await walkTo(1.6,8);await walkTo(5.5,7);await walkTo(5.5,4.9);await walkTo(5.56,1.74);await notice('conversation-nook');
+    await walkTo(5.5,4.9);await walkTo(5.5,7);await walkTo(1.6,8);await walkTo(-3,10);await walkTo(-5.2,9.2);
+    assert.equal(await evaluate('Boolean(document.querySelector("[data-tutorial-step=room-selection]"))'),false,'같은 입구 재접근은 반복 없음');
+    await walkTo(-3,10);await walkTo(0,11);
+    await send('Input.dispatchMouseEvent',{type:'mousePressed',x:960,y:540,button:'left',clickCount:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:660,button:'left',buttons:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:960,y:660,button:'left',clickCount:1});await pause(250);await shot('central-planters');
+    await evaluate('window.__selectionObserver.disconnect()');assert.deepEqual(errors,[]);assert.equal(await evaluate('document.pointerLockElement'),null);
+    console.log(JSON.stringify({url,visits,realKeyboardMovement:true,mobile:true,repeat:false,errors},null,2));
+  }else if(process.argv.includes('--lower-passage')){
     const lanePoint=z=>{
       const slope=(gatheringStepBoundary(z+.001)-gatheringStepBoundary(z-.001))/.002,n=Math.hypot(1,slope);
       return {x:gatheringStepBoundary(z)-.72/n,z:z+.72*slope/n};

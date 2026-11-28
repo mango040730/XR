@@ -16,6 +16,7 @@ import { LOUNGE_TABLE_LENGTHS } from '../src/terrace-lounge-layout.js';
 import { SMOKED_WOOD_COLOR, WOOD_PHOTO_PATH } from '../src/terrace-smoked-wood.js';
 import { appearanceSnapshot } from './helpers/appearance-snapshot.mjs';
 import { gatheringStepBoundary } from '../src/gathering-floor.js';
+import { gatheringEntrances } from '../src/gathering-entrances.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
 const model = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
@@ -74,7 +75,7 @@ test('낮은 노란 테이블의 8인 소파는 같은 자리에서 입구가 �
   const opening=new Vector3(0,0,-1).transformDirection(group.root.matrixWorld);
   assert.ok(opening.z>1-1e-12&&Math.abs(opening.x)<1e-12,'기존 -Z 입구를 반대 +Z 방향으로 회전');
   const plant=new Vector3(...group.root.userData.planters[0].base).applyMatrix4(group.root.matrixWorld);
-  assert.ok(Math.abs(plant.x+8.02)<1e-8&&Math.abs(plant.z-6.35)<1e-8,'옆 화분은 기존 자리에서 낮은 통로를 비워 둔다');
+  assert.ok(Math.abs(plant.x+8.38)<1e-8&&Math.abs(plant.z-6.1)<1e-8,'옆 화분은 닫힌 소파 옆에서 낮은 통로를 비워 둔다');
 });
 
 test('4인 소파는 넓어진 실제 좌판을 유지하고 두 모듈 사이 중앙 쪽으로 이동해 안쪽을 향한다',()=>{
@@ -267,6 +268,17 @@ test('실제 병합 충돌 장면에서 새 입구·계단·중앙 통로를 연
       }
     }
     assert.equal(body.geometry.index.count / 3, meshes.reduce((n, m) => n + (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3, 0));
+    const frontPath=[[5.5,7],[4.5,8],[1.6,8]];
+    for(let i=1;i<frontPath.length;i++){
+      const [ax,az]=frontPath[i-1],[bx,bz]=frontPath[i],length=Math.hypot(bx-ax,bz-az);
+      const direction=new Vector3(bx-ax,0,bz-az).normalize(),side=new Vector3(direction.z,0,-direction.x);
+      for(let d=0;d<=length;d+=.06)for(const offset of [-.4,0,.4])for(const h of [.4,.95,1.5]){
+        const point=new Vector3(ax+direction.x*d,0,az+direction.z*d).addScaledVector(side,offset);
+        point.y=gatheringFloorY(point.x,point.z)+h+.025;
+        ray.set(point,direction);ray.far=.27;
+        assert.equal(ray.intersectObject(body).length,0,'큰 앞 화분 옆 중앙 연결 동선에 폭 80cm의 실제 몸통 여유');
+      }
+    }
     const lanePoint=z=>{
       const x=gatheringStepBoundary(z),slope=(gatheringStepBoundary(z+.001)-gatheringStepBoundary(z-.001))/.002,n=Math.hypot(1,slope);
       return new Vector3(x-.72/n,0,z+.72*slope/n);
@@ -348,6 +360,16 @@ test('실제 병합 충돌 장면에서 새 입구·계단·중앙 통로를 연
         assert.equal(ray.intersectObject(body).length,0,`${sofa.id} 중앙에서 회전한 소파 입구까지 1m 폭 통로`);
       }
     }
+    for(const entrance of gatheringEntrances()){
+      const inward=new Vector3(-entrance.dx,0,-entrance.dz),side=new Vector3(entrance.dz,0,-entrance.dx);
+      for(let distance=entrance.radius+1.05;distance>=entrance.radius*.62;distance-=.08){
+        for(const offset of [-.5,0,.5])for(const h of [.4,.95,1.5]){
+          const point=new Vector3(entrance.x+entrance.dx*distance,entrance.floorY+h+.025,entrance.z+entrance.dz*distance).addScaledVector(side,offset);
+          ray.set(point,inward);ray.far=.2;
+          assert.equal(ray.intersectObject(body).length,0,`${entrance.id} 안내 위치에서 입구까지 화분이 막지 않는 1m 통로`);
+        }
+      }
+    }
   } finally { for (const mesh of [body, floor]) { mesh.geometry.dispose(); mesh.material.dispose(); } }
 });
 
@@ -371,7 +393,7 @@ test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 혼합 �
 test('중앙 화분을 관통하던 긴 흰 곡선 블록은 제거하고 화분과 식재는 유지한다', () => {
   const root = edited.furniture.groups.find(g => g.id === 's-curve-meeting').root;
   const shell = root.children.find(m => m.isMesh && m.material.name === 'Clay warm ivory');
-  const pot = root.userData.planters.find(p => p.base[0] === 2.3 && p.base[2] === 3.5);
+  const pot = root.userData.planters.find(p => p.width === 1.5 && p.depth === 0.56);
   assert.ok(pot); assert.equal(pot.width, 1.5); assert.equal(pot.depth, 0.56);
   const bed = root.userData.flowerBeds.find(b => b.base[0] === pot.base[0] && b.base[2] === pot.base[2]);
   assert.equal(bed.flowers.length, 11); assert.equal(bed.blades.length, 8);
@@ -607,6 +629,7 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
     }
     if (file === 'src/clay-gatherings.js') {
       let text = source.toString();
+      text=text.slice(0,text.indexOf('\n// Move the existing planter')).replace("import { CENTRAL_PLANTER_LAYOUT } from './central-planter-layout.js';\n",'').replaceAll('centralPlanter(', 'planter(');
       const coffeeStart=text.indexOf('    // Keep the low table independent');
       text=text.slice(0,coffeeStart)+text.slice(text.indexOf('    const floorY =',coffeeStart));
       text=text.replace("      if (zone.id === 'grand-lounge') {\n", "      if (zone.id === 'grand-lounge') {\n        add(root, 'Clay_large_orange_ottoman', roundedCylinder(0.78, 0.38, 0.08), materials.orange, 0, 0, 0.1);\n");

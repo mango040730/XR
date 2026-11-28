@@ -2,12 +2,14 @@ import './space-tutorial.css';
 import {createPlazaTutorialState} from './plaza-tutorial-state.js';
 import {createCrossroadsTutorialState} from './crossroads-tutorial-state.js';
 import {createRelationshipTutorialState} from './relationship-tutorial-state.js';
+import {createRoomSelectionTutorialState} from './room-selection-tutorial-state.js';
 
 export function createSpaceTutorial({layout,onModalChange}) {
   const state=createPlazaTutorialState(layout);
   const notices=[
     {id:'crossroads',state:createCrossroadsTutorialState(layout),title:'이곳은 교차로입니다!',body:'각자 편안한 시간을 보내다가 합석할 수 있는 곳이에요.'},
     {id:'relationship',state:createRelationshipTutorialState(layout),title:'이곳은 관계의 방입니다!',body:'원하는 콘텐츠, 원하는 사람들과 모임을 가져보세요.'},
+    {id:'room-selection',state:createRoomSelectionTutorialState(),title:'원하는 것을 골라보세요',body:'원하는 모임 형태를 컨트롤러로 탐색하세요.'},
   ];
   let root=null,timedRoot=null,currentNotice=null,disposed=false;
   function updateNoticeTime(){
@@ -20,6 +22,7 @@ export function createSpaceTutorial({layout,onModalChange}) {
     currentNotice=notice;timedRoot=document.createElement('section');
     timedRoot.className=`entry-overlay space-tutorial-overlay timed-tutorial-overlay ${notice.id}-tutorial-overlay`;
     timedRoot.dataset.tutorialStep=notice.id;
+    if(notice.state.zoneId)timedRoot.dataset.gatheringZone=notice.state.zoneId;
     timedRoot.setAttribute('role','status');timedRoot.setAttribute('aria-live','polite');
     timedRoot.setAttribute('aria-atomic','true');
     timedRoot.innerHTML=`<div class="entry-card space-tutorial-card timed-tutorial-card ${notice.id}-tutorial-card"><div class="space-tutorial-copy"><h1>${notice.title}</h1><p class="space-tutorial-body">${notice.body}</p></div></div>`;
@@ -69,7 +72,7 @@ export function createSpaceTutorial({layout,onModalChange}) {
       updateNoticeTime();
       // Observe every region even while a prior notice is reading so a quick
       // crossing is queued, with its own full reading time and no overlap.
-      for(const notice of notices)notice.state.observe(position);
+      for(const notice of notices)notice.state.observe(position,{blocked:Boolean(currentNotice||state.active||notices.some(other=>other!==notice&&other.state.active))});
       if(currentNotice||state.active)return;
       const pending=notices.find(notice=>notice.state.active);
       if(pending){showNotice(pending);return;}

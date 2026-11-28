@@ -5,6 +5,7 @@ import { createClayFlowerBed } from './clay-flower-bed.js';
 import { hollowPlanterGeometry } from './clay-planter.js';
 import { SPACE_COLORS as C } from './space-colors.js';
 import { GATHERING_ZONES, gatheringFloorY } from './gathering-layout.js';
+import { CENTRAL_PLANTER_LAYOUT } from './central-planter-layout.js';
 
 const TAU = Math.PI * 2;
 export const CLAY_DETAIL = { arcSegments: 192, bevelSegments: 10, sphereSegments: 32, branchSegments: 16 };
@@ -173,7 +174,7 @@ export function createGatheringFurniture(model) {
         }
       }
       arc(root, 'Clay_forum_back', R - 0.18, R, 0.78, TAU - 0.78, 0, 0.96, materials.shell, 0.055);
-      planter(root, 1.75, 0.64, 0, -R - 0.44, 0, 1.35);
+      centralPlanter(root, 1.75, 0.64, 0, -R - 0.44, 0, 1.35);
     } else if (zone.kind === 'sofa') {
       const opening = zone.opening ?? 0, start = opening + 0.86, end = opening + TAU - 0.86;
       arc(root, 'Clay_sofa_plinth', R - 0.68, R, start, end, 0, 0.32, materials.shell, 0.055);
@@ -194,9 +195,9 @@ export function createGatheringFurniture(model) {
         const plantAngle = -(zone.rotationY ?? 0), plantX = -R - 0.47, plantZ = 0.35;
         const x = plantX * Math.cos(plantAngle) + plantZ * Math.sin(plantAngle);
         const z = -plantX * Math.sin(plantAngle) + plantZ * Math.cos(plantAngle);
-        planter(root, 1.5, 0.66, x, z, 0, 1.4);
+        centralPlanter(root, 1.5, 0.66, x, z, 0, 1.4);
       } else {
-        planter(root, 1.12, 0.58, -0.2, -R - 0.48, 0, 1.1);
+        centralPlanter(root, 1.12, 0.58, -0.2, -R - 0.48, 0, 1.1);
       }
     } else {
       arc(root, 'Clay_meeting_partition', R - 0.10, R + 0.1, 0.92, TAU - 0.92, 0, 1.02, materials.shell, 0.07);
@@ -210,8 +211,8 @@ export function createGatheringFurniture(model) {
         chair(root, Math.sin(angle) * chairR, Math.cos(angle) * chairR, angle, seats);
       }
       if (zone.sCurve) {
-        planter(root, 1.5, 0.65, R + 0.43, -2.4, 0, 1.35);
-        planter(root, 1.5, 0.56, 2.3, 3.5, 0, 0.58);
+        centralPlanter(root, 1.5, 0.65, R + 0.43, -2.4, 0, 1.35);
+        centralPlanter(root, 1.5, 0.56, 2.3, 3.5, 0, 0.58);
       }
       root.userData.meetingAccess = { chairRadius: chairR, entryHalfAngle,
         aisleRadius: (R - 0.1 + Math.hypot(chairR + 0.26, 0.25)) / 2 };
@@ -233,8 +234,32 @@ export function createGatheringFurniture(model) {
     groups.push({ ...zone, root, seats, floorY });
   }
   const front = new THREE.Group(); front.name = 'Clay_front_oval_planter';
-  planter(front, 3.3, 1.25, 0, 0, 0, 1.45); batchClayProps(front);
+  centralPlanter(front, 3.3, 1.25, 0, 0, 0, 1.45); batchClayProps(front);
   front.position.set(3, gatheringFloorY(3, 9.4), 9.4); model.add(front);
   model.updateMatrixWorld(true);
   return { groups, frontPlanter: front, capacity: groups.reduce((n, group) => n + group.seats.length, 0), detail: CLAY_DETAIL };
+}
+
+// Move the existing planter, soil, stones and planting as one rigid assembly
+// before batching. The original generation seed, shape and finishes stay intact.
+function centralPlanter(root,width,depth,x,z,y,height){
+  const first=root.children.length;
+  const zone=GATHERING_ZONES.find(zone=>root.name===`Gathering_${zone.id}`);
+  const id=zone?.id??'front',index=(root.userData.planters??[]).filter(p=>p.base[1]===0).length;
+  const placement=CENTRAL_PLANTER_LAYOUT[id][index];
+  planter(root,width,depth,x,z,y,height);
+  const rotation=zone?(zone.rotationY??(zone.faceCenter?Math.atan2(-zone.x,-zone.z):0)):0;
+  const origin=zone??{x:3,z:9.4};
+  const local=new THREE.Vector3(placement.x-origin.x,0,placement.z-origin.z).applyAxisAngle(new THREE.Vector3(0,1,0),-rotation);
+  const transform=new THREE.Matrix4().makeTranslation(local.x,y,local.z)
+    .multiply(new THREE.Matrix4().makeRotationY(placement.angle-rotation))
+    .multiply(new THREE.Matrix4().makeTranslation(-x,-y,-z));
+  for(const mesh of root.children.slice(first))mesh.applyMatrix4(transform);
+  const point=array=>new THREE.Vector3(...array).applyMatrix4(transform).toArray();
+  const pot=root.userData.planters.at(-1),bed=root.userData.flowerBeds.at(-1);
+  pot.base=point(pot.base);pot.rotationY=placement.angle-rotation;
+  bed.base=point(bed.base);bed.rotationY=pot.rotationY;
+  for(const f of bed.flowers){f.anchor=point(f.anchor);f.centre=point(f.centre);f.normal=new THREE.Vector3(...f.normal).transformDirection(transform).toArray();}
+  for(const b of bed.blades)b.base=point(b.base);
+  for(const m of bed.mounds)m.centre=point(m.centre);
 }

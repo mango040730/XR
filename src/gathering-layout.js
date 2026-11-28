@@ -14,7 +14,7 @@ export const GATHERING_ZONES = [
   { id: 'reading-nook', kind: 'sofa', capacity: 4, x: -9.1, z: 2.7, radius: 1.4 },
   { id: 'round-meeting', kind: 'meeting', capacity: 6, x: 4.8, z: -6, radius: 2.75 },
   { id: 's-curve-meeting', kind: 'meeting', capacity: 10, x: 1.6, z: 0.4, radius: 3.05, sCurve: true },
-  { id: 'conversation-nook', kind: 'sofa', capacity: 6, x: 8, z: 2.5, radius: 1.85, table: true },
+  { id: 'conversation-nook', kind: 'sofa', capacity: 6, x: 8, z: 2.5, radius: 1.85, table: true, faceCenter: true },
 ];
 export function gatheringFloorY(x, z) {
   const scale = GATHERING_LAYOUT.floorScale;

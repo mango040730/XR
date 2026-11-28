@@ -65,6 +65,15 @@ test('대형 곡선 소파 중앙 좌석은 낮은 원형 테이블로 바뀌고
   assert.equal(ray.intersectObject(coffee,true).length,0,'두꺼운 원통 좌석 대신 상판 아래가 비어 있는 테이블');
 });
 
+test('노란 테이블이 있는 6인 곡선 소파 입구는 중앙을 향하고 위치·크기는 유지한다', () => {
+  const group=edited.furniture.groups.find(g=>g.id==='conversation-nook');
+  assert.deepEqual(group.root.position.toArray(),[8,group.floorY,2.5]);
+  assert.deepEqual(group.root.scale.toArray(),[1,1,1]);assert.equal(group.radius,1.85);assert.equal(group.seats.length,6);
+  const opening=group.root.getWorldDirection(new Vector3());
+  const inward=new Vector3(-group.x,0,-group.z).normalize();
+  assert.ok(opening.dot(inward)>1-1e-12,'소파의 열린 로컬 +Z 방향이 중앙을 정확히 향해야 합니다.');
+});
+
 test('중앙 계단형 라운지는 넓어진 두 층에 5석씩 배치해 총 10석을 유지한다', () => {
   const group = edited.furniture.groups.find(g => g.kind === 'forum');
   const treads = group.root.children.filter(m => m.name === 'Clay_forum_tread');
@@ -224,6 +233,13 @@ test('실제 병합 충돌 장면에서 새 입구·계단·중앙 통로를 연
         const angle=i*Math.PI/180;
         check(Math.sin(angle)*aisleRadius,Math.cos(angle)*aisleRadius,Math.cos(angle),-Math.sin(angle),1.0,.15);
       }
+    }
+    const conversation=edited.furniture.groups.find(g=>g.id==='conversation-nook');
+    const inward=new Vector3(0,0,-1).transformDirection(conversation.root.matrixWorld);
+    for(let z=conversation.radius+.7;z>=1.05;z-=.05)for(const offset of [-.5,0,.5])for(const h of [.4,.95,1.5]) {
+      const point=new Vector3(offset,h+.025,z).applyMatrix4(conversation.root.matrixWorld);
+      ray.set(point,inward);ray.far=.27;
+      assert.equal(ray.intersectObject(body).length,0,'중앙에서 회전한 소파 입구까지 1m 폭 통로');
     }
   } finally { for (const mesh of [body, floor]) { mesh.geometry.dispose(); mesh.material.dispose(); } }
 });
@@ -487,6 +503,7 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
       const coffeeStart=text.indexOf('    // Keep the low table independent');
       text=text.slice(0,coffeeStart)+text.slice(text.indexOf('    const floorY =',coffeeStart));
       text=text.replace("      if (zone.id === 'grand-lounge') {\n", "      if (zone.id === 'grand-lounge') {\n        add(root, 'Clay_large_orange_ottoman', roundedCylinder(0.78, 0.38, 0.08), materials.orange, 0, 0, 0.1);\n");
+      text=text.replace('    if (zone.faceCenter) root.rotation.y = Math.atan2(-zone.x, -zone.z);\n','');
       const marker="    } else {\n      arc(root, 'Clay_meeting_partition'";
       const preserved = text.slice(0,text.indexOf(marker))+text.slice(text.indexOf('    root.userData.capacity'));
       assert.equal(createHash('sha256').update(preserved).digest('hex'), meetingBaseline.furnitureSource, '수정 대상 외 화분·중앙 가구 생성 코드 보존');
@@ -503,12 +520,12 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
       continue;
     }
     if (file === 'src/terrace-pill-desk.js') source = Buffer.from(source.toString().replace('\nexport const PILL_LEG_INSET = 0.24;\n', '').replace('const inset = PILL_LEG_INSET;', 'const inset = Math.max(0.32, length * 0.13);'));
-    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55'));
+    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55').replace(', faceCenter: true',''));
     if (file === 'src/space-colors.js') source = Buffer.from(source.toString().replace("stairs: '#B8B8B8'", "stairs: '#CBCBCB'"));
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", ''));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }
-  const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions,'Clay_low_coffee_table']);
+  const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions,'Gathering_conversation-nook','Clay_low_coffee_table']);
   let excludedTransform=false;
   const unchangedTransforms = transforms.filter(object=>{if(object.name.startsWith('Gathering_')||object.name==='Clay_front_oval_planter')excludedTransform=excludedTransformNames.has(object.name);return !excludedTransform&&object.name!=='Clay_Clay_orange';});
   let count = 0;

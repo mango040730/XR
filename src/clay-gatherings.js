@@ -224,6 +224,7 @@ export function createGatheringFurniture(model) {
       for (const part of coffee.children) part.geometry.normalizeNormals();
     }
     const floorY = gatheringFloorY(zone.x, zone.z);
+    if (zone.faceCenter) root.rotation.y = Math.atan2(-zone.x, -zone.z);
     root.position.set(zone.x, floorY, zone.z); model.add(root);
     groups.push({ ...zone, root, seats, floorY });
   }

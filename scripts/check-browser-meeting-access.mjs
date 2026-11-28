@@ -42,7 +42,22 @@ try{
   await keys(['KeyW']);await until('Boolean(document.querySelector("[data-tutorial-step=plaza]"))','광장 안내');await keys([]);
   await evaluate('document.querySelector("[data-tutorial-action=next]").click();document.querySelector("[data-tutorial-action=close]").click()');
   await walkTo(0,11);await walkTo(0,8);
-  if(process.argv.includes('--coffee-table')){
+  if(process.argv.includes('--inward-sofa')){
+    await walkTo(1.6,8);await walkTo(5.5,7);await walkTo(5.5,4.9);
+    const direction={x:-8/Math.hypot(8,2.5),z:-2.5/Math.hypot(8,2.5)};
+    const view={x:8+direction.x*3,z:2.5+direction.z*3};
+    await walkTo(view.x,view.z);
+    await walkTo(8+direction.x*1.1,2.5+direction.z*1.1);const inside=await evaluate('window.spaceVR.position');
+    await walkTo(view.x,view.z);await until('!document.querySelector(".space-tutorial-overlay")',' 안내 종료 후 소파 확인');
+    const yaw=Math.atan2(-8,-2.5),dragX=960-yaw/.0022;
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:540});
+    await send('Input.dispatchMouseEvent',{type:'mousePressed',x:960,y:540,button:'left',clickCount:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:dragX,y:613,button:'left',buttons:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:dragX,y:613,button:'left',clickCount:1});
+    await pause(250);await shot('inward-sofa');assert.deepEqual(errors,[]);
+    assert.equal(await evaluate('document.pointerLockElement'),null);
+    console.log(JSON.stringify({url,inwardSofa:true,actualEntranceMovement:true,inside,errors},null,2));
+  }else if(process.argv.includes('--coffee-table')){
     await walkTo(-1.8,4.5);await walkTo(-2.4,1.2);await walkTo(-5.2,1.2);await walkTo(-5.2,3.6);
     await until('!document.querySelector(".space-tutorial-overlay")','안내 종료 후 낮은 테이블 확인');
     // Use the ordinary drag-to-look interaction to face the lounge opening.

@@ -10,6 +10,7 @@ import { GATHERING_LAYOUT, GATHERING_ENTRY } from './gathering-layout.js';
 import { resetToEntrance, withinWalkBoundary } from './entrance.js';
 import { entrySession } from './entry-state.js';
 import { createSpaceTutorial } from './space-tutorial.js';
+import { createTerraceActivity } from './terrace-activity.js';
 
 // Entry and first-visit tutorial UI stay separate from the 3D scene.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -87,6 +88,7 @@ let collider, floor, ready = false, xrSupported = false, xrStarting = false;
 let lastTime = 0, snapReady = true;
 const keys = new Set();
 const touches = new Map();
+let terraceActivity = null;
 
 function floorHeight(x, z, y, maxDrop = 0.6) {
   origin.set(x, y + 0.36, z);
@@ -126,6 +128,7 @@ function tryMove(dx, dz, delta) {
 
 function moveRelative(x, z, delta, speed = 2.5) {
   if (!x && !z) return;
+  if (terraceActivity?.seated) { terraceActivity.stand(); return; }
   camera.getWorldDirection(forward);
   forward.y = 0;
   forward.normalize();
@@ -139,6 +142,7 @@ function moveRelative(x, z, delta, speed = 2.5) {
 }
 
 function resetPosition() {
+  terraceActivity?.stand();
   resetToEntrance(rig, camera, renderer.xr.isPresenting, GATHERING_ENTRY);
 }
 
@@ -146,7 +150,7 @@ async function loadSpace() {
   const loader = new GLTFLoader();
   const gltf = await loader.loadAsync(`${import.meta.env.BASE_URL}models/space.glb`);
   const model = gltf.scene;
-  prepareGatheringSpace(model);
+  const prepared = prepareGatheringSpace(model);
   scene.add(model);
   model.updateMatrixWorld(true);
   const meshes = [], floors = [];
@@ -159,6 +163,7 @@ async function loadSpace() {
   });
   collider = collisionGeometry(meshes);
   floor = collisionGeometry(floors);
+  terraceActivity.configure({ seating: prepared.seating, collider });
   const initialFloor = floorHeight(GATHERING_ENTRY.position[0], GATHERING_ENTRY.position[2], GATHERING_ENTRY.position[1], 2);
   if (initialFloor !== null) rig.position.y = initialFloor;
   await renderer.compileAsync(scene, camera);
@@ -191,11 +196,13 @@ async function enterVR() {
       requiredFeatures: ['local-floor'],
       optionalFeatures: ['bounded-floor'],
     });
+    terraceActivity?.stand();
     document.exitPointerLock?.();
     clearInput();
     camera.position.set(0, 0, 0);
     camera.rotation.set(0, 0, 0);
     session.addEventListener('end', () => {
+      terraceActivity?.stand();
       camera.position.set(0, 1.65, 0);
       camera.rotation.set(0, 0, 0);
       clearInput();
@@ -219,6 +226,7 @@ controllers.forEach(controller => {
     ray.set(origin, direction);
     ray.near = 0.1;
     ray.far = 15;
+    if (terraceActivity?.activateRay(ray)) return;
     const destination = ray.intersectObject(floor, false)[0];
     if (!destination || Math.abs(destination.face.normal.y) < 0.7) return;
     const obstruction = ray.intersectObject(collider, false)[0];
@@ -232,6 +240,7 @@ controllers.forEach(controller => {
       ray.far = 0.4;
       if (ray.intersectObject(collider, false).length) return;
     }
+    terraceActivity?.stand();
     camera.getWorldPosition(head);
     rig.position.x += destination.point.x - head.x;
     rig.position.z += destination.point.z - head.z;
@@ -276,6 +285,7 @@ for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) {
 }
 document.addEventListener('keydown', event => {
   if (!entrySession.entered || tutorial.active) return;
+  if (terraceActivity?.handleKey(event)) { event.preventDefault(); return; }
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code)) event.preventDefault();
   keys.add(event.code);
   if (event.code === 'KeyV' && !event.repeat) void enterVR();
@@ -296,7 +306,8 @@ const tutorial = createSpaceTutorial({
     if (!active && entrySession.entered) renderer.domElement.focus({ preventScroll: true });
   },
 });
-window.addEventListener('pagehide', event => { clearInput(); if (!event.persisted) tutorial.dispose(); });
+terraceActivity = createTerraceActivity({ scene, camera, rig, renderer, canInteract: () => ready && entrySession.entered && !tutorial.active, onPoseChange: clearInput });
+window.addEventListener('pagehide', event => { clearInput(); if (!event.persisted) { tutorial.dispose(); terraceActivity.dispose(); } });
 window.addEventListener('blur', clearInput);
 document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
 document.addEventListener('pointerlockchange', clearInput);
@@ -344,6 +355,7 @@ window.spaceVR = Object.freeze({
   get vrSupported() { return xrSupported; },
   get presenting() { return renderer.xr.isPresenting; },
   get position() { return rig.position.toArray(); },
+  get terraceActivity() { return terraceActivity?.snapshot ?? null; },
   get renderInfo() { return { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles }; },
 });
 
@@ -360,9 +372,10 @@ renderer.setAnimationLoop(time => {
   }
   // Sample the actual camera world position after movement/collision resolves.
   // DOM tutorials are deferred while an immersive XR session is presenting.
+  if (ready && entrySession.entered) terraceActivity.update(time, delta);
   if (ready && entrySession.entered && !renderer.xr.isPresenting) {
     camera.getWorldPosition(head);
-    tutorial.observe({ x: head.x, y: rig.position.y, z: head.z });
+    tutorial.observe({ x: head.x, y: rig.position.y, z: head.z }, { suppressed: terraceActivity.suppressNotices });
   }
   renderer.info.reset();
   studio.render();

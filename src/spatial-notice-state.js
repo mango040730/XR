@@ -47,6 +47,7 @@ export function createSpatialNoticeState(layout,zones){
       if(!timer?.tick(now,visible))return false;
       timer=null;current=null;return true;
     },
+    dismiss(){timer?.dispose();timer=null;current=null;},
     dispose(){disposed=true;timer?.dispose();timer=null;current=null;},
   };
 }

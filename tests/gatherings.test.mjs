@@ -622,9 +622,9 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
       const before = JSON.parse(await readFile(new URL('./helpers/entry-space-baseline.json', import.meta.url)));
       const text = source.toString();
       const protectedParts = {
-        renderSetup: text.slice(text.indexOf('THREE.Mesh.prototype.raycast'), text.indexOf('function floorHeight')).replace('\nrenderer.domElement.inert = true;', ''),
-        physics: text.slice(text.indexOf('function floorHeight'), text.indexOf('async function loadSpace')).replaceAll('!entrySession.entered || ', ''),
-        modelSetup: text.slice(text.indexOf('  const loader = new GLTFLoader();'), text.indexOf('  await renderer.compileAsync')),
+        renderSetup: text.slice(text.indexOf('THREE.Mesh.prototype.raycast'), text.indexOf('function floorHeight')).replace('\nrenderer.domElement.inert = true;', '').replace('let terraceActivity = null;\n',''),
+        physics: text.slice(text.indexOf('function floorHeight'), text.indexOf('async function loadSpace')).replaceAll('!entrySession.entered || ', '').replace('  if (terraceActivity?.seated) { terraceActivity.stand(); return; }\n','').replace('  terraceActivity?.stand();\n',''),
+        modelSetup: text.slice(text.indexOf('  const loader = new GLTFLoader();'), text.indexOf('  await renderer.compileAsync')).replace('const prepared = prepareGatheringSpace(model);','prepareGatheringSpace(model);').replace('  terraceActivity.configure({ seating: prepared.seating, collider });\n',''),
       };
       for (const [part, value] of Object.entries(protectedParts)) assert.equal(createHash('sha256').update(value).digest('hex'), before[part], `${part} 공간·카메라·조명·충돌 구성 보존`);
       continue;

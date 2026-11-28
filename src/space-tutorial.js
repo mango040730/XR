@@ -66,9 +66,10 @@ export function createSpaceTutorial({layout,onModalChange}) {
   }
   return {
     get active(){return state.active;},
-    observe(position){
+    observe(position,{suppressed=false}={}){
       if(disposed)return;
       updateNoticeTime();
+      if(suppressed){spatial.dismiss();timedRoot?.remove();timedRoot=null;currentNotice=null;return;}
       // A region change replaces the previous notice in this frame, including
       // return trips and module entrances. Never resume an old timer later.
       if(spatial.observe(position,{blocked:state.active})){

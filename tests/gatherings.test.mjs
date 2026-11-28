@@ -91,7 +91,7 @@ test('중앙의 좌석·등받이·화분·돌·잎이 부드러운 실제 곡�
   assert.ok(!meshes.some(m => /^Lounge_Pods__|^Planting__/.test(m.name)), '성긴 원본 폴리곤 가구·식물을 남기면 안 됩니다.');
 });
 
-test('작아진 가구가 전후 바닥 단차에 접지하고 서로 또는 원형 계단과 관통하지 않는다', () => {
+test('중앙 가구가 전후 바닥 단차에 접지하고 서로 또는 원형 계단과 관통하지 않는다', () => {
   const groups = [...edited.furniture.groups, { root: edited.furniture.frontPlanter, floorY: gatheringFloorY(3, 9.4) }];
   const world = new Vector3();
   for (const group of groups) {
@@ -110,7 +110,13 @@ test('작아진 가구가 전후 바닥 단차에 접지하고 서로 또는 원
     assert.ok(contacts > 50);
   }
   for (let i = 0; i < groups.length; i++) for (const b of groups.slice(i + 1)) {
-    assert.ok(!new Box3().setFromObject(groups[i].root).intersectsBox(new Box3().setFromObject(b.root)));
+    if (!new Box3().setFromObject(groups[i].root).intersectsBox(new Box3().setFromObject(b.root))) continue;
+    // Enlarged curved enclosures can have intersecting rectangular bounds
+    // without touching. Compare their actual rendered triangles instead.
+    const parts = group => {const result=[];group.root.traverse(m=>{if(m.isMesh)result.push(m);});return result;};
+    const aBody=collisionGeometry(parts(groups[i])),bBody=collisionGeometry(parts(b));
+    assert.equal(aBody.geometry.boundsTree.intersectsGeometry(bBody.geometry,new Matrix4()),false,`${groups[i].root.name}/${b.root.name} 실제 메시 간섭`);
+    for(const body of [aBody,bBody]){body.geometry.dispose();body.material.dispose();}
   }
 });
 
@@ -181,6 +187,25 @@ test('실제 병합 충돌 장면에서 새 입구·계단·중앙 통로를 연
         }
       }
     }
+    for (const group of edited.furniture.groups.filter(g=>g.kind==='meeting')) {
+      const {chairRadius,aisleRadius}=group.root.userData.meetingAccess;
+      const chairOuter=Math.hypot(chairRadius+0.26,0.25);
+      assert.ok(group.radius-0.1-chairOuter>=1.0,`${group.id} 의자 뒤 1m 이상`);
+      const check=(x,z,dx,dz,width,far)=>{
+        const direction=new Vector3(dx,0,dz).normalize(),side=new Vector3(direction.z,0,-direction.x);
+        for(const offset of [-width/2,0,width/2])for(const h of [.4,.95,1.5]) {
+          const origin=new Vector3(group.x+x,gatheringFloorY(group.x+x,group.z+z)+.025+h,group.z+z).addScaledVector(side,offset);
+          ray.set(origin,direction);ray.far=far;
+          assert.equal(ray.intersectObject(body).length,0,`${group.id} 실제 통로: ${x},${z}, 폭 ${width}`);
+        }
+      };
+      // A wide front mouth connects directly to the uninterrupted rear aisle.
+      for(let z=group.radius+.8;z>=aisleRadius;z-=.05)check(0,z,0,-1,1.2,.27);
+      for(let i=0;i<360;i++) {
+        const angle=i*Math.PI/180;
+        check(Math.sin(angle)*aisleRadius,Math.cos(angle)*aisleRadius,Math.cos(angle),-Math.sin(angle),1.0,.15);
+      }
+    }
   } finally { for (const mesh of [body, floor]) { mesh.geometry.dispose(); mesh.material.dispose(); } }
 });
 
@@ -204,12 +229,12 @@ test('탁상·중앙·블루길의 모든 화분에 참고 이미지의 혼합 �
 test('중앙 화분을 관통하던 긴 흰 곡선 블록은 제거하고 화분과 식재는 유지한다', () => {
   const root = edited.furniture.groups.find(g => g.id === 's-curve-meeting').root;
   const shell = root.children.find(m => m.isMesh && m.material.name === 'Clay warm ivory');
-  const pot = root.userData.planters.find(p => p.base[0] === -0.65 && p.base[2] === 2.9);
+  const pot = root.userData.planters.find(p => p.base[0] === 2.3 && p.base[2] === 3.5);
   assert.ok(pot); assert.equal(pot.width, 1.5); assert.equal(pot.depth, 0.56);
-  const bed = root.userData.flowerBeds.find(b => b.base[0] === -0.65 && b.base[2] === 2.9);
+  const bed = root.userData.flowerBeds.find(b => b.base[0] === pot.base[0] && b.base[2] === pot.base[2]);
   assert.equal(bed.flowers.length, 11); assert.equal(bed.blades.length, 8);
   const ray = new Raycaster();
-  ray.set(new Vector3(-0.65, 0.8, 2.9).applyMatrix4(root.matrixWorld), new Vector3(0, -1, 0)); ray.far = 1;
+  ray.set(new Vector3(pot.base[0], 0.8, pot.base[2]).applyMatrix4(root.matrixWorld), new Vector3(0, -1, 0)); ray.far = 1;
   const centre = ray.intersectObject(shell)[0];
   assert.ok(centre && centre.point.y < root.position.y + 0.1, '흙 위로 흰 블록이 지나가면 안 됩니다.');
   for (const angle of [2.35, 4.15]) {
@@ -408,15 +433,18 @@ test('각 책상의 모든 의자가 두 지지 다리 사이에 여유 있게 �
   for (const material of materials) { if (!material.userData.smokedWood) material.bumpMap?.dispose();material.dispose(); }
 });
 
-test('계단형 가구 외 주변 가구·조명·카메라·재질과 테이블 디자인은 보존된다', async () => {
+test('수정 대상 미팅 모듈 외 주변 가구·조명·카메라·재질과 테이블 디자인은 보존된다', async () => {
   const { commit, sourceFiles, transforms, ...baseline } = JSON.parse(await readFile(new URL('./helpers/wood-material-baseline.json', import.meta.url)));
   assert.equal(commit, '767bdf9');
   const photoBaseline = JSON.parse(await readFile(new URL('./helpers/wood-photo-baseline.json', import.meta.url)));
   const planterBaseline = JSON.parse(await readFile(new URL('./helpers/open-planter-baseline.json', import.meta.url)));
-  const forumBaseline = JSON.parse(await readFile(new URL('./helpers/two-tier-forum-baseline.json', import.meta.url)));
+  const meetingBaseline = JSON.parse(await readFile(new URL('./helpers/meeting-clearance-baseline.json', import.meta.url)));
   assert.equal(edited.stairs.material[0].color.getHexString(), 'b8b8b8');
-  const snapshot = appearanceSnapshot(model, { materialExclusions: [], subtreeExclusions: ['Gathering_tiered-forum'] });
-  assert.equal(snapshot.meshes, forumBaseline.meshes); assert.equal(snapshot.surroundings, forumBaseline.surroundings);
+  const meetingExclusions=['Gathering_round-meeting','Gathering_s-curve-meeting'];
+  const snapshot = appearanceSnapshot(model, { materialExclusions: [], subtreeExclusions: ['Gathering_tiered-forum',...meetingExclusions] });
+  assert.equal(snapshot.meshes, meetingBaseline.exceptForum.meshes); assert.equal(snapshot.surroundings, meetingBaseline.exceptForum.surroundings);
+  const unmodified=appearanceSnapshot(model,{materialExclusions:[],subtreeExclusions:meetingExclusions});
+  assert.equal(unmodified.meshes,meetingBaseline.unmodified.meshes);assert.equal(unmodified.surroundings,meetingBaseline.unmodified.surroundings);
   // CPU/V8 versions can differ at the last floating-point bit. Preserve all
   // unchanged geometry/light/camera source bytes, then compare table buffers against the
   // untouched original geometry factory in the same execution environment.
@@ -435,8 +463,9 @@ test('계단형 가구 외 주변 가구·조명·카메라·재질과 테이블
     }
     if (file === 'src/clay-gatherings.js') {
       const text = source.toString();
-      const preserved = text.slice(0, text.indexOf('      const counts =')) + text.slice(text.indexOf("    } else if (zone.kind === 'sofa')"));
-      assert.equal(createHash('sha256').update(preserved).digest('hex'), forumBaseline.furnitureSource, '계단형 가구 외 화분·중앙 가구 생성 코드 보존');
+      const marker="    } else {\n      arc(root, 'Clay_meeting_partition'";
+      const preserved = text.slice(0,text.indexOf(marker))+text.slice(text.indexOf('    root.userData.capacity'));
+      assert.equal(createHash('sha256').update(preserved).digest('hex'), meetingBaseline.furnitureSource, '수정 대상 외 화분·중앙 가구 생성 코드 보존');
       continue;
     }
     if (file === 'src/clay-flower-bed.js') {
@@ -450,17 +479,17 @@ test('계단형 가구 외 주변 가구·조명·카메라·재질과 테이블
       continue;
     }
     if (file === 'src/terrace-pill-desk.js') source = Buffer.from(source.toString().replace('\nexport const PILL_LEG_INSET = 0.24;\n', '').replace('const inset = PILL_LEG_INSET;', 'const inset = Math.max(0.32, length * 0.13);'));
-    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9"));
+    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55'));
     if (file === 'src/space-colors.js') source = Buffer.from(source.toString().replace("stairs: '#B8B8B8'", "stairs: '#CBCBCB'"));
     if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", ''));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }
-  const forumStart = transforms.findIndex(t => t.name === 'Gathering_tiered-forum');
-  const forumEnd = transforms.findIndex((t, i) => i > forumStart && t.name.startsWith('Gathering_'));
-  const unchangedTransforms = transforms.filter((_, i) => i < forumStart || i >= forumEnd);
+  const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions]);
+  let excludedTransform=false;
+  const unchangedTransforms = transforms.filter(object=>{if(object.name.startsWith('Gathering_')||object.name==='Clay_front_oval_planter')excludedTransform=excludedTransformNames.has(object.name);return !excludedTransform;});
   let count = 0;
   model.traverse(object => {
-    for (let ancestor = object; ancestor; ancestor = ancestor.parent) if (ancestor.name === 'Gathering_tiered-forum') return;
+    for (let ancestor = object; ancestor; ancestor = ancestor.parent) if (excludedTransformNames.has(ancestor.name)) return;
     const expected = unchangedTransforms[count++];
     assert.equal(object.name, expected.name); assert.equal(object.type, expected.type);
     for (const property of ['matrix', 'matrixWorld']) object[property].elements.forEach((v, i) => {

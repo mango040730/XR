@@ -1,0 +1,14 @@
+{
+  "commit": "a544b2c",
+  "unmodified": {
+    "meshes": 113,
+    "geometry": "246016d6e308306184c44a7d94773b1fd2d305efeb2f640248d780b0d883de43",
+    "surroundings": "ddf424b33102d66f63af3cb4a7462bbf394fd011f8b1eef359aceeaced59923c"
+  },
+  "exceptForum": {
+    "meshes": 94,
+    "geometry": "f352a70081c40985f7843a582b800511c806f66222bd03df88a28c58f70c3a61",
+    "surroundings": "2febfe427ea9c2d4bfadbca8a2fbdef4e39817de2beddebc0ff5a8d9058c6583"
+  },
+  "furnitureSource": "a4ed0c274a24a864c2f1beb4001da3f9ecfa6baf4b98e0617442c80e918ffb9c"
+}

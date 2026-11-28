@@ -200,14 +200,19 @@ export function createGatheringFurniture(model) {
       arc(root, 'Clay_meeting_partition', R - 0.10, R + 0.1, 0.92, TAU - 0.92, 0, 1.02, materials.shell, 0.07);
       const chairR = zone.capacity > 6 ? 1.65 : 1.32;
       table(root, zone.capacity > 6 ? 1.12 : 0.83);
+      // Keep the usable chair/table relationship, with a clear front entry
+      // instead of a chair closing the mouth of the curved enclosure.
+      const entryHalfAngle = zone.capacity > 6 ? Math.PI / 4 : 50 * Math.PI / 180;
       for (let i = 0; i < zone.capacity; i++) {
-        const angle = i / zone.capacity * TAU;
+        const angle = THREE.MathUtils.lerp(entryHalfAngle, TAU - entryHalfAngle, i / (zone.capacity - 1));
         chair(root, Math.sin(angle) * chairR, Math.cos(angle) * chairR, angle, seats);
       }
       if (zone.sCurve) {
-        planter(root, 1.5, 0.65, R + 0.43, -1.5, 0, 1.35);
-        planter(root, 1.5, 0.56, -0.65, 2.9, 0, 0.58);
+        planter(root, 1.5, 0.65, R + 0.43, -2.4, 0, 1.35);
+        planter(root, 1.5, 0.56, 2.3, 3.5, 0, 0.58);
       }
+      root.userData.meetingAccess = { chairRadius: chairR, entryHalfAngle,
+        aisleRadius: (R - 0.1 + Math.hypot(chairR + 0.26, 0.25)) / 2 };
     }
     root.userData.capacity = zone.capacity; root.userData.kind = zone.kind;
     batchClayProps(root);

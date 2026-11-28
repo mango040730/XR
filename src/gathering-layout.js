@@ -12,8 +12,8 @@ export const GATHERING_ZONES = [
   { id: 'tiered-forum', kind: 'forum', capacity: 10, x: -4.6, z: -4.3, radius: 3.4 },
   { id: 'grand-lounge', kind: 'sofa', capacity: 8, x: -5.2, z: 6, radius: 2.35, opening: Math.PI },
   { id: 'reading-nook', kind: 'sofa', capacity: 4, x: -9.1, z: 2.7, radius: 1.4 },
-  { id: 'round-meeting', kind: 'meeting', capacity: 6, x: 4.8, z: -6, radius: 2.15 },
-  { id: 's-curve-meeting', kind: 'meeting', capacity: 10, x: 1.6, z: 0.4, radius: 2.55, sCurve: true },
+  { id: 'round-meeting', kind: 'meeting', capacity: 6, x: 4.8, z: -6, radius: 2.75 },
+  { id: 's-curve-meeting', kind: 'meeting', capacity: 10, x: 1.6, z: 0.4, radius: 3.05, sCurve: true },
   { id: 'conversation-nook', kind: 'sofa', capacity: 6, x: 8, z: 2.5, radius: 1.85, table: true },
 ];
 export function gatheringFloorY(x, z) {

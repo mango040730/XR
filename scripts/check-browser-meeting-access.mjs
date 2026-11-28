@@ -42,7 +42,27 @@ try{
   await keys(['KeyW']);await until('Boolean(document.querySelector("[data-tutorial-step=plaza]"))','광장 안내');await keys([]);
   await evaluate('document.querySelector("[data-tutorial-action=next]").click();document.querySelector("[data-tutorial-action=close]").click()');
   await walkTo(0,11);await walkTo(0,8);
-  if(process.argv.includes('--inward-sofa')){
+  if(process.argv.includes('--three-three-floor')){
+    await walkTo(-1.8,4.5);await walkTo(-2.4,1.2);await walkTo(-4.6,0);await walkTo(-4.6,-4);
+    await pause(350);const forum=await evaluate('window.spaceVR.position');
+    assert.ok(Math.abs(forum[1]-1.175)<.008,'계단형 가구 안은 단차 없는 낮은 바닥');
+    await walkTo(-4.6,0);await walkTo(-2.9,1.2);await pause(350);
+    const lower=await evaluate('window.spaceVR.position');assert.ok(Math.abs(lower[1]-1.175)<.008);
+    await walkTo(-1.9,1.2);await pause(350);const upper=await evaluate('window.spaceVR.position');
+    // Rig height damps while walking and stops updating when keys are released;
+    // the exact surface height is checked by the model raycasts in unit tests.
+    assert.ok(Math.abs(upper[1]-1.455)<.045&&upper[1]-lower[1]>.22,`곡선 경계의 높은 바닥: ${JSON.stringify({lower,upper})}`);
+    await walkTo(-2.9,1.2);await pause(350);const returned=await evaluate('window.spaceVR.position');
+    assert.ok(Math.abs(returned[1]-1.175)<.008,'새 단차를 내려서 돌아올 수 있음');
+    await walkTo(-1.9,1.2);await until('!document.querySelector(".space-tutorial-overlay")','안내 종료 후 단차 확인');
+    const yaw=Math.atan2(2.7,5.5),dragX=960-yaw/.0022;
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:540});
+    await send('Input.dispatchMouseEvent',{type:'mousePressed',x:960,y:540,button:'left',clickCount:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:dragX,y:622,button:'left',buttons:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:dragX,y:622,button:'left',clickCount:1});
+    await pause(250);await shot('three-three-floor');assert.deepEqual(errors,[]);
+    console.log(JSON.stringify({url,forum,lower,upper,returned,bidirectionalStep:true,errors},null,2));
+  }else if(process.argv.includes('--inward-sofa')){
     await walkTo(1.6,8);await walkTo(5.5,7);await walkTo(5.5,4.9);
     const direction={x:-8/Math.hypot(8,2.5),z:-2.5/Math.hypot(8,2.5)};
     const view={x:8+direction.x*3,z:2.5+direction.z*3};

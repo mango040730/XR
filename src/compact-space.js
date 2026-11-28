@@ -4,6 +4,7 @@ import { createTubeChairTemplate } from './terrace-tube-chair.js';
 import { createJoinedStairs, stairAlignedRing, colorJoinedStairs } from './joined-stairs.js';
 import { createDigitalWall } from './digital-wall.js';
 import { createCentralPlatform } from './central-room.js';
+import { gatheringPlatformContour } from './gathering-floor.js';
 import { applyClayStyle } from './clay-style.js';
 import { createGatheringFurniture, planter, batchClayProps } from './clay-gatherings.js';
 import { GATHERING_LAYOUT as L } from './gathering-layout.js';
@@ -49,7 +50,7 @@ export function prepareGatheringSpace(model) {
   const carpetGeometry = stairAlignedRing(L.terraceOuter, L.outerRadius, angles); carpetGeometry.translate(0, L.pathY, 0);
   const carpet = new THREE.Mesh(carpetGeometry, velvet); carpet.name = 'Blue_velvet_carpet'; carpet.userData.walkable = true; model.add(carpet);
   const interior = new THREE.Mesh(circularFloor(L.centralRadius, angles), floorMaterial); interior.name = 'Compact_lower_circular_room'; interior.userData.walkable = true; model.add(interior);
-  const platform = createCentralPlatform(model, { radius: L.centralRadius, scale: L.floorScale });
+  const platform = createCentralPlatform(model, { radius: L.centralRadius, scale: L.floorScale, contour: gatheringPlatformContour(L.centralRadius) });
   platform.material[0].dispose(); platform.material[0] = floorMaterial;
   const foundation = new THREE.Mesh(new THREE.CylinderGeometry(L.outerRadius, L.outerRadius, L.pathY + 0.8, 512, 1, true), velvet);
   foundation.name = 'Compact_blue_plinth'; foundation.position.y = (L.pathY - 0.8) / 2; model.add(foundation);

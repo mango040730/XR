@@ -1,5 +1,5 @@
 import { entranceConfig } from './entrance.js';
-import { centralIsRaised } from './central-room.js';
+import { gatheringIsRaised } from './gathering-floor.js';
 
 export const GATHERING_LAYOUT = Object.freeze({
   centralRadius: 12.5, tierDepth: 2.8, terraceOuter: 20.9,
@@ -17,6 +17,5 @@ export const GATHERING_ZONES = [
   { id: 'conversation-nook', kind: 'sofa', capacity: 6, x: 8, z: 2.5, radius: 1.85, table: true, faceCenter: true },
 ];
 export function gatheringFloorY(x, z) {
-  const scale = GATHERING_LAYOUT.floorScale;
-  return GATHERING_LAYOUT.floorY + (centralIsRaised(x / scale, z / scale) ? 0.28 : 0);
+  return GATHERING_LAYOUT.floorY + (gatheringIsRaised(x, z) ? 0.28 : 0);
 }

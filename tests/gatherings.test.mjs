@@ -15,6 +15,7 @@ import { createPillDeskParts, PILL_LEG_INSET } from '../src/terrace-pill-desk.js
 import { LOUNGE_TABLE_LENGTHS } from '../src/terrace-lounge-layout.js';
 import { SMOKED_WOOD_COLOR, WOOD_PHOTO_PATH } from '../src/terrace-smoked-wood.js';
 import { appearanceSnapshot } from './helpers/appearance-snapshot.mjs';
+import { gatheringStepBoundary } from '../src/gathering-floor.js';
 
 const bytes = await readFile(new URL('../public/models/space.glb', import.meta.url));
 const model = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
@@ -119,6 +120,26 @@ test('중앙의 좌석·등받이·화분·돌·잎이 부드러운 실제 곡�
   assert.ok(!meshes.some(m => /^Lounge_Pods__|^Planting__/.test(m.name)), '성긴 원본 폴리곤 가구·식물을 남기면 안 됩니다.');
 });
 
+test('중앙 여섯 모듈은 단차 아래 3개·위 3개로 나뉘며 코랄 쿠션 계단형 가구는 아래에 있다', () => {
+  const lower=edited.furniture.groups.filter(g=>Math.abs(g.floorY-L.floorY)<.001).map(g=>g.id);
+  const upper=edited.furniture.groups.filter(g=>Math.abs(g.floorY-L.floorY-.28)<.001).map(g=>g.id);
+  assert.deepEqual(lower,['tiered-forum','grand-lounge','reading-nook']);
+  assert.deepEqual(upper,['round-meeting','s-curve-meeting','conversation-nook']);
+  const ray=new Raycaster(new Vector3(),new Vector3(0,-1,0),0,3);
+  for(const group of edited.furniture.groups){
+    ray.ray.origin.set(group.x,L.pathY,group.z);
+    const hit=ray.intersectObjects(floors,false)[0];
+    assert.ok(hit&&Math.abs(hit.point.y-group.floorY)<.001,`${group.id} 실제 바닥과 가구 바닥 일치`);
+  }
+  for(const z of [-9,-4,-2,0,3,6,8])for(const offset of [-.15,.15]){
+    const x=gatheringStepBoundary(z)+offset;
+    if(Math.hypot(x,z)>L.centralRadius-.1)continue;
+    ray.ray.origin.set(x,L.pathY,z);
+    const hit=ray.intersectObjects(floors,false)[0];
+    assert.ok(hit&&Math.abs(hit.point.y-gatheringFloorY(x,z))<.001,'단차 양쪽의 렌더링/높이 판정 일치');
+  }
+});
+
 test('중앙 가구가 전후 바닥 단차에 접지하고 서로 또는 원형 계단과 관통하지 않는다', () => {
   const groups = [...edited.furniture.groups, { root: edited.furniture.frontPlanter, floorY: gatheringFloorY(3, 9.4) }];
   const world = new Vector3();
@@ -190,6 +211,19 @@ test('실제 병합 충돌 장면에서 새 입구·계단·중앙 통로를 연
       }
     }
     assert.equal(body.geometry.index.count / 3, meshes.reduce((n, m) => n + (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3, 0));
+    for(const sign of [1,-1]){
+      let previous=gatheringFloorY(sign===1?-1.3:.1,-10);
+      for(let i=0;i<=35;i++){
+        const x=(sign===1?-1.3:.1)+sign*i*.04;
+        ray.set(new Vector3(x,previous+.36,-10),new Vector3(0,-1,0));ray.far=.96;
+        const hit=ray.intersectObject(floor)[0];assert.ok(hit&&hit.point.y-previous<=.34&&previous-hit.point.y<=.6,'새 단차를 양방향 보행');
+        for(const h of [.4,.95,1.5])for(const side of [-.22,0,.22]){
+          ray.set(new Vector3(x,Math.max(previous,hit.point.y)+h+.025,-10+side),new Vector3(sign,0,0));ray.far=.27;
+          assert.equal(ray.intersectObject(body).length,0,'새 단차에서 몸통 충돌 없이 양방향 통과');
+        }
+        previous=hit.point.y;
+      }
+    }
     for (const seat of edited.seating.seats) {
       const outward = new Vector3(seat.position[0], 0, seat.position[2]).normalize();
       const along = new Vector3(outward.z, 0, -outward.x);
@@ -520,9 +554,10 @@ test('수정 대상 가구 외 주변 가구·조명·카메라·재질과 계�
       continue;
     }
     if (file === 'src/terrace-pill-desk.js') source = Buffer.from(source.toString().replace('\nexport const PILL_LEG_INSET = 0.24;\n', '').replace('const inset = PILL_LEG_INSET;', 'const inset = Math.max(0.32, length * 0.13);'));
-    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55').replace(', faceCenter: true',''));
+    if (file === 'src/gathering-layout.js') source = Buffer.from(source.toString().replace("z: -4.3, radius: 3.4", "z: -4.3, radius: 2.9").replace('z: -6, radius: 2.75','z: -6, radius: 2.15').replace('z: 0.4, radius: 3.05','z: 0.4, radius: 2.55').replace(', faceCenter: true','').replace("import { gatheringIsRaised } from './gathering-floor.js';","import { centralIsRaised } from './central-room.js';").replace('  return GATHERING_LAYOUT.floorY + (gatheringIsRaised(x, z) ? 0.28 : 0);','  const scale = GATHERING_LAYOUT.floorScale;\n  return GATHERING_LAYOUT.floorY + (centralIsRaised(x / scale, z / scale) ? 0.28 : 0);'));
     if (file === 'src/space-colors.js') source = Buffer.from(source.toString().replace("stairs: '#B8B8B8'", "stairs: '#CBCBCB'"));
-    if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", ''));
+    if (file === 'src/compact-space.js') source = Buffer.from(source.toString().replace(", layout: 'lounge'", '').replace("import { gatheringPlatformContour } from './gathering-floor.js';\n",'').replace(', contour: gatheringPlatformContour(L.centralRadius)',''));
+    if (file === 'src/central-room.js') source=Buffer.from(source.toString().replace(', contour = null','').replace('new THREE.Shape(contour ?? points)','new THREE.Shape(points)'));
     assert.equal(createHash('sha256').update(source).digest('hex'), hash, `${file} 원본 보존`);
   }
   const excludedTransformNames=new Set(['Gathering_tiered-forum',...meetingExclusions,'Gathering_conversation-nook','Clay_low_coffee_table']);

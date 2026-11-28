@@ -62,7 +62,7 @@ export function rebuildCentralRoom(model) {
   return { platform, rise: CENTRAL_STEP_RISE, removedDividers, raisedPieces, removedFloatingSeats: floatingSeats.length, removedFloatingSeatParts };
 }
 
-export function createCentralPlatform(model, { radius = CENTRAL_RADIUS, scale = 1 } = {}) {
+export function createCentralPlatform(model, { radius = CENTRAL_RADIUS, scale = 1, contour = null } = {}) {
   const boundary = u => centralBoundary(u / scale) * scale;
   // A filled rear half-room, including the curved vertical riser. No separate
   // strip or wall stands above the floor. The front remains at FLOOR_Y.
@@ -90,7 +90,7 @@ export function createCentralPlatform(model, { radius = CENTRAL_RADIUS, scale = 
     const angle = THREE.MathUtils.lerp(start, end, i / 384);
     points.push(point(R * Math.cos(angle), R * Math.sin(angle)));
   }
-  const geometry = new THREE.ExtrudeGeometry(new THREE.Shape(points), { depth: CENTRAL_STEP_RISE, bevelEnabled: false, steps: 1, curveSegments: 1 });
+  const geometry = new THREE.ExtrudeGeometry(new THREE.Shape(contour ?? points), { depth: CENTRAL_STEP_RISE, bevelEnabled: false, steps: 1, curveSegments: 1 });
   geometry.rotateX(-Math.PI / 2);
   geometry.translate(0, FLOOR_Y, 0);
   const platform = new THREE.Mesh(geometry, [

@@ -2,8 +2,8 @@ import { copyLocation, validLocation } from './location-data.js';
 
 export const AVATARS = Object.freeze([
   { id: 'cream', nickname: '롤리', file: 'avatar-default.png', summary: 'avatar-summary.png', ratio: 1107 / 1421, crop: null, label: '크림색 니트 캐릭터' },
-  { id: 'hoodie', nickname: '시론', file: 'avatar-2-sheet.png', ratio: 1107 / 1441, crop: 'left', label: '베이지 후드 캐릭터' },
-  { id: 'yellow', nickname: '마이', file: 'avatar-3-sheet.png', ratio: 1107 / 1441, crop: 'right', label: '노란색 니트 캐릭터' },
+  { id: 'hoodie', nickname: '마이', file: 'avatar-2-sheet.png', ratio: 1107 / 1441, crop: 'left', label: '베이지 후드 캐릭터' },
+  { id: 'yellow', nickname: '시론', file: 'avatar-3-sheet.png', ratio: 1107 / 1441, crop: 'right', label: '노란색 니트 캐릭터' },
   { id: 'violet', nickname: '뮤티', file: 'avatar-4.png', ratio: 1107 / 1359, crop: null, label: '보라색 니트 캐릭터' },
 ]);
 

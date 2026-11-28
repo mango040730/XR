@@ -70,14 +70,14 @@ test('아바타 개수에 따라 양끝 탐색을 제한하고 단일 아바타�
 
 test('아바타별 기본 닉네임을 실제 값으로 부여하고 편집한 닉네임은 같은 선택에서 유지한다',()=>{
   const state=createEntryState();
-  for(const [index,name] of ['롤리','시론','마이','뮤티'].entries()) {
+  for(const [index,name] of ['롤리','마이','시론','뮤티'].entries()) {
     if(index)state.selectAvatar(1);
     assert.equal(state.nickname,name);
     assert.equal(state.profile.nickname,name);
   }
   state.setNickname('직접 정한 이름');state.selectAvatar(1);
   assert.equal(state.nickname,'직접 정한 이름');
-  state.selectAvatar(-1);assert.equal(state.nickname,'마이');
+  state.selectAvatar(-1);assert.equal(state.nickname,'시론');
 });
 
 test('필수 입력·이메일·날짜·전화번호·인증번호·길이 조건을 필드별로 검증한다',()=>{

@@ -1,0 +1,3 @@
+.npc-nameplates { position: fixed; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
+.npc-nameplate { position: absolute; display: flex; align-items: center; justify-content: center; width: max-content; padding: 8px 24px; border-radius: 12px; background: rgba(23,24,26,.6); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); color: #efeeec; font-family: 'Wanted Sans',sans-serif; font-weight: 500; font-size: 14px; line-height: 20px; letter-spacing: .04px; white-space: nowrap; transform: translate(-50%,-100%); }
+.npc-nameplate[hidden], .npc-nameplates[hidden] { display: none; }

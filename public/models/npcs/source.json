@@ -1,0 +1,26 @@
+{
+  "롤리": {
+    "file": "롤리.glb",
+    "sha256": "fe7064daf6a90c25d37f786093b96bfad608d6efaa8fe5e66113ed17ffbc545f",
+    "source": "user-supplied GLB",
+    "bytes": 7818072
+  },
+  "마이": {
+    "file": "마이.glb",
+    "sha256": "b02ff7fdc6b757e19c31b65b2b2279d76be7bfaf5636169bb61381b8288bfaac",
+    "source": "user-supplied GLB",
+    "bytes": 8966288
+  },
+  "시론": {
+    "file": "시론.glb",
+    "sha256": "7531eae2cd47909df7b71d37e8da66e6e9b6c0773d2b10e838b58f14c7f9ebec",
+    "source": "user-supplied GLB",
+    "bytes": 7849504
+  },
+  "뮤티": {
+    "file": "뮤티.glb",
+    "sha256": "87705203c8e11b22cb9a78ada0926ea62a892772530d42ed04118fb22dfe6179",
+    "source": "user-supplied GLB",
+    "bytes": 7691436
+  }
+}

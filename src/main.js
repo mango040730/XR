@@ -11,6 +11,7 @@ import { resetToEntrance, withinWalkBoundary } from './entrance.js';
 import { entrySession } from './entry-state.js';
 import { createSpaceTutorial } from './space-tutorial.js';
 import { createTerraceActivity } from './terrace-activity.js';
+import { createNpcUsers } from './npc-users.js';
 
 // Entry and first-visit tutorial UI stay separate from the 3D scene.
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -89,6 +90,7 @@ let lastTime = 0, snapReady = true;
 const keys = new Set();
 const touches = new Map();
 let terraceActivity = null;
+let npcUsers = null;
 
 function floorHeight(x, z, y, maxDrop = 0.6) {
   origin.set(x, y + 0.36, z);
@@ -103,6 +105,7 @@ function tryMove(dx, dz, delta) {
   if (!entrySession.entered || !ready || Math.abs(dx) + Math.abs(dz) < 0.00001) return;
   camera.getWorldPosition(head);
   const x = head.x, z = head.z;
+  if (npcUsers?.blocksMove(x, z, rig.position.y, x + dx, z + dz)) return;
   if (!withinWalkBoundary(x + dx, z + dz, GATHERING_LAYOUT.walkRadius, GATHERING_ENTRY)) return;
   const height = floorHeight(x + dx, z + dz, rig.position.y);
   if (height === null || height - rig.position.y > 0.34) return;
@@ -164,6 +167,7 @@ async function loadSpace() {
   collider = collisionGeometry(meshes);
   floor = collisionGeometry(floors);
   terraceActivity.configure({ seating: prepared.seating, collider });
+  await npcUsers.load({ floor, collider });
   const initialFloor = floorHeight(GATHERING_ENTRY.position[0], GATHERING_ENTRY.position[2], GATHERING_ENTRY.position[1], 2);
   if (initialFloor !== null) rig.position.y = initialFloor;
   await renderer.compileAsync(scene, camera);
@@ -307,7 +311,8 @@ const tutorial = createSpaceTutorial({
   },
 });
 terraceActivity = createTerraceActivity({ scene, camera, rig, renderer, canInteract: () => ready && entrySession.entered && !tutorial.active, onPoseChange: clearInput });
-window.addEventListener('pagehide', event => { clearInput(); if (!event.persisted) { tutorial.dispose(); terraceActivity.dispose(); } });
+npcUsers = createNpcUsers({ scene, camera, renderer });
+window.addEventListener('pagehide', event => { clearInput(); if (!event.persisted) { tutorial.dispose(); terraceActivity.dispose(); npcUsers.dispose(); } });
 window.addEventListener('blur', clearInput);
 document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
 document.addEventListener('pointerlockchange', clearInput);
@@ -356,6 +361,7 @@ window.spaceVR = Object.freeze({
   get presenting() { return renderer.xr.isPresenting; },
   get position() { return rig.position.toArray(); },
   get terraceActivity() { return terraceActivity?.snapshot ?? null; },
+  get npcs() { return npcUsers?.snapshot ?? null; },
   get renderInfo() { return { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles }; },
 });
 
@@ -373,6 +379,7 @@ renderer.setAnimationLoop(time => {
   // Sample the actual camera world position after movement/collision resolves.
   // DOM tutorials are deferred while an immersive XR session is presenting.
   if (ready && entrySession.entered) terraceActivity.update(time, delta);
+  if (ready) npcUsers.update(delta, { active: entrySession.entered, player: rig.position });
   if (ready && entrySession.entered && !renderer.xr.isPresenting) {
     camera.getWorldPosition(head);
     tutorial.observe({ x: head.x, y: rig.position.y, z: head.z }, { suppressed: terraceActivity.suppressNotices });

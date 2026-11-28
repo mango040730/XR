@@ -43,7 +43,7 @@ try{
   await fill({nickname:''});await submit();await checkError('nickname');await capture('nickname-empty');
   await fill({nickname:'a'.repeat(21)});await submit();await checkError('nickname');
   await fill({nickname:'내 닉네임'});await checkError('nickname',false);assert.equal(await evaluate('document.querySelector("[name=nickname]").value'),'내 닉네임');
-  for(const [index,name] of ['롤리','시론','마이','뮤티'].entries()){
+  for(const [index,name] of ['롤리','마이','시론','뮤티'].entries()){
     await visit();await finishEntryPreview(evaluate,{avatar:index,stopAtNickname:true});
     assert.equal(await evaluate('document.querySelector("[name=nickname]").value'),name);
     const style=await evaluate(`(()=>{const s=getComputedStyle(document.querySelector('[name=nickname]'));return{background:s.backgroundColor,border:s.borderTopColor,padding:s.paddingLeft}})()`);
@@ -60,5 +60,5 @@ try{
     await evaluate('window.__mapsFixture.failGeocode=true');await click('search-location');await until('document.querySelector(".entry-map")?.dataset.error==="SEARCH_FAILED"','주소 검색 실패');await checkError('location-search');await capture('map-search-error');
     await evaluate('window.__mapsFixture.failGeocode=false');await fill({'location-search':'다른 동네'});await click('search-location');await until('document.querySelector(".entry-map")?.dataset.status==="ready"','검색 오류 회복');await checkError('location-search',false);
   }
-  assert.deepEqual(errors,[]);console.log(JSON.stringify({url,nicknames:['롤리','시론','마이','뮤티'],inlineErrors:'passed',correction:'passed',mobile:'passed',mapSearch:fixture?'test SDK passed':'not part of this run',errors},null,2));
+  assert.deepEqual(errors,[]);console.log(JSON.stringify({url,nicknames:['롤리','마이','시론','뮤티'],inlineErrors:'passed',correction:'passed',mobile:'passed',mapSearch:fixture?'test SDK passed':'not part of this run',errors},null,2));
 }finally{await send('Fetch.disable').catch(()=>{});if(fixture)await send('Browser.resetPermissions').catch(()=>{});ws.close();}

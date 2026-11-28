@@ -52,14 +52,26 @@ try{
   await walkTo(0,11,transitions);if(!transitions)await walkTo(0,8);
   if(transitions){
     const step=()=>evaluate('document.querySelector(".timed-tutorial-overlay")?.dataset.tutorialStep??null');
+    const typography=[];
+    const inspectType=async expected=>{
+      await evaluate('document.fonts.ready');
+      const view=await evaluate(`(()=>{const root=document.querySelector('.timed-tutorial-overlay'),card=root.querySelector('.entry-card'),b=card.getBoundingClientRect(),c=getComputedStyle(card),h=getComputedStyle(card.querySelector('h1')),p=getComputedStyle(card.querySelector('p'));return {step:root.dataset.tutorialStep,box:[b.width,b.height],title:[h.fontSize,h.fontWeight,h.lineHeight],body:[p.fontFamily,p.fontSize,p.fontWeight,p.lineHeight,p.letterSpacing,p.color,p.textAlign],padding:[c.paddingTop,c.paddingRight],radius:c.borderRadius,background:c.backgroundColor,blur:c.backdropFilter,gap:getComputedStyle(card.querySelector('.space-tutorial-copy')).gap};})()`);
+      assert.equal(view.step,expected);assert.deepEqual(view.box,[594,154]);assert.deepEqual(view.title,['28px','600','36px']);
+      assert.ok(view.body[0].includes('Wanted Sans'));assert.deepEqual(view.body.slice(1),['18px','400','26px','0.04px','rgb(239, 238, 236)','center']);
+      assert.deepEqual(view.padding,['40px','48px']);assert.equal(view.radius,'12px');assert.equal(view.background,'rgba(23, 24, 26, 0.6)');assert.equal(view.blur,'blur(25px)');assert.equal(view.gap,'12px');
+      await shot('notice-type-'+expected);typography.push(view);
+    };
     assert.equal(await step(),'relationship','교차로가 끝나기 전 중앙 안내로 즉시 교체');
+    await inspectType('relationship');
     let events=await evaluate('window.__noticeEvents');const firstGray=events.find(e=>e.step==='crossroads'),firstCentral=events.find(e=>e.step==='relationship');
     assert.ok(firstGray&&firstCentral&&firstCentral.time-firstGray.time<4900,'교차로 5초가 차기 전 중앙 진입');
     await walkTo(0,13.25,true);assert.equal(await step(),'crossroads','반대 이동에서 이미 본 교차로도 즉시 표시');
+    await inspectType('crossroads');
     await walkTo(0,11,true);assert.equal(await step(),'relationship','다시 중앙으로 바로 교체');
     assert.deepEqual((await evaluate('window.__noticeEvents')).slice(0,4).map(e=>e.step),['crossroads','relationship','crossroads','relationship'],'양방향 경계에서 빈 화면 없이 교체');
     await walkTo(-3,10,true);await walkTo(grandView.x,grandView.z,true);
     assert.equal(await step(),'room-selection','중앙 안내 중에도 가구 입구 선택 안내로 교체');
+    await inspectType('room-selection');
     await walkTo(-3,10,true);await walkTo(0,11,true);
     assert.equal(await step(),'relationship','가구 입구에서 나가면 중앙 안내로 교체');
     await until('!document.querySelector(".timed-tutorial-overlay")','새 중앙 안내의 5초 자동 닫힘');
@@ -71,7 +83,7 @@ try{
     assert.equal(await evaluate('document.pointerLockElement'),null);assert.equal(await evaluate('document.querySelector("canvas").inert'),false);
     assert.equal(await evaluate('document.activeElement===document.querySelector("canvas")'),true);
     events=await evaluate('window.__noticeEvents');await evaluate('window.__noticeObserver.disconnect()');assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({url,events,immediateBothDirections:true,moduleTransitions:true,freshTimer:closed.time-last.time,noOverlap:true,errors},null,2));
+    console.log(JSON.stringify({url,typography,events,immediateBothDirections:true,moduleTransitions:true,freshTimer:closed.time-last.time,noOverlap:true,errors},null,2));
   }else if(process.argv.includes('--room-selection')){
     await until('!document.querySelector(".space-tutorial-overlay")','중앙 첫 안내 종료');
     await evaluate(`window.__selectionEvents=[];window.__selectionObserver=new MutationObserver(()=>{const e=document.querySelector('[data-tutorial-step="room-selection"]');window.__selectionEvents.push({zone:e?.dataset.gatheringZone??null,time:performance.now()});});window.__selectionObserver.observe(document.body,{childList:true});`);
@@ -79,10 +91,10 @@ try{
     const visits=[];
     const notice=async(id,first=false)=>{
       await until(`document.querySelector('[data-tutorial-step="room-selection"]')?.dataset.gatheringZone===${JSON.stringify(id)}`,'실제 '+id+' 입구 안내');
-      const view=await inspect();assert.equal(view.zone,id);assert.deepEqual(view.box,[594,158]);
+      const view=await inspect();assert.equal(view.zone,id);assert.deepEqual(view.box,[594,154]);
       assert.deepEqual(view.center,[960,540]);assert.deepEqual(view.padding,['40px','48px']);assert.equal(view.gap,'12px');
       assert.equal(view.text,'원하는 것을 골라보세요\n\n원하는 모임 형태를 컨트롤러로 탐색하세요.');
-      assert.ok(view.typography[0].includes('Wanted Sans'));assert.deepEqual(view.typography.slice(1),['28px','36px','600','22px','30px','600']);
+      assert.ok(view.typography[0].includes('Wanted Sans'));assert.deepEqual(view.typography.slice(1),['28px','36px','600','18px','26px','400']);
       assert.equal(view.color,'rgb(239, 238, 236)');assert.equal(view.background,'rgba(23, 24, 26, 0.6)');assert.equal(view.radius,'12px');assert.equal(view.blur,'blur(25px)');
       assert.equal(view.role,'status');assert.equal(view.pointer,'none');assert.equal(view.inert,false);assert.equal(view.focus,true);assert.equal(view.overlays,1);
       if(first){

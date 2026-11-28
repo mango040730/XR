@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {writeFile} from 'node:fs/promises';
 import {finishEntryPreview} from './helpers/entry-flow.mjs';
+import {gatheringStepBoundary} from '../src/gathering-floor.js';
 const url=process.argv[2]??'http://127.0.0.1:4173/';
 const target=(await(await fetch('http://127.0.0.1:9223/json/list')).json()).find(t=>t.type==='page');
 assert.ok(target,'별도 테스트 Chrome 페이지 필요');
@@ -42,7 +43,26 @@ try{
   await keys(['KeyW']);await until('Boolean(document.querySelector("[data-tutorial-step=plaza]"))','광장 안내');await keys([]);
   await evaluate('document.querySelector("[data-tutorial-action=next]").click();document.querySelector("[data-tutorial-action=close]").click()');
   await walkTo(0,11);await walkTo(0,8);
-  if(process.argv.includes('--three-three-floor')){
+  if(process.argv.includes('--lower-passage')){
+    const lanePoint=z=>{
+      const slope=(gatheringStepBoundary(z+.001)-gatheringStepBoundary(z-.001))/.002,n=Math.hypot(1,slope);
+      return {x:gatheringStepBoundary(z)-.72/n,z:z+.72*slope/n};
+    };
+    const end=lanePoint(6);await walkTo(end.x,end.z);const samples=[];
+    for(const sign of [-1,1])for(let i=0;i<=20;i++){
+      const p=lanePoint(sign===-1?6-i*.15:3+i*.15),actual=await walkTo(p.x,p.z);samples.push(actual);
+      assert.ok(Math.abs(actual[1]-1.175)<.012,`단차 아래 바닥을 따라 이동: ${actual}`);
+    }
+    const view=lanePoint(3),look=lanePoint(5);await walkTo(view.x,view.z);
+    await until('!document.querySelector(".space-tutorial-overlay")','안내 종료 후 낮은 통로 확인');
+    const yaw=Math.atan2(view.x-look.x,view.z-look.z),dragX=960-yaw/.0022;
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:960,y:540});
+    await send('Input.dispatchMouseEvent',{type:'mousePressed',x:960,y:540,button:'left',clickCount:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:dragX,y:604,button:'left',buttons:1});
+    await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:dragX,y:604,button:'left',clickCount:1});
+    await pause(250);await shot('lower-passage');assert.deepEqual(errors,[]);
+    console.log(JSON.stringify({url,lowerPassage:true,bothDirections:true,samples:samples.length,footHeight:[Math.min(...samples.map(p=>p[1])),Math.max(...samples.map(p=>p[1]))],errors},null,2));
+  }else if(process.argv.includes('--three-three-floor')){
     await walkTo(-1.8,4.5);await walkTo(-2.4,1.2);await walkTo(-4.6,0);await walkTo(-4.6,-4);
     await pause(350);const forum=await evaluate('window.spaceVR.position');
     assert.ok(Math.abs(forum[1]-1.175)<.008,'계단형 가구 안은 단차 없는 낮은 바닥');

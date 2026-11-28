@@ -8,7 +8,7 @@ function smoothStep(start,end,value) {
 // World-space curved boundary x=f(z). The three left modules, including the
 // forum and its rear planter, are below; the three right modules are above.
 export function gatheringStepBoundary(z) {
-  return -.6-1.6*smoothStep(-3,-.5,z)+10.2*smoothStep(4.6,10,z);
+  return -.6-1.6*smoothStep(-3,-.5,z)+10.2*smoothStep(3,10,z);
 }
 export function gatheringIsRaised(x,z) {
   return x>=gatheringStepBoundary(z);

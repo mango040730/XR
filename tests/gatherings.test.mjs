@@ -140,6 +140,30 @@ test('중앙 여섯 모듈은 단차 아래 3개·위 3개로 나뉘며 코랄 �
   }
 });
 
+test('큰 곡선 소파와 실제 단차 윤곽 사이에는 최소 1.5m 낮은 통로가 있다',()=>{
+  const p=edited.platform.geometry.attributes.position,curve=new Map();
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i),z=p.getZ(i);
+    if(Math.abs(x-gatheringStepBoundary(z))<.003)curve.set(z,[x,z]);
+  }
+  const points=[...curve.values()].sort((a,b)=>a[1]-b[1]);assert.ok(points.length>400);
+  const group=edited.furniture.groups.find(g=>g.id==='grand-lounge'),world=new Vector3();let clearanceSq=Infinity;
+  group.root.traverse(mesh=>{
+    if(!mesh.isMesh)return;const p=mesh.geometry.attributes.position;
+    for(let i=0;i<p.count;i++){
+      world.fromBufferAttribute(p,i).applyMatrix4(mesh.matrixWorld);
+      if(world.x<-3.7||world.y>group.floorY+1.65)continue;
+      for(let j=1;j<points.length;j++){
+        const [ax,az]=points[j-1],[bx,bz]=points[j];
+        if(world.z<az-Math.sqrt(clearanceSq)||world.z>bz+Math.sqrt(clearanceSq))continue;
+        const dx=bx-ax,dz=bz-az,t=Math.max(0,Math.min(1,((world.x-ax)*dx+(world.z-az)*dz)/(dx*dx+dz*dz)));
+        clearanceSq=Math.min(clearanceSq,(world.x-ax-t*dx)**2+(world.z-az-t*dz)**2);
+      }
+    }
+  });
+  assert.ok(Math.sqrt(clearanceSq)>=1.5,`소파와 단차 실제 여유: ${Math.sqrt(clearanceSq)}m`);
+});
+
 test('중앙 가구가 전후 바닥 단차에 접지하고 서로 또는 원형 계단과 관통하지 않는다', () => {
   const groups = [...edited.furniture.groups, { root: edited.furniture.frontPlanter, floorY: gatheringFloorY(3, 9.4) }];
   const world = new Vector3();
@@ -211,6 +235,22 @@ test('실제 병합 충돌 장면에서 새 입구·계단·중앙 통로를 연
       }
     }
     assert.equal(body.geometry.index.count / 3, meshes.reduce((n, m) => n + (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3, 0));
+    const lanePoint=z=>{
+      const x=gatheringStepBoundary(z),slope=(gatheringStepBoundary(z+.001)-gatheringStepBoundary(z-.001))/.002,n=Math.hypot(1,slope);
+      return new Vector3(x-.72/n,0,z+.72*slope/n);
+    };
+    for(let z=3;z<=6;z+=.04){
+      const centre=lanePoint(z),direction=lanePoint(z+.01).sub(centre).normalize(),side=new Vector3(-direction.z,0,direction.x);
+      for(const offset of [-.6,0,.6]){
+        const point=centre.clone().addScaledVector(side,offset);
+        ray.set(point.clone().setY(L.floorY+.5),new Vector3(0,-1,0));ray.far=.6;
+        const hit=ray.intersectObject(floor)[0];assert.ok(hit&&Math.abs(hit.point.y-L.floorY)<.001,'소파 옆 1.2m 폭 통로 전체가 낮은 바닥');
+        for(const h of [.4,.95,1.5]){
+          ray.set(point.clone().setY(L.floorY+h+.025),direction);ray.far=.27;
+          assert.equal(ray.intersectObject(body).length,0,'단차 아래 통로에 몸통·어깨·머리 충돌 없음');
+        }
+      }
+    }
     for(const sign of [1,-1]){
       let previous=gatheringFloorY(sign===1?-1.3:.1,-10);
       for(let i=0;i<=35;i++){
